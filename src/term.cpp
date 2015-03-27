@@ -23,14 +23,30 @@ void setTermColor(uint8_t color) {
   termColor = color;
 }
 
-void putc(char ch) {
-  termBuf[termRow * VGA_WIDTH + termCol] = vgaEntry(ch, termColor);
-  if (++termCol == VGA_WIDTH) {
-    termCol = 0;
+namespace {
+  void advRow() {
     if (++termRow == VGA_HEIGHT) {
       termRow = 0;
     }
   }
+
+  void advCol() {
+    if (++termCol == VGA_WIDTH) {
+      termCol = 0;
+      advRow();
+    }
+  }
+}
+
+void putc(char ch) {
+  if (ch == '\n') {
+    advRow();
+    termCol = 0;
+    return;
+  }
+
+  termBuf[termRow * VGA_WIDTH + termCol] = vgaEntry(ch, termColor);
+  advCol();
 }
 
 void putstr(const char *str) {
