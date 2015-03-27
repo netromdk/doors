@@ -14,6 +14,5 @@ void kmain() {
   // background.
   initTerm();
 
-  putstr("BurOS booting up..\n");
-  putstr("Foo bar baz..");
+  putstr("BurOS booting up..\n\n");
 }
