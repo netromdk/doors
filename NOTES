@@ -1,0 +1,9 @@
+Cross-compilation GCC toolkit with ELF ABI.
+
+Assembler: i386-elf-as
+Compiler: i386-elf-g++
+
+GRUB on OSX: http://wiki.osdev.org/GRUB_2#Installing_GRUB2_on_Mac_OS_X
+
+Also, compile and install: https://www.gnu.org/software/xorriso/
+(You might want to use "glibtoolize" in autogen.sh instead of "libtoolize")
