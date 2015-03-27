@@ -5,8 +5,12 @@
 #ifndef __i386__
   #error "This must be compiled as x86"
 #endif
+
+#include "term.h"
  
 extern "C"
 void kmain() {
-  // TOOO
+  // Initialize terminal to using white foreground and black
+  // background.
+  initTerm();
 }

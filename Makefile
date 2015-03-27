@@ -15,8 +15,13 @@ help:
 build:
 	mkdir -p $(BUILDDIR)
 	$(AS) boot/boot.s -o $(BUILDDIR)/boot.o
+	$(CXX) $(CXXFLAGS) -c src/term.cpp -o $(BUILDDIR)/term.o
 	$(CXX) $(CXXFLAGS) -c src/kernel.cpp -o $(BUILDDIR)/kernel.o
-	$(CXX) -T linker.ld $(LDFLAGS) $(BUILDDIR)/boot.o $(BUILDDIR)/kernel.o -o $(BIN)
+	$(CXX) -T linker.ld $(LDFLAGS) \
+	  $(BUILDDIR)/boot.o \
+          $(BUILDDIR)/term.o \
+	  $(BUILDDIR)/kernel.o \
+	  -o $(BIN)
 
 run:
 	$(EMU) -kernel $(BIN)
