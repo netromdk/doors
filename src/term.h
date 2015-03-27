@@ -28,8 +28,6 @@ enum VgaColor {
 	COLOR_WHITE = 15,
 };
 
-void initTerm();
-
 inline uint8_t vgaColor(VgaColor fg, VgaColor bg) {
   return fg | bg << 4;
 }
@@ -37,5 +35,12 @@ inline uint8_t vgaColor(VgaColor fg, VgaColor bg) {
 inline uint16_t vgaEntry(char ch, uint8_t color) {
   return uint16_t(ch) | uint16_t(color) << 8;
 }
+
+void initTerm();
+
+void setTermColor(uint8_t color);
+
+void putc(char ch);
+void putstr(const char *str);
 
 #endif // TERM_H

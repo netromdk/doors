@@ -13,4 +13,6 @@ void kmain() {
   // Initialize terminal to using white foreground and black
   // background.
   initTerm();
+
+  putstr("BurOS booting up..");
 }

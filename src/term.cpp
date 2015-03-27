@@ -1,4 +1,5 @@
 #include "term.h"
+#include "string.h"
 
 size_t termRow, termCol;
 uint8_t termColor;
@@ -11,9 +12,30 @@ void initTerm() {
   // Fill every entry with a blank space.
   termRow = termCol = 0;
   termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
-  for (size_t y = 0; y < VGA_HEIGHT; y++) {
-    for (size_t x = 0; x < VGA_WIDTH; x++) {
-      termBuf[y * VGA_WIDTH + x] = vgaEntry(' ', termColor);
+  size_t total = VGA_WIDTH * VGA_HEIGHT;
+  for (size_t i = 0; i < total; i++) {
+    putc(' ');
+  }
+  // At this point (row,col) has been reset to (0,0).
+}
+
+void setTermColor(uint8_t color) {
+  termColor = color;
+}
+
+void putc(char ch) {
+  termBuf[termRow * VGA_WIDTH + termCol] = vgaEntry(ch, termColor);
+  if (++termCol == VGA_WIDTH) {
+    termCol = 0;
+    if (++termRow == VGA_HEIGHT) {
+      termRow = 0;
     }
+  }
+}
+
+void putstr(const char *str) {
+  size_t len = strlen(str);
+  for (size_t i = 0; i < len; i++) {
+    putc(str[i]);
   }
 }

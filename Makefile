@@ -15,12 +15,14 @@ help:
 build:
 	mkdir -p $(BUILDDIR)
 	$(AS) boot/boot.s -o $(BUILDDIR)/boot.o
-	$(CXX) $(CXXFLAGS) -c src/term.cpp -o $(BUILDDIR)/term.o
 	$(CXX) $(CXXFLAGS) -c src/kernel.cpp -o $(BUILDDIR)/kernel.o
+	$(CXX) $(CXXFLAGS) -c src/term.cpp -o $(BUILDDIR)/term.o
+	$(CXX) $(CXXFLAGS) -c src/string.cpp -o $(BUILDDIR)/string.o
 	$(CXX) -T linker.ld $(LDFLAGS) \
 	  $(BUILDDIR)/boot.o \
-          $(BUILDDIR)/term.o \
 	  $(BUILDDIR)/kernel.o \
+          $(BUILDDIR)/term.o \
+          $(BUILDDIR)/string.o \
 	  -o $(BIN)
 
 run:
