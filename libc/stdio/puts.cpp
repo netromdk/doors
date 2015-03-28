@@ -7,8 +7,7 @@
 
 int puts(const char *str) {
 #ifdef __IS_BUROS_KERNEL
-  termPuts(str);
-  return strlen(str);
+  return termPuts(str);
 #else
   return printf("%s\n", str);
 #endif

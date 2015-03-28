@@ -87,15 +87,16 @@ void termPutc(char ch, uint8_t row, uint8_t col) {
   VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(ch, termColor);
 }
 
-void termPuts(const char *str) {
+int termPuts(const char *str) {
   size_t len = strlen(str);
   for (size_t i = 0; i < len; i++) {
     termPutc(str[i]);
   }
+  return len;
 }
 
-void termPuts(const char *str, uint8_t row, uint8_t col) {
+int termPuts(const char *str, uint8_t row, uint8_t col) {
   termRow = row;
   termCol = col;
-  termPuts(str);
+  return termPuts(str);
 }
