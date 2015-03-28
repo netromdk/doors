@@ -11,10 +11,9 @@
  
 extern "C"
 void kmain() {
-  using namespace term;
   cls();
-  print("BurOS %d.%d.%d [built %s @ %s]\n",
-        MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
-        BUILD_DATE, BUILD_TIME);
-  print("Booting up..\n\n");
+  printf("BurOS %d.%d.%d [built %s @ %s]\n",
+         MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
+         BUILD_DATE, BUILD_TIME);
+  printf("Booting up..\n\n");
 }
