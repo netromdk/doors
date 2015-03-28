@@ -40,6 +40,7 @@ namespace term {
   void cls();
 
   void setColor(uint8_t color);
+  void setScrolling(bool enabled = true);
 
   void putc(char ch);
   void putc(char ch, uint8_t row, uint8_t col);

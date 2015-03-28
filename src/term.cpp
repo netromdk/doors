@@ -6,6 +6,7 @@ namespace term {
   uint8_t termRow = 0,
     termCol = 0,
     termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
+  bool scrolling = true;
 
   // Address of VRAM - color text mode.
   uint16_t *vram = (uint16_t*) 0xB8000;
@@ -22,6 +23,10 @@ namespace term {
 
   void setColor(uint8_t color) {
     termColor = color;
+  }
+
+  void setScrolling(bool enabled) {
+    scrolling = enabled;
   }
 
   namespace {
@@ -44,13 +49,18 @@ namespace term {
       // When reaching the bottom then scroll one line up instead of
       // starting at the beginning and overwriting things.
       if (++termRow == VGA_HEIGHT) {
-        clearRow(0);
-        for (uint8_t r = 0; r < VGA_HEIGHT - 1; r++) {
-          swapRows(r, r + 1);
-        }
+        if (scrolling) {
+          clearRow(0);
+          for (uint8_t r = 0; r < VGA_HEIGHT - 1; r++) {
+            swapRows(r, r + 1);
+          }
 
-        termRow = VGA_HEIGHT - 1;
-        termCol = 0;
+          termRow = VGA_HEIGHT - 1;
+          termCol = 0;
+        }
+        else {
+          termRow = 0;
+        }
       }
     }
 
