@@ -1,14 +1,15 @@
-#include "term.h"
-#include "stdlib.h"
-#include "string.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <kernel/vga.h>
+#include <kernel/tty.h>
 
 uint8_t termRow = 0,
   termCol = 0,
   termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
 bool scrolling = true;
-
-// Address of VRAM - color text mode.
-uint16_t *vram = (uint16_t*) 0xB8000;
 
 void cls() {
   termRow = termCol = 0;
@@ -37,8 +38,8 @@ namespace {
   }
 
   void swapRows(uint8_t row1, uint8_t row2) {
-    uint16_t *line1 = &vram[row1 * VGA_WIDTH],
-      *line2 = &vram[row2 * VGA_WIDTH];
+    uint16_t *line1 = &VGA_RAM[row1 * VGA_WIDTH],
+      *line2 = &VGA_RAM[row2 * VGA_WIDTH];
     for (uint8_t i = 0; i < VGA_WIDTH; i++) {
       swap(line1[i], line2[i]);
     }
@@ -83,7 +84,7 @@ void putc(char ch) {
 }
 
 void putc(char ch, uint8_t row, uint8_t col) {
-  vram[row * VGA_WIDTH + col] = vgaEntry(ch, termColor);
+  VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(ch, termColor);
 }
 
 void puts(const char *str) {

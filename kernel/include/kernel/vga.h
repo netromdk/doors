@@ -1,8 +1,11 @@
-#ifndef TERM_H
-#define TERM_H
+#ifndef KERNEL_VGA_H
+#define KERNEL_VGA_H
 
 #include <stddef.h>
 #include <stdint.h>
+
+// Address of VRAM - color text mode.
+static uint16_t *VGA_RAM = (uint16_t*) 0xB8000;
 
 // VGA standard terminal dimensions.
 static const size_t VGA_WIDTH = 80,
@@ -36,17 +39,4 @@ inline uint16_t vgaEntry(char ch, uint8_t color) {
   return uint16_t(ch) | uint16_t(color) << 8;
 }
 
-void cls();
-
-void setTermColor(uint8_t color);
-void setTermScrolling(bool enabled = true);
-
-void putc(char ch);
-void putc(char ch, uint8_t row, uint8_t col);
-
-void puts(const char *str);
-void puts(const char *str, uint8_t row, uint8_t col);
-
-void printf(const char *format, ...);
-
-#endif // TERM_H
+#endif // KERNEL_VGA_H

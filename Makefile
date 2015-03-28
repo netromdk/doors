@@ -1,11 +1,6 @@
-AS=i386-elf-as
-CXX=i386-elf-g++
-CXXFLAGS=-ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti
-LDFLAGS=-ffreestanding -O2 -nostdlib -lgcc
-EMU=qemu-system-i386
-BIN=buros.bin
+KERNEL=kernel/buros.kernel
 ISO=buros.iso
-BUILDDIR=_build
+EMU=qemu-system-i386
 TMPISODIR=/tmp/burosiso
 
 help:
@@ -13,28 +8,16 @@ help:
 	@echo "Targets: build, run, iso, run-iso, clean"
 
 build:
-	mkdir -p $(BUILDDIR)
-	$(AS) boot/boot.s -o $(BUILDDIR)/boot.o
-	$(CXX) $(CXXFLAGS) -c src/kernel.cpp -o $(BUILDDIR)/kernel.o
-	$(CXX) $(CXXFLAGS) -c src/term.cpp -o $(BUILDDIR)/term.o
-	$(CXX) $(CXXFLAGS) -c src/string.cpp -o $(BUILDDIR)/string.o
-	$(CXX) $(CXXFLAGS) -c src/stdlib.cpp -o $(BUILDDIR)/stdlib.o
-	$(CXX) -T linker.ld $(LDFLAGS) \
-	  $(BUILDDIR)/boot.o \
-	  $(BUILDDIR)/kernel.o \
-          $(BUILDDIR)/term.o \
-          $(BUILDDIR)/string.o \
-          $(BUILDDIR)/stdlib.o \
-	  -o $(BIN)
+	@./build.sh
 
 run:
-	$(EMU) -kernel $(BIN)
+	$(EMU) -kernel $(KERNEL)
 
 iso:
 	rm -fr $(TMPISODIR)
 	mkdir -p $(TMPISODIR)/boot/grub
-	cp $(BIN) $(TMPISODIR)/boot
-	cp boot/grub.cfg $(TMPISODIR)/boot/grub
+	cp $(KERNEL) $(TMPISODIR)/boot
+	cp grub.cfg $(TMPISODIR)/boot/grub
 	grub-mkrescue -o $(ISO) --locale-directory=. $(TMPISODIR)
 	rm -fr $(TMPISODIR)
 
@@ -43,7 +26,4 @@ run-iso:
 
 clean:
 	@echo "Cleaning up.."
-	@rm -frv $(BUILDDIR)
-	@find . -iname '*~' | xargs rm -frv
-	@find . -iname '*.bin' | xargs rm -frv
-	@find . -iname '*.iso' | xargs rm -frv
+	@./clean.sh

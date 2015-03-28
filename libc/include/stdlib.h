@@ -1,6 +1,7 @@
 #ifndef STDLIB_H
 #define STDLIB_H
 
+#include <sys/cdefs.h>
 #include <stdint.h>
 
 template <typename T>

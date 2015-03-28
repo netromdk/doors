@@ -6,14 +6,21 @@
   #error "This must be compiled as x86"
 #endif
 
-#include "term.h"
-#include "version.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+//#include <stdio.h>
+
+#include <kernel/tty.h>
+//#include "version.h"
  
 extern "C"
 void kmain() {
   cls();
+  /*
   printf("BurOS %d.%d.%d [built %s @ %s]\n",
          MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
          BUILD_DATE, BUILD_TIME);
+  */
   printf("Booting up..\n\n");
 }
