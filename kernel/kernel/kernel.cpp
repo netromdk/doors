@@ -24,5 +24,5 @@ extern "C" {
            MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
            BUILD_DATE, BUILD_TIME);
     printf("Booting up..\n\n");
-  }
+  }  
 }
