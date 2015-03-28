@@ -36,6 +36,7 @@ stdlib/utos.o \
 string/strlen.o \
 string/memcpy.o \
 string/memmove.o \
+string/memset.o \
 
 HOSTEDOBJS:=\
 $(ARCH_HOSTEDOBJS) \
