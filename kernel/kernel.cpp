@@ -13,12 +13,16 @@
 
 #include <kernel/tty.h>
 #include <kernel/version.h>
- 
-extern "C"
-void kmain() {
-  termCls();
-  printf("BurOS %d.%d.%d [built %s @ %s]\n",
-         MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
-         BUILD_DATE, BUILD_TIME);
-  printf("Booting up..\n\n");
+
+extern "C" {
+  void kmainInit() {
+    termCls();
+  }
+
+  void kmain() {
+    printf("BurOS %d.%d.%d [built %s @ %s]\n",
+           MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
+           BUILD_DATE, BUILD_TIME);
+    printf("Booting up..\n\n");
+  }
 }

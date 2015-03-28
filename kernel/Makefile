@@ -30,22 +30,22 @@ OBJS:=\
 $(KERNEL_ARCH_OBJS) \
 kernel.o \
 
-#CRTI_OBJ:=$(ARCHDIR)/crti.o
-#CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=crtbegin.o)
-#CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=crtend.o)
-#CRTN_OBJ:=$(ARCHDIR)/crtn.o
+CRTI_OBJ:=$(ARCHDIR)/crti.o
+CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=crtbegin.o)
+CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=crtend.o)
+CRTN_OBJ:=$(ARCHDIR)/crtn.o
 
 ALL_OUR_OBJS:=\
 $(OBJS) \
-#$(CRTI_OBJ) \
-#$(CRTN_OBJ) \
+$(CRTI_OBJ) \
+$(CRTN_OBJ) \
 
 OBJ_LINK_LIST:=\
 $(OBJS) \
-#$(CRTI_OBJ) \
-#$(CRTBEGIN_OBJ) \
-#$(CRTEND_OBJ) \
-#$(CRTN_OBJ) \
+$(CRTI_OBJ) \
+$(CRTBEGIN_OBJ) \
+$(CRTEND_OBJ) \
+$(CRTN_OBJ) \
 
 all: buros.kernel
 

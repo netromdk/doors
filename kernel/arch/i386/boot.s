@@ -33,15 +33,16 @@ _start:
 	# our stack (as it grows downwards).
 	movl $stack_top, %esp
 
-        # Call the kernel entry point which is defined in kernel.cpp.
+        # Call kernel initialization function.
+        call kmainInit
+
+        # Call global constructors.
+        call _init
+
+        # Call kernel entry point.
 	call kmain
 
-	# In case the function returns, we'll want to put the computer into an
-	# infinite loop. To do that, we use the clear interrupt ('cli') instruction
-	# to disable interrupts, the halt instruction ('hlt') to stop the CPU until
-	# the next interrupt arrives, and jumping to the halt instruction if it ever
-	# continues execution, just to be safe. We will create a local label rather
-	# than real symbol and jump to there endlessly.
+	# Hang if kmain returns prematurely.
 	cli
 	hlt
 .Lhang:
