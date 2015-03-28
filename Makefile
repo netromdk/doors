@@ -18,11 +18,13 @@ build:
 	$(CXX) $(CXXFLAGS) -c src/kernel.cpp -o $(BUILDDIR)/kernel.o
 	$(CXX) $(CXXFLAGS) -c src/term.cpp -o $(BUILDDIR)/term.o
 	$(CXX) $(CXXFLAGS) -c src/string.cpp -o $(BUILDDIR)/string.o
+	$(CXX) $(CXXFLAGS) -c src/stdlib.cpp -o $(BUILDDIR)/stdlib.o
 	$(CXX) -T linker.ld $(LDFLAGS) \
 	  $(BUILDDIR)/boot.o \
 	  $(BUILDDIR)/kernel.o \
           $(BUILDDIR)/term.o \
           $(BUILDDIR)/string.o \
+          $(BUILDDIR)/stdlib.o \
 	  -o $(BIN)
 
 run:
