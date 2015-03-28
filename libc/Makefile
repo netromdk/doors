@@ -34,6 +34,7 @@ stdio/printf.o \
 stdlib/itos.o \
 stdlib/utos.o \
 string/strlen.o \
+string/memcpy.o \
 
 HOSTEDOBJS:=\
 $(ARCH_HOSTEDOBJS) \

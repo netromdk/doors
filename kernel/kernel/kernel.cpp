@@ -27,5 +27,5 @@ extern "C" {
     printf("Booting up..\n\n");
 
     dumpCpu();
-  }  
+  }
 }
