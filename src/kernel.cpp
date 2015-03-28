@@ -10,6 +10,6 @@
  
 extern "C"
 void kmain() {
-  cls();
-  putstr("BurOS booting up..\n\n");
+  term::cls();
+  term::putstr("BurOS booting up..\n\n");
 }
