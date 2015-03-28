@@ -11,16 +11,6 @@ uint8_t termRow = 0,
   termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
 bool scrolling = true;
 
-void cls() {
-  termRow = termCol = 0;
-  termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
-  size_t total = VGA_WIDTH * VGA_HEIGHT;
-  for (size_t i = 0; i < total; i++) {
-    putc(' ');
-  }
-  termRow = termCol = 0;
-}
-
 void setTermColor(uint8_t color) {
   termColor = color;
 }
@@ -29,11 +19,21 @@ void setTermScrolling(bool enabled) {
   scrolling = enabled;
 }
 
+void termCls() {
+  termRow = termCol = 0;
+  termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
+  size_t total = VGA_WIDTH * VGA_HEIGHT;
+  for (size_t i = 0; i < total; i++) {
+    termPutc(' ');
+  }
+  termRow = termCol = 0;
+}
+
 namespace {
   void clearRow(uint8_t row) {
     termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
     for (uint8_t col = 0; col < VGA_WIDTH; col++) {
-      putc(' ', row, col);
+      termPutc(' ', row, col);
     }
   }
 
@@ -72,86 +72,30 @@ namespace {
   }
 }
 
-void putc(char ch) {
+void termPutc(char ch) {
   if (ch == '\n') {
     advRow();
     termCol = 0;
     return;
   }
 
-  putc(ch, termRow, termCol);
+  termPutc(ch, termRow, termCol);
   advCol();
 }
 
-void putc(char ch, uint8_t row, uint8_t col) {
+void termPutc(char ch, uint8_t row, uint8_t col) {
   VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(ch, termColor);
 }
 
-void puts(const char *str) {
+void termPuts(const char *str) {
   size_t len = strlen(str);
   for (size_t i = 0; i < len; i++) {
-    putc(str[i]);
+    termPutc(str[i]);
   }
 }
 
-void puts(const char *str, uint8_t row, uint8_t col) {
+void termPuts(const char *str, uint8_t row, uint8_t col) {
   termRow = row;
   termCol = col;
-  puts(str);
-}
-
-void printf(const char *format, ...) {
-  char **args = (char**) &format;
-  args++;
-
-  char buf[64];
-  char c;
-  while ((c = *format++)) {
-    if (c != '%') {
-      putc(c);
-      continue;
-    }
-
-    char* tmp; // holder of temp. strings
-    c = *format++; // get format character
-
-    switch (c) {
-    case 's': // string
-      tmp = *args++;
-      if (!tmp) {
-        tmp = (char*) "(NULL)";
-      }
-      puts(tmp);
-      break;
-
-    case 'c': // character
-      putc((char) *((int32_t*) args++));
-      break;
-
-    case 'b': // binary
-      itos(*((int32_t*) args++), buf, 2);
-      puts(buf);
-      break;
-
-    case 'o': // octal
-      itos(*((int32_t*) args++), buf, 8);
-      puts(buf);
-      break;
-
-    case 'd': // decimal
-      itos(*((int32_t*) args++), buf, 10);
-      puts(buf);
-      break;
-
-    case 'x': // hexadecimal
-      itos(*((int32_t*) args++), buf, 16);
-      puts(buf);
-      break;
-
-    case 'u': // unsigned integer
-      utos(*((uint32_t*) args++), buf);
-      puts(buf);
-      break;
-    }
-  }
+  termPuts(str);
 }

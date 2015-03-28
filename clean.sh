@@ -7,5 +7,5 @@ for PROJECT in $PROJECTS; do
 done
 
 rm -rfv sysroot
-rm -rfv buros.iso
+rm -rfv *.iso
 find . -iname '*~' | xargs rm -rfv

@@ -13,7 +13,7 @@ INCLUDEDIR?=$(PREFIX)/include
 LIBDIR?=$(EXEC_PREFIX)/lib
 
 CFLAGS:=$(CFLAGS) -Wall -Wextra
-CPPFLAGS:=$(CPPFLAGS) -D__IS_BUROS_LIBC -Iinclude
+CPPFLAGS:=$(CPPFLAGS) -D__IS_BUROS_LIBC -Iinclude -I$(PWD)/sysroot/$(INCLUDEDIR)/include
 LIBK_CFLAGS:=$(CFLAGS) -ffreestanding -fbuiltin
 LIBK_CPPFLAGS:=$(CPPFLAGS) -D__IS_BUROS_KERNEL
 
@@ -28,6 +28,9 @@ LIBK_CPFLAGS:=$(LIBK_CPPFLAGS) $(KERNEL_ARCH_CPPFLAGS)
 
 FREEOBJS:=\
 $(ARCH_FREEOBJS) \
+stdio/putchar.o \
+stdio/puts.o \
+stdio/printf.o \
 stdlib/itos.o \
 stdlib/utos.o \
 string/strlen.o \
@@ -41,7 +44,7 @@ $(HOSTEDOBJS) \
 
 LIBK_OBJS:=$(FREEOBJS:.o=.libk.o)
 
-BINARIES=libc.a libg.a libk.a
+BINARIES=libc.a libk.a
 
 all: $(BINARIES)
 
@@ -49,9 +52,6 @@ all: $(BINARIES)
 
 libc.a: $(OBJS)
 	$(AR) rcs $@ $(OBJS)
-
-libg.a:
-	$(AR) rcs $@
 
 libk.a: $(LIBK_OBJS)
 	$(AR) rcs $@ $(LIBK_OBJS)
@@ -75,7 +75,7 @@ install: install-headers install-libs
 
 install-headers:
 	mkdir -p $(DESTDIR)$(INCLUDEDIR)
-	cp -Rv include $(DESTDIR)$(INCLUDEDIR)
+	cp -R include $(DESTDIR)$(INCLUDEDIR)
 
 install-libs: $(BINARIES)
 	mkdir -p $(DESTDIR)$(LIBDIR)

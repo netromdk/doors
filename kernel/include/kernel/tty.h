@@ -3,17 +3,15 @@
 
 #include <stdint.h>
 
-void cls();
-
 void setTermColor(uint8_t color);
 void setTermScrolling(bool enabled = true);
 
-void putc(char ch);
-void putc(char ch, uint8_t row, uint8_t col);
+void termCls();
 
-void puts(const char *str);
-void puts(const char *str, uint8_t row, uint8_t col);
+void termPutc(char ch);
+void termPutc(char ch, uint8_t row, uint8_t col);
 
-void printf(const char *format, ...);
+void termPuts(const char *str);
+void termPuts(const char *str, uint8_t row, uint8_t col);
 
 #endif // KERNEL_TTY_H

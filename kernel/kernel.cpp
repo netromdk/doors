@@ -9,18 +9,16 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-//#include <stdio.h>
+#include <stdio.h>
 
 #include <kernel/tty.h>
-//#include "version.h"
+#include <kernel/version.h>
  
 extern "C"
 void kmain() {
-  cls();
-  /*
+  termCls();
   printf("BurOS %d.%d.%d [built %s @ %s]\n",
          MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
          BUILD_DATE, BUILD_TIME);
-  */
   printf("Booting up..\n\n");
 }

@@ -67,7 +67,7 @@ install: install-headers install-kernel
 
 install-headers:
 	mkdir -p $(DESTDIR)$(INCLUDEDIR)
-	cp -Rv include $(DESTDIR)$(INCLUDEDIR)
+	cp -R include $(DESTDIR)$(INCLUDEDIR)
 
 install-kernel: buros.kernel
 	mkdir -p $(DESTDIR)$(BOOTDIR)
