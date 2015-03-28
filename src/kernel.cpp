@@ -7,9 +7,13 @@
 #endif
 
 #include "term.h"
+#include "version.h"
  
 extern "C"
 void kmain() {
   term::cls();
-  term::print("BurOS %d.%d.%d booting up..\n\n", 0, 1, 0);
+  term::print("BurOS %d.%d.%d [built %s @ %s]\n",
+              MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
+              BUILD_DATE, BUILD_TIME);
+  term::print("Booting up..\n\n");
 }
