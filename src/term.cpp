@@ -1,15 +1,14 @@
 #include "term.h"
 #include "string.h"
 
-size_t termRow, termCol;
-uint8_t termColor;
-uint16_t *termBuf;
+uint8_t termRow = 0,
+  termCol = 0,
+  termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
 
-void initTerm() {
-  // Color text mode address.
-  termBuf = (uint16_t*) 0xB8000;
+// Address of VRAM - color text mode.
+uint16_t *vram = (uint16_t*) 0xB8000;
 
-  // Fill every entry with a blank space.
+void cls() {
   termRow = termCol = 0;
   termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
   size_t total = VGA_WIDTH * VGA_HEIGHT;
@@ -45,8 +44,12 @@ void putc(char ch) {
     return;
   }
 
-  termBuf[termRow * VGA_WIDTH + termCol] = vgaEntry(ch, termColor);
+  putc(ch, termRow, termCol);
   advCol();
+}
+
+void putc(char ch, uint8_t row, uint8_t col) {
+  vram[row * VGA_WIDTH + col] = vgaEntry(ch, termColor);
 }
 
 void putstr(const char *str) {
@@ -54,4 +57,10 @@ void putstr(const char *str) {
   for (size_t i = 0; i < len; i++) {
     putc(str[i]);
   }
+}
+
+void putstr(const char *str, uint8_t row, uint8_t col) {
+  termRow = row;
+  termCol = col;
+  putstr(str);
 }

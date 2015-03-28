@@ -10,9 +10,6 @@
  
 extern "C"
 void kmain() {
-  // Initialize terminal to using white foreground and black
-  // background.
-  initTerm();
-
+  cls();
   putstr("BurOS booting up..\n\n");
 }

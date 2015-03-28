@@ -36,11 +36,14 @@ inline uint16_t vgaEntry(char ch, uint8_t color) {
   return uint16_t(ch) | uint16_t(color) << 8;
 }
 
-void initTerm();
+void cls();
 
 void setTermColor(uint8_t color);
 
 void putc(char ch);
+void putc(char ch, uint8_t row, uint8_t col);
+
 void putstr(const char *str);
+void putstr(const char *str, uint8_t row, uint8_t col);
 
 #endif // TERM_H
