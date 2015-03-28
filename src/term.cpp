@@ -17,7 +17,7 @@ namespace term {
     for (size_t i = 0; i < total; i++) {
       putc(' ');
     }
-    // At this point (row,col) has been reset to (0,0).
+    termRow = termCol = 0;
   }
 
   void setColor(uint8_t color) {
@@ -25,9 +25,32 @@ namespace term {
   }
 
   namespace {
+    void clearRow(uint8_t row) {
+      termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
+      for (uint8_t col = 0; col < VGA_WIDTH; col++) {
+        putc(' ', row, col);
+      }
+    }
+
+    void swapRows(uint8_t row1, uint8_t row2) {
+      uint16_t *line1 = &vram[row1 * VGA_WIDTH],
+        *line2 = &vram[row2 * VGA_WIDTH];
+      for (uint8_t i = 0; i < VGA_WIDTH; i++) {
+        swap(line1[i], line2[i]);
+      }
+    }
+
     void advRow() {
+      // When reaching the bottom then scroll one line up instead of
+      // starting at the beginning and overwriting things.
       if (++termRow == VGA_HEIGHT) {
-        termRow = 0;
+        clearRow(0);
+        for (uint8_t r = 0; r < VGA_HEIGHT - 1; r++) {
+          swapRows(r, r + 1);
+        }
+
+        termRow = VGA_HEIGHT - 1;
+        termCol = 0;
       }
     }
 

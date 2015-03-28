@@ -11,9 +11,10 @@
  
 extern "C"
 void kmain() {
-  term::cls();
-  term::print("BurOS %d.%d.%d [built %s @ %s]\n",
-              MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
-              BUILD_DATE, BUILD_TIME);
-  term::print("Booting up..\n\n");
+  using namespace term;
+  cls();
+  print("BurOS %d.%d.%d [built %s @ %s]\n",
+        MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
+        BUILD_DATE, BUILD_TIME);
+  print("Booting up..\n\n");
 }
