@@ -44,8 +44,10 @@ namespace term {
   void putc(char ch);
   void putc(char ch, uint8_t row, uint8_t col);
 
-  void putstr(const char *str);
-  void putstr(const char *str, uint8_t row, uint8_t col);
+  void puts(const char *str);
+  void puts(const char *str, uint8_t row, uint8_t col);
+
+  void print(const char *format, ...);
 }
 
 #endif // TERM_H

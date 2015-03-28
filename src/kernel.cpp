@@ -11,5 +11,5 @@
 extern "C"
 void kmain() {
   term::cls();
-  term::putstr("BurOS booting up..\n\n");
+  term::print("BurOS %d.%d.%d booting up..\n\n", 0, 1, 0);
 }

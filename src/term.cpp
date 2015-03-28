@@ -1,4 +1,5 @@
 #include "term.h"
+#include "stdlib.h"
 #include "string.h"
 
 namespace term {
@@ -53,16 +54,72 @@ namespace term {
     vram[row * VGA_WIDTH + col] = vgaEntry(ch, termColor);
   }
 
-  void putstr(const char *str) {
+  void puts(const char *str) {
     size_t len = strlen(str);
     for (size_t i = 0; i < len; i++) {
       putc(str[i]);
     }
   }
 
-  void putstr(const char *str, uint8_t row, uint8_t col) {
+  void puts(const char *str, uint8_t row, uint8_t col) {
     termRow = row;
     termCol = col;
-    putstr(str);
+    puts(str);
+  }
+
+  void print(const char *format, ...) {
+    char **args = (char**) &format;
+    args++;
+
+    char buf[64];
+    char c;
+    while ((c = *format++)) {
+      if (c != '%') {
+        putc(c);
+        continue;
+      }
+
+      char* tmp; // holder of temp. strings
+      c = *format++; // get format character
+
+      switch (c) {
+      case 's': // string
+        tmp = *args++;
+        if (!tmp) {
+          tmp = (char*) "(NULL)";
+        }
+        puts(tmp);
+        break;
+
+      case 'c': // character
+        putc((char) *((int32_t*) args++));
+        break;
+
+      case 'b': // binary
+        itos(*((int32_t*) args++), buf, 2);
+        puts(buf);
+        break;
+
+      case 'o': // octal
+        itos(*((int32_t*) args++), buf, 8);
+        puts(buf);
+        break;
+
+      case 'd': // decimal
+        itos(*((int32_t*) args++), buf, 10);
+        puts(buf);
+        break;
+
+      case 'x': // hexadecimal
+        itos(*((int32_t*) args++), buf, 16);
+        puts(buf);
+        break;
+
+      case 'u': // unsigned integer
+        utos(*((uint32_t*) args++), buf);
+        puts(buf);
+        break;
+      }
+    }
   }
 }
