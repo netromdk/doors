@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include <kernel/tty.h>
+#include <kernel/cpu.h>
 #include <kernel/version.h>
 
 extern "C" {
@@ -24,5 +25,7 @@ extern "C" {
            MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
            BUILD_DATE, BUILD_TIME);
     printf("Booting up..\n\n");
+
+    dumpCpu();
   }  
 }
