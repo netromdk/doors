@@ -1,7 +1,5 @@
 #include <string.h>
 
-#include <stdio.h>
-
 /**
  * If str is shorter than the number of chars to copy then pad with
  * zeroes by the difference.
