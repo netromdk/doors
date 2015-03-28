@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <algorithm.h>
 
 #include <kernel/vga.h>
 #include <kernel/tty.h>

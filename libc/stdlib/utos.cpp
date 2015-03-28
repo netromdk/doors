@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stddef.h>
+#include <algorithm.h>
 
 void utos(uint32_t num, char *str, uint8_t base) {
   size_t i = 0;
