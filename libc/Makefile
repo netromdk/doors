@@ -14,7 +14,7 @@ LIBDIR?=$(EXEC_PREFIX)/lib
 
 CFLAGS:=$(CFLAGS) -Wall -Wextra
 CPPFLAGS:=$(CPPFLAGS) -D__IS_BUROS_LIBC -Iinclude -I$(PWD)/sysroot/$(INCLUDEDIR)/include
-LIBK_CFLAGS:=$(CFLAGS) -ffreestanding -fbuiltin
+LIBK_CFLAGS:=$(CFLAGS) -ffreestanding -fno-builtin
 LIBK_CPPFLAGS:=$(CPPFLAGS) -D__IS_BUROS_KERNEL
 
 ARCHDIR:=arch/$(HOSTARCH)

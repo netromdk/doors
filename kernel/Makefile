@@ -12,7 +12,7 @@ EXEC_PREFIX?=$(PREFIX)
 BOOTDIR?=$(EXEC_PREFIX)/boot
 INCLUDEDIR?=$(PREFIX)/include
 
-CFLAGS:=$(CFLAGS) -ffreestanding -fbuiltin -Wall -Wextra
+CFLAGS:=$(CFLAGS) -ffreestanding -fno-builtin -Wall -Wextra
 CPPFLAGS:=$(CPPFLAGS) -D__IS_BUROS_KERNEL -Iinclude -I$(PWD)/sysroot/$(INCLUDEDIR)/include
 LDFLAGS:=$(LDFLAGS) -L$(PWD)/sysroot/$(LIBDIR)
 LIBS:=$(LIBS) -nostdlib -lk -lgcc
