@@ -54,6 +54,7 @@ all: buros.kernel
 
 buros.kernel: $(OBJ_LINK_LIST) $(ARCHDIR)/linker.ld
 	$(CXX) -T $(ARCHDIR)/linker.ld -o $@ $(CFLAGS) $(OBJ_LINK_LIST) $(LDFLAGS) $(LIBS)
+	@echo "[Linked buros.kernel]"
 
 %.o: %.cpp
 	$(CXX) -c $< -o $@ -std=c++11 $(CFLAGS) $(CPPFLAGS)
@@ -67,9 +68,9 @@ clean:
 install: install-headers install-kernel
 
 install-headers:
-	mkdir -p $(DESTDIR)$(INCLUDEDIR)
-	cp -R include $(DESTDIR)$(INCLUDEDIR)
+	@mkdir -p $(DESTDIR)$(INCLUDEDIR)
+	@cp -R include $(DESTDIR)$(INCLUDEDIR)
 
 install-kernel: buros.kernel
-	mkdir -p $(DESTDIR)$(BOOTDIR)
-	cp buros.kernel $(DESTDIR)$(BOOTDIR)
+	@mkdir -p $(DESTDIR)$(BOOTDIR)
+	@cp buros.kernel $(DESTDIR)$(BOOTDIR)

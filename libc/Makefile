@@ -52,9 +52,11 @@ all: $(BINARIES)
 
 libc.a: $(OBJS)
 	$(AR) rcs $@ $(OBJS)
+	@echo "[Created libc.a]\n"
 
 libk.a: $(LIBK_OBJS)
 	$(AR) rcs $@ $(LIBK_OBJS)
+	@echo "[Created libk.a]\n"
 
 %.o: %.cpp
 	$(CXX) -c $< -o $@ -std=c++11 $(CFLAGS) $(CPPFLAGS)
@@ -74,9 +76,9 @@ clean:
 install: install-headers install-libs
 
 install-headers:
-	mkdir -p $(DESTDIR)$(INCLUDEDIR)
-	cp -R include $(DESTDIR)$(INCLUDEDIR)
+	@mkdir -p $(DESTDIR)$(INCLUDEDIR)
+	@cp -R include $(DESTDIR)$(INCLUDEDIR)
 
 install-libs: $(BINARIES)
-	mkdir -p $(DESTDIR)$(LIBDIR)
-	cp $(BINARIES) $(DESTDIR)$(LIBDIR)
+	@mkdir -p $(DESTDIR)$(LIBDIR)
+	@cp $(BINARIES) $(DESTDIR)$(LIBDIR)

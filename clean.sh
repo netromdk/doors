@@ -6,6 +6,6 @@ for PROJECT in $PROJECTS; do
   $MAKE -C $PROJECT clean
 done
 
-rm -rfv sysroot
+rm -rf sysroot
 rm -fv *.iso
 find . -iname '*~' | xargs rm -rfv
