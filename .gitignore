@@ -1,0 +1,9 @@
+*~
+.#*
+#*
+*.o
+*.a
+.DS_Store
+sysroot
+*.iso
+*.kernel
