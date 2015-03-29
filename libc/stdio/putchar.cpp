@@ -6,7 +6,7 @@
 
 int putchar(int ic) {
 #ifdef __IS_BUROS_KERNEL
-  termPutc((char) ic);
+  Tty::putc((char) ic);
 #else
   // Not implemented yet..
 #endif

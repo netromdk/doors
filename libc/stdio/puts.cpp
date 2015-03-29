@@ -7,7 +7,7 @@
 
 int puts(const char *str) {
 #ifdef __IS_BUROS_KERNEL
-  return termPuts(str);
+  return Tty::puts(str);
 #else
   return printf("%s\n", str);
 #endif

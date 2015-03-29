@@ -3,15 +3,18 @@
 
 #include <stdint.h>
 
-void setTermColor(uint8_t color);
-void setTermScrolling(bool enabled = true);
+class Tty {
+public:
+  static void setColor(uint8_t color);
+  static void setScrolling(bool enabled = true);
 
-void termCls();
+  static void cls();
 
-void termPutc(char ch);
-void termPutc(char ch, uint8_t row, uint8_t col);
+  static void putc(char ch);
+  static void putc(char ch, uint8_t row, uint8_t col);
 
-int termPuts(const char *str);
-int termPuts(const char *str, uint8_t row, uint8_t col);
+  static int puts(const char *str);
+  static int puts(const char *str, uint8_t row, uint8_t col);
+};
 
 #endif // KERNEL_TTY_H

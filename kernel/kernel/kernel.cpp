@@ -17,7 +17,7 @@
 
 extern "C" {
   void kmainInit() {
-    termCls();
+    Tty::cls();
   }
 
   void kmain() {

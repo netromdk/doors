@@ -7,34 +7,16 @@
 #include <kernel/vga.h>
 #include <kernel/tty.h>
 
-uint8_t termRow = 0,
-  termCol = 0,
-  termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
-bool scrolling = true;
-
-void setTermColor(uint8_t color) {
-  termColor = color;
-}
-
-void setTermScrolling(bool enabled) {
-  scrolling = enabled;
-}
-
-void termCls() {
-  termRow = termCol = 0;
-  termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
-  size_t total = VGA_WIDTH * VGA_HEIGHT;
-  for (size_t i = 0; i < total; i++) {
-    termPutc(' ');
-  }
-  termRow = termCol = 0;
-}
-
 namespace {
+  uint8_t termRow = 0,
+    termCol = 0,
+    termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
+  bool scrolling = true;
+
   void clearRow(uint8_t row) {
     termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
     for (uint8_t col = 0; col < VGA_WIDTH; col++) {
-      termPutc(' ', row, col);
+      Tty::putc(' ', row, col);
     }
   }
 
@@ -73,31 +55,49 @@ namespace {
   }
 }
 
-void termPutc(char ch) {
+void Tty::setColor(uint8_t color) {
+  termColor = color;
+}
+
+void Tty::setScrolling(bool enabled) {
+  scrolling = enabled;
+}
+
+void Tty::cls() {
+  termRow = termCol = 0;
+  termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
+  size_t total = VGA_WIDTH * VGA_HEIGHT;
+  for (size_t i = 0; i < total; i++) {
+    putc(' ');
+  }
+  termRow = termCol = 0;
+}
+
+void Tty::putc(char ch) {
   if (ch == '\n') {
     advRow();
     termCol = 0;
     return;
   }
 
-  termPutc(ch, termRow, termCol);
+  putc(ch, termRow, termCol);
   advCol();
 }
 
-void termPutc(char ch, uint8_t row, uint8_t col) {
+void Tty::putc(char ch, uint8_t row, uint8_t col) {
   VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(ch, termColor);
 }
 
-int termPuts(const char *str) {
+int Tty::puts(const char *str) {
   size_t len = strlen(str);
   for (size_t i = 0; i < len; i++) {
-    termPutc(str[i]);
+    putc(str[i]);
   }
   return len;
 }
 
-int termPuts(const char *str, uint8_t row, uint8_t col) {
+int Tty::puts(const char *str, uint8_t row, uint8_t col) {
   termRow = row;
   termCol = col;
-  return termPuts(str);
+  return puts(str);
 }
