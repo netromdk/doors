@@ -85,9 +85,9 @@ namespace {
             "pop %%eax;"
             "xor %%ecx, %%eax;"
             "je no;"
-            "mov $1, %%eax;"
+            "mov $1, %%eax;" // Return 1.
             "jmp end;"
-            "no: mov $0, %%eax;"
+            "no: mov $0, %%eax;" // Return 0.
             "end:;"
             : "=a" (res)
             :
@@ -324,4 +324,71 @@ bool Cpu::hasVendorId(const char *id) {
 
 bool Cpu::hasTsc() {
   return features.features.TSC;
+}
+
+uint32_t Cpu::getTimeStamp() {
+  uint32_t cycles;
+  __asm__("rdtsc" : "=a" (cycles));
+  return cycles;
+}
+
+uint32_t __cycle, __base, __time;
+float __x = 42.0;
+namespace {
+  uint32_t _getCyclesOverhead() {
+    __asm__
+      ("cpuid;"
+       "rdtsc;"
+       "mov %eax, __cycle;"
+       "cpuid;"
+       "rdtsc;"
+       "sub __cycle, %eax;"
+       "mov %eax, __base;"
+
+       "cpuid;"
+       "rdtsc;"
+       "mov %eax, __cycle;"
+       "cpuid;"
+       "rdtsc;"
+       "sub __cycle, %eax;"
+       "mov %eax, __base;"
+
+       "cpuid;"
+       "rdtsc;"
+       "mov %eax, __cycle;"
+       "cpuid;"
+       "rdtsc;"
+       "sub __cycle, %eax;"
+       "mov %eax, __base;");
+    return __base;
+  }
+
+  uint32_t _getCyclesPrFDiv() {
+    __asm__
+      (// Load arguments to fdiv.
+       "fld __x;"
+       "fld __x;"
+       "cpuid;" // Serialize to ensure no out-of-order exec.
+       "rdtsc;"
+       "mov %eax, __time;"
+       "fdivp;" // Do division.
+       "cpuid;" // Serialize.
+       "rdtsc;"
+       "sub __time, %eax;"
+       "mov %eax, __time"); // Put difference in time variable.
+    return __time;
+  }
+}
+
+/**
+ * Get a baseline and subtract from values to try to elminate data and
+ * instruction caching.
+ */
+uint32_t Cpu::getCyclesPrFDiv() {
+  uint32_t cycles = 0, base = 0, count = 1024;
+  for (size_t i = 0; i < count; i++) {
+    base += _getCyclesOverhead();
+    cycles += _getCyclesPrFDiv();
+  }
+  return (cycles / count) - (base / count);
 }

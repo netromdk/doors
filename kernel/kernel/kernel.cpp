@@ -32,5 +32,12 @@ extern "C" {
       return;
     }
     Cpu::dump();
+
+    bool tsc = Cpu::hasTsc();
+    printf("\nHas TSC=%s\n", (tsc ? "yes" : "no"));
+    if (tsc) {
+      uint32_t cfdiv = Cpu::getCyclesPrFDiv();
+      printf("Avg. cycles pr. fdiv: %u\n", cfdiv);
+    }
   }
 }

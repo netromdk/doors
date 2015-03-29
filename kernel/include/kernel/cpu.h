@@ -36,6 +36,16 @@ public:
    * Checks if the CPU supports Time Stamp Counter.
    */
   static bool hasTsc();
+
+  /**
+   * Reads the current time stamp.
+   */
+  static uint32_t getTimeStamp();
+
+  /**
+   * Determines the average amount of cycles for performing an FDIV.
+   */
+  static uint32_t getCyclesPrFDiv();
 };
 
 #endif // KERNEL_CPU_H
