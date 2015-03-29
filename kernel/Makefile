@@ -1,7 +1,7 @@
 HOST?=$(shell ../default-host.sh)
 HOSTARCH:=$(shell ../target-triplet-to-arch.sh $(HOST))
 
-CFLAGS?=-O2
+CFLAGS?=-O0
 CPPFLAGS?=
 LDFLAGS?=
 LIBS?=
@@ -12,7 +12,7 @@ EXEC_PREFIX?=$(PREFIX)
 BOOTDIR?=$(EXEC_PREFIX)/boot
 INCLUDEDIR?=$(PREFIX)/include
 
-CFLAGS:=$(CFLAGS) -ffreestanding -fno-builtin -Wall -Wextra
+CFLAGS:=$(CFLAGS) -ffreestanding -fno-builtin -fno-exceptions -fno-rtti -Wall -Wextra
 CPPFLAGS:=$(CPPFLAGS) -D__IS_BUROS_KERNEL -Iinclude -I$(PWD)/sysroot/$(INCLUDEDIR)/include
 LDFLAGS:=$(LDFLAGS) -L$(PWD)/sysroot/$(LIBDIR)
 LIBS:=$(LIBS) -nostdlib -lk -lgcc
