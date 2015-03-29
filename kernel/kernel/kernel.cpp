@@ -15,6 +15,8 @@
 #include <kernel/version.h>
 #include <kernel/arch.h>
 
+#include <kernel/irq.h>
+
 extern "C" {
   void kmainInit() {
     Tty::cls();
@@ -26,6 +28,11 @@ extern "C" {
            BUILD_DATE, BUILD_TIME);
 
     Arch::init();
+
+    printf("irq enabled? %d\n", Irq::isEnabled());
+    Irq::enable();
+    printf("irq enabled? %d\n", Irq::isEnabled());
+
 
     // TODO:
     // - Init virtual memory management
