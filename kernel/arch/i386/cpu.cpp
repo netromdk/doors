@@ -314,10 +314,14 @@ void dumpCpu() {
   }
 }
 
-bool hasCpuVendorId(const char *id) {
+bool cpuHasVendorId(const char *id) {
   size_t len = strlen(vendorId);
   if (len != strlen(id)) {
     return false;
   }
   return strcmp(vendorId, id) == 0;
+}
+
+bool cpuHasTsc() {
+  return features.features.TSC;
 }

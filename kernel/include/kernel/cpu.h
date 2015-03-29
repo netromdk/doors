@@ -28,6 +28,11 @@ void dumpCpu();
 /**
  * Checks if the CPU has the specificed vendor ID.
  */
-bool hasCpuVendorId(const char *id);
+bool cpuHasVendorId(const char *id);
+
+/**
+ * Checks if the CPU supports Time Stamp Counter.
+ */
+bool cpuHasTsc();
 
 #endif // KERNEL_CPU_H
