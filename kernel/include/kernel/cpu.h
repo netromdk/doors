@@ -1,6 +1,8 @@
 #ifndef KERNEL_CPU_H
 #define KERNEL_CPU_H
 
+#include <stdint.h>
+
 #define CPUID_VENDOR_OLDAMD       "AMDisbetter!"
 #define CPUID_VENDOR_AMD          "AuthenticAMD"
 #define CPUID_VENDOR_INTEL        "GenuineIntel"
