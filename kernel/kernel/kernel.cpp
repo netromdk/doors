@@ -14,7 +14,6 @@
 #include <kernel/tty.h>
 #include <kernel/version.h>
 #include <kernel/arch.h>
-
 #include <kernel/irq.h>
 
 extern "C" {
@@ -29,17 +28,13 @@ extern "C" {
 
     Arch::init();
 
-    printf("irq enabled? %d\n", Irq::isEnabled());
-    Irq::enable();
-    printf("irq enabled? %d\n", Irq::isEnabled());
-
-
     // TODO:
     // - Init virtual memory management
 
-
-    // 1. Display when the system is ready.
-    // 2. Enable interrupts.
-    // 3. Shutdown when done.
+    printf("\n<<BurOS is ready>>\n");
+    /*
+    Irq::enable();
+    for (;;);
+    */
   }
 }

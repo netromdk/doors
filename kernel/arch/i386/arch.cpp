@@ -5,6 +5,7 @@
 
 #include <arch/i386/gdt.h>
 #include <arch/i386/idt.h>
+#include <arch/i386/pic.h>
 
 void Arch::init() {
   printf("Arch x86 init..\n\n");
@@ -25,13 +26,12 @@ void Arch::init() {
   }
   */
 
-  // TODO:
-  // - Init architecture:
-  //   - Init PIC (programmable interrupt controller)
-
   printf("Init Global Descriptor Table..\n");
   Gdt::init();
 
   printf("Init Interrupt Descriptor Table..\n");
   Idt::init();
+
+  printf("Init Programmable Interrupt Interface..\n");
+  Pic::init();
 }

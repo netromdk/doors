@@ -24,15 +24,19 @@ namespace {
 uint64_t idt[IDT_SIZE];
 IdtReg idtr;
 
-void irqCall() {
-  printf("Interrupt called!\n");
-}
+// Defined in isr.s
+/*extern */void irqCall() {}
 
 void Idt::init() {
   // Initialize IRQ (interrupt requests).
   for (size_t i = 0; i < IDT_SIZE; i++) {
     idt[i] = createDesc((uint32_t) irqCall, 0x08, INTR_GATE);
   }
+
+  // 0-31 are for exceptions.
+  // 32-127 are for master interrupts.
+  // 128-255 are for salve interrupts.
+  // (Defined pic.cpp)
   
   // Create idt register and put it at the base memory address.
   idtr.size = IDT_SIZE * sizeof(uint64_t);
