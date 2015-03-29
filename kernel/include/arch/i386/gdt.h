@@ -56,8 +56,8 @@
                      SEG_PRIV(3)     | SEG_DATA_RDWR
 
 struct GdtReg {
-	uint16_t size;
-	uint32_t base;
+  uint16_t size;
+  uint32_t base;
 } __attribute__ ((packed));
 
 class Gdt {
