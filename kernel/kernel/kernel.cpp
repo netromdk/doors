@@ -26,6 +26,11 @@ extern "C" {
            BUILD_DATE, BUILD_TIME);
     printf("Booting up..\n\n");
 
+    // Detect information about the CPU, and write to term.
+    if (!initCpu()) {
+      // TODO: Do kernel panic here.
+      return;
+    }
     dumpCpu();
   }
 }

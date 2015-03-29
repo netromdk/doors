@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 
 #include <kernel/cpu.h>
 
 namespace {
-  union cpu_features {
+  union CpuFeatures_ {
     uint32_t raw_data;
     struct {
       uint32_t FPU : 1;        // Floating-point Unit On-Chip
@@ -42,10 +43,10 @@ namespace {
       uint32_t PBE : 1;        // Pending Break Enable
     } features;
   };
-  typedef union cpu_features cpu_features_t;
+  typedef union CpuFeatures_ CpuFeatures;
 
   // Extended features
-  union cpu_efeatures {
+  union CpuExtFeatures_ {
     uint32_t raw_data;
     struct {
       uint32_t RESERVED_1 : 11;
@@ -57,10 +58,10 @@ namespace {
       uint32_t RESERVED_4 : 2;
     } features;
   };
-  typedef union cpu_efeatures cpu_efeatures_t;
+  typedef union CpuExtFeatures_ CpuExtFeatures;
 
   // Extended features 2
-  union cpu_efeatures2 {
+  union CpuExtFeatures2_ {
     uint32_t raw_data;
     struct {
       uint32_t LAHF : 1;        // LAHF and SAHF instructions available when
@@ -70,7 +71,7 @@ namespace {
       uint32_t RESERVED_1 : 31;
     } features;
   };
-  typedef union cpu_efeatures2 cpu_efeatures2_t;
+  typedef union CpuExtFeatures2_ CpuExtFeatures2;
   
   bool cpuidSupported() {
     // This method uses the ID flag in bit 21 of the EFLAGS register. If
@@ -103,8 +104,7 @@ namespace {
             : "a" (code));
   }
 
-  // Expects 'result' to have a length of 13.
-  void cpuVendorId(uint8_t *result, uint32_t *func_max) {
+  void cpuVendorId(char result[13], uint32_t &funcMax) {
     uint32_t res[4];
 
     // instruct cpuid to retrieve vendor id by using opcode 0
@@ -132,11 +132,10 @@ namespace {
 
     // as a side effect the maximum number of functions to query cpuid
     // with is provided.
-    *func_max = res[0];  
+    funcMax = res[0];
   }
 
-  // Expects 'result' to have a length of 49.
-  void cpuBrandString(uint8_t *result) {
+  void cpuBrandString(char result[49]) {
     uint32_t res[4];
     cpuid(0x80000002, res);
 
@@ -208,34 +207,65 @@ namespace {
   }
 }
 
-void dumpCpu() {
+uint32_t funcMax = 0, funcMaxExt = 0;
+char vendorId[13] = {0}, brand[49] = {0};
+uint8_t stepping = 0, model = 0, family = 0, procType = 0;
+
+CpuFeatures features;
+CpuExtFeatures efeatures;
+CpuExtFeatures2 efeatures2;
+
+bool initCpu() {
   if (!cpuidSupported()) {
     printf("cpuid instruction not supported cpu CPU!\n");
-    return;
+    return false;
   }
 
-  printf("CPU information:\n\n");
-
   // EAX=0: Get vendor id.
-  uint32_t funcMax;
-  uint8_t vendorId[13];
-  cpuVendorId(vendorId, &funcMax);
-  printf("  Vendor ID: %s\n", vendorId);
+  cpuVendorId(vendorId, funcMax);
 
   // EAX=1: Get processor info and feature bits.
   uint32_t res[4];
   if (funcMax >= 1) {
     cpuid(1, res);
-    int stepping = res[0] & 15,
-      model = (res[0] >> 4) & 15,
-      family = (res[0] >> 8) & 15,
-      proc_type = (res[0] >> 12) & 15;
-    printf("  Stepping: %d, Model: %d, Family: %d, Processor type: %d\n",
-           stepping, model, family, proc_type);
+    stepping = res[0] & 15;
+    model = (res[0] >> 4) & 15;
+    family = (res[0] >> 8) & 15;
+    procType = (res[0] >> 12) & 15;
 
     // Parse features.
-    cpu_features_t features;
     features.raw_data = res[3];
+  }
+
+  // Determine which extended functions are available.
+  cpuid(0x80000000, res);
+  funcMaxExt = res[0];
+
+  // EAX=80000001h: Get extended processor info and feature bits.
+  if (funcMaxExt >= 0x80000001) {
+    cpuid(0x80000001, res);
+
+    // Parse extended features.
+    efeatures.raw_data = res[3];
+    efeatures2.raw_data = res[2];
+  }
+
+  // EAX=80000002h,80000003h,80000004h: Get processor brand string.
+  if (funcMaxExt >= 0x80000002 && funcMaxExt >= 0x80000003 &&
+      funcMaxExt >= 0x80000004) {
+    cpuBrandString(brand);
+  }
+
+  return true;
+}
+
+void dumpCpu() {
+  printf("CPU information:\n");
+  printf("  Vendor ID: %s\n", vendorId);
+
+  if (funcMax >= 1) {
+    printf("  Stepping: %d, Model: %d, Family: %d, Processor type: %d\n",
+           stepping, model, family, procType);
 
     printf("  Features: ");
     if (features.features.FPU) printf("FPU, ");
@@ -270,21 +300,7 @@ void dumpCpu() {
     printf("\n");
   }
 
-  // Determine which extended functions are available.
-  cpuid(0x80000000, res);
-  funcMax = res[0];
-
-  // EAX=80000001h: Get extended processor info and feature bits.
-  if (funcMax >= 0x80000001) {
-    cpuid(0x80000001, res);
-
-    // Parse extended features.
-    cpu_efeatures_t efeatures;
-    efeatures.raw_data = res[3];
-
-    cpu_efeatures2_t efeatures2;
-    efeatures2.raw_data = res[2];
-
+  if (funcMaxExt >= 0x80000001) {
     printf("  Extended features: ");
     if (efeatures.features.SYSCALL) printf("SYSCALL, ");
     if (efeatures.features.XDBit) printf("XDBit, ");
@@ -293,10 +309,7 @@ void dumpCpu() {
     printf("\n");
   }
 
-  // EAX=80000002h,80000003h,80000004h: Get processor brand string.
-  if (funcMax >= 0x80000002 && funcMax >= 0x80000003 && funcMax >= 0x80000004) {
-    uint8_t brand[49];
-    cpuBrandString(brand);
+  if (strlen(brand) > 0) {
     printf("  Brand string: %s\n", brand);
-  }  
+  }
 }

@@ -2,8 +2,12 @@
 #define KERNEL_CPU_H
 
 /**
- * Detects and prints information about the CPU and its supported
- * features.
+ * Detects information about the CPU and its supported features.
+ */
+bool initCpu();
+
+/**
+ * Writes detected information to term.
  */
 void dumpCpu();
 
