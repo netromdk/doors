@@ -313,3 +313,11 @@ void dumpCpu() {
     printf("  Brand string: %s\n", brand);
   }
 }
+
+bool hasCpuVendorId(const char *id) {
+  size_t len = strlen(vendorId);
+  if (len != strlen(id)) {
+    return false;
+  }
+  return strcmp(vendorId, id) == 0;
+}
