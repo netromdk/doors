@@ -15,7 +15,7 @@
 #define CPUID_VENDOR_NSC          "Geode by NSC"
 #define CPUID_VENDOR_RISE         "RiseRiseRise"
 
-class CPU {
+class Cpu {
 public:
   /**
    * Detects information about the CPU and its supported features.

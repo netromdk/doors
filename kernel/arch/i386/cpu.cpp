@@ -215,7 +215,7 @@ namespace {
   CpuExtFeatures2 efeatures2;
 }
 
-bool CPU::init() {
+bool Cpu::init() {
   if (!cpuidSupported()) {
     printf("cpuid instruction not supported cpu CPU!\n");
     return false;
@@ -259,7 +259,7 @@ bool CPU::init() {
   return true;
 }
 
-void CPU::dump() {
+void Cpu::dump() {
   printf("CPU information:\n");
   printf("  Vendor ID: %s\n", vendorId);
 
@@ -314,7 +314,7 @@ void CPU::dump() {
   }
 }
 
-bool CPU::hasVendorId(const char *id) {
+bool Cpu::hasVendorId(const char *id) {
   size_t len = strlen(vendorId);
   if (len != strlen(id)) {
     return false;
@@ -322,6 +322,6 @@ bool CPU::hasVendorId(const char *id) {
   return strcmp(vendorId, id) == 0;
 }
 
-bool CPU::hasTsc() {
+bool Cpu::hasTsc() {
   return features.features.TSC;
 }
