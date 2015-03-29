@@ -27,10 +27,10 @@ extern "C" {
     printf("Booting up..\n\n");
 
     // Detect information about the CPU, and write to term.
-    if (!initCpu()) {
+    if (!CPU::init()) {
       // TODO: Do kernel panic here.
       return;
     }
-    dumpCpu();
+    CPU::dump();
   }
 }

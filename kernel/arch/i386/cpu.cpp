@@ -205,17 +205,17 @@ namespace {
 
     result[48] = 0;
   }
+
+  uint32_t funcMax = 0, funcMaxExt = 0;
+  char vendorId[13] = {0}, brand[49] = {0};
+  uint8_t stepping = 0, model = 0, family = 0, procType = 0;
+
+  CpuFeatures features;
+  CpuExtFeatures efeatures;
+  CpuExtFeatures2 efeatures2;
 }
 
-uint32_t funcMax = 0, funcMaxExt = 0;
-char vendorId[13] = {0}, brand[49] = {0};
-uint8_t stepping = 0, model = 0, family = 0, procType = 0;
-
-CpuFeatures features;
-CpuExtFeatures efeatures;
-CpuExtFeatures2 efeatures2;
-
-bool initCpu() {
+bool CPU::init() {
   if (!cpuidSupported()) {
     printf("cpuid instruction not supported cpu CPU!\n");
     return false;
@@ -259,7 +259,7 @@ bool initCpu() {
   return true;
 }
 
-void dumpCpu() {
+void CPU::dump() {
   printf("CPU information:\n");
   printf("  Vendor ID: %s\n", vendorId);
 
@@ -314,7 +314,7 @@ void dumpCpu() {
   }
 }
 
-bool cpuHasVendorId(const char *id) {
+bool CPU::hasVendorId(const char *id) {
   size_t len = strlen(vendorId);
   if (len != strlen(id)) {
     return false;
@@ -322,6 +322,6 @@ bool cpuHasVendorId(const char *id) {
   return strcmp(vendorId, id) == 0;
 }
 
-bool cpuHasTsc() {
+bool CPU::hasTsc() {
   return features.features.TSC;
 }

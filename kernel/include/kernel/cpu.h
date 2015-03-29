@@ -15,24 +15,27 @@
 #define CPUID_VENDOR_NSC          "Geode by NSC"
 #define CPUID_VENDOR_RISE         "RiseRiseRise"
 
-/**
- * Detects information about the CPU and its supported features.
- */
-bool initCpu();
+class CPU {
+public:
+  /**
+   * Detects information about the CPU and its supported features.
+   */
+  static bool init();
 
-/**
- * Writes detected information to term.
- */
-void dumpCpu();
+  /**
+   * Writes detected information to term.
+   */
+  static void dump();
 
-/**
- * Checks if the CPU has the specificed vendor ID.
- */
-bool cpuHasVendorId(const char *id);
+  /**
+   * Checks if the CPU has the specificed vendor ID.
+   */
+  static bool hasVendorId(const char *id);
 
-/**
- * Checks if the CPU supports Time Stamp Counter.
- */
-bool cpuHasTsc();
+  /**
+   * Checks if the CPU supports Time Stamp Counter.
+   */
+  static bool hasTsc();
+};
 
 #endif // KERNEL_CPU_H
