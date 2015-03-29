@@ -312,6 +312,8 @@ void Cpu::dump() {
   if (strlen(brand) > 0) {
     printf("  Brand string: %s\n", brand);
   }
+
+  printf("\n");
 }
 
 bool Cpu::hasVendorId(const char *id) {

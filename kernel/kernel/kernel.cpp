@@ -12,8 +12,8 @@
 #include <stdio.h>
 
 #include <kernel/tty.h>
-#include <kernel/cpu.h>
 #include <kernel/version.h>
+#include <kernel/arch.h>
 
 extern "C" {
   void kmainInit() {
@@ -24,20 +24,15 @@ extern "C" {
     printf("BurOS %d.%d.%d [built %s @ %s]\n",
            MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
            BUILD_DATE, BUILD_TIME);
-    printf("Booting up..\n\n");
 
-    // Detect information about the CPU, and write to term.
-    if (!Cpu::init()) {
-      // TODO: Do kernel panic here.
-      return;
-    }
-    Cpu::dump();
+    Arch::init();
 
-    bool tsc = Cpu::hasTsc();
-    printf("\nHas TSC=%s\n", (tsc ? "yes" : "no"));
-    if (tsc) {
-      uint32_t cfdiv = Cpu::getCyclesPrFDiv();
-      printf("Avg. cycles pr. fdiv: %u\n", cfdiv);
-    }
+    // TODO:
+    // - Init virtual memory management
+
+
+    // 1. Display when the system is ready.
+    // 2. Enable interrupts.
+    // 3. Shutdown when done.
   }
 }
