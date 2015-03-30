@@ -6,23 +6,17 @@
 #include <arch/i386/irq.h>
 
 namespace {
-  uint64_t createDesc(uint32_t offset, uint16_t selector, uint16_t type) {
-    uint64_t desc;
-
-    // Initialize high 32-bit segment.
-    desc  = type & 0x00000F00;           // set type bits 43:40 -> 11:8
-    desc |= (offset << 16) & 0xFFFF0000; // set offset high bits 31:16
-    desc <<= 32;
-
-    // Initialize low 32-bit segment.
-    desc |= selector << 16;      // set selector bits 31:16
-    desc |= offset & 0x0000FFFF; // set offset low bits 15:0
+  void fillDesc(uint32_t offset, uint16_t selector, uint8_t type, IdtDesc *desc) {
+    desc->offset_low  =  offset & 0x0000FFFF;
+    desc->offset_high = (offset & 0xFFFF0000) >> 16;
     
-    return desc;
+    desc->selector = selector;
+    desc->zero = 0;
+    desc->type = type;
   }
 }
 
-uint64_t idt[IDT_SIZE];
+IdtDesc idt[IDT_SIZE];
 IdtReg idtr;
 
 // Defined in isr.s
@@ -31,7 +25,7 @@ IdtReg idtr;
 void Idt::init() {
   // Initialize IRQ (interrupt requests).
   for (size_t i = 0; i < IDT_SIZE; i++) {
-    idt[i] = createDesc((uint32_t) irqCall, IRQ_TIMER, INTR_GATE);
+    fillDesc((uint32_t) irqCall, IRQ_TIMER, INTR_GATE, &idt[i]);
   }
 
   // 0-31 are for exceptions.
@@ -40,7 +34,7 @@ void Idt::init() {
   // (Defined pic.cpp)
   
   // Create idt register and put it at the base memory address.
-  idtr.size = IDT_SIZE * sizeof(uint64_t);
+  idtr.size = IDT_SIZE * sizeof(IdtDesc);
   idtr.base = IDT_BASE;
   memcpy((void*) idtr.base, (void*) idt, idtr.size);
 
