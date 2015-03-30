@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+// The IDT is from 0x0 to 0x7F8 (= 0xFF * sizeof(IdtDesc)) so this
+// seems a good place to put the GDT.
 #define GDT_BASE 0x00000800
 #define GDT_SIZE 0xFF
 

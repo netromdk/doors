@@ -28,9 +28,10 @@ void Idt::init() {
     fillDesc((uint32_t) irqCall, IRQ_TIMER, INTR_GATE, &idt[i]);
   }
 
-  // 0-31 are for exceptions.
-  // 32-127 are for master interrupts.
-  // 128-255 are for salve interrupts.
+  // Interrupt vectors:
+  //   0x00 -> 0x1F are for CPU exceptions.
+  //   0x20 -> 0x27 are for master interrupts.
+  //   0x28 -> 0x2F are for slave interrupts.
   // (Defined pic.cpp)
   
   // Create idt register and put it at the base memory address.
