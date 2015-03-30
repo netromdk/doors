@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include <arch/i386/idt.h>
+#include <arch/i386/irq.h>
 
 namespace {
   uint64_t createDesc(uint32_t offset, uint16_t selector, uint16_t type) {
@@ -30,7 +31,7 @@ IdtReg idtr;
 void Idt::init() {
   // Initialize IRQ (interrupt requests).
   for (size_t i = 0; i < IDT_SIZE; i++) {
-    idt[i] = createDesc((uint32_t) irqCall, 0x08, INTR_GATE);
+    idt[i] = createDesc((uint32_t) irqCall, IRQ_TIMER, INTR_GATE);
   }
 
   // 0-31 are for exceptions.
