@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#include <kernel/irq.h>
+#include <arch/i386/irq.h>
 
 void Irq::enable() {
   __asm__("sti");
