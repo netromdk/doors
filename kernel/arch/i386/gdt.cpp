@@ -4,36 +4,31 @@
 #include <arch/i386/gdt.h>
 
 namespace {
-  uint64_t createDesc(uint32_t base, uint32_t limit, uint16_t flag) {
-    uint64_t desc;
+  void fillDesc(uint32_t base, uint32_t limit, uint16_t flags, GdtDesc *desc) {
+    desc->base_low   =  base  & 0x0000FFFF;
+    desc->base_mid   = (base  & 0x00FF0000) >> 16;
+    desc->base_high  = (base  & 0xFF000000) >> 24;
 
-    // Initialize high 32-bit segment.
-    desc  =  limit       & 0x000F0000; // set limit bits 19:16
-    desc |= (flag <<  8) & 0x00F0FF00; // set type, p, dpl, s, g, d/b, l and avl fields
-    desc |= (base >> 16) & 0x000000FF; // set base bits 23:16
-    desc |=  base        & 0xFF000000; // set base bits 31:24
-    desc <<= 32;
+    desc->limit_low  =  limit & 0x0000FFFF;
+    desc->limit_high = (limit & 0x000F0000) >> 16;
 
-    // Initialize low 32-bit segment.
-    desc |= base << 16;         // set base bits 31:16
-    desc |= limit & 0x0000FFFF; // set limit bits 15:0
-
-    return desc;
+    desc->flags      = (flags & 0x0000F000) >> 12;
+    desc->access     =  flags & 0x000000FF;
   }
 }
 
-uint64_t gdt[GDT_SIZE];
+GdtDesc gdt[GDT_SIZE];
 GdtReg gdtr;
 
 void Gdt::init() {
-  gdt[0] = createDesc(0, 0, 0);
-  gdt[1] = createDesc(0, 0x000FFFFF, (GDT_CODE_PL0));
-  gdt[2] = createDesc(0, 0x000FFFFF, (GDT_DATA_PL0));
-  gdt[3] = createDesc(0, 0x000FFFFF, (GDT_CODE_PL3));
-  gdt[4] = createDesc(0, 0x000FFFFF, (GDT_DATA_PL3));
+  fillDesc(0, 0, 0, &gdt[0]);
+  fillDesc(0, 0xFFFFF, (GDT_CODE_PL0), &gdt[1]);
+  fillDesc(0, 0xFFFFF, (GDT_DATA_PL0), &gdt[2]);
+  fillDesc(0, 0xFFFFF, (GDT_CODE_PL3), &gdt[3]);
+  fillDesc(0, 0xFFFFF, (GDT_DATA_PL3), &gdt[4]);
 
   // Create gdt register and put it at the base memory address.
-  gdtr.size = GDT_SIZE * sizeof(uint64_t);
+  gdtr.size = GDT_SIZE * sizeof(GdtDesc);
   gdtr.base = GDT_BASE;
   memcpy((void*) gdtr.base, (void*) gdt, gdtr.size);
 
