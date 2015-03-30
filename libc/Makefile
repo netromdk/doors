@@ -33,6 +33,7 @@ stdio/puts.o \
 stdio/printf.o \
 stdlib/itos.o \
 stdlib/utos.o \
+stdlib/ltos.o \
 string/memcpy.o \
 string/memmove.o \
 string/memset.o \

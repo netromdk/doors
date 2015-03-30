@@ -7,5 +7,5 @@ void itos(int32_t num, char *str, uint8_t base) {
     str++;
   }
 
-  utos(num, str, base);
+  ltos(num, str, base);
 }

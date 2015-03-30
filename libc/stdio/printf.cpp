@@ -56,6 +56,11 @@ int printf(const char *format, ...) {
       utos(*((uint32_t*) args++), buf);
       written += puts(buf);
       break;
+
+    case 'l': // unsigned long integer
+      ltos(*((uint64_t*) args++), buf);
+      written += puts(buf);
+      break;
     }
   }
 
