@@ -3,7 +3,7 @@
 
 void Pic::init() {
   // Save masks
-	uint8_t mask1 = Io::inb(PIC1_DATA),
+  uint8_t mask1 = Io::inb(PIC1_DATA),
     mask2 = Io::inb(PIC2_DATA);
 
   // ICW1: Start initialization in cascade mode.

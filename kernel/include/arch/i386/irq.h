@@ -1,6 +1,8 @@
 #ifndef KERNEL_IRQ_H
 #define KERNEL_IRQ_H
 
+#include <stdint.h>
+
 /* Hardware interrupts */
 
 // PIC1 / Master
@@ -43,6 +45,12 @@ public:
   static void enable();
   static void disable();
   static bool isEnabled();
+
+  /**
+   * Manipulates the PIC's Interrupt Mask Register (IMR) which is 8
+   * bytes wide.
+   */
+  static void setMask(uint8_t mask, bool clear = false);
 };
 
 #endif // KERNEL_IRQ_H
