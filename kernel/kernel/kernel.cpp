@@ -14,7 +14,6 @@
 #include <kernel/tty.h>
 #include <kernel/version.h>
 #include <kernel/arch.h>
-#include <kernel/irq.h>
 
 extern "C" {
   void kmainInit() {
