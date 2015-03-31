@@ -26,3 +26,54 @@ void Pic::init() {
   Io::outb(PIC1_DATA, mask1);
   Io::outb(PIC2_DATA, mask2);
 }
+
+void Pic::enableIrq() {
+  __asm__("sti");
+}
+
+void Pic::disableIrq() {
+  __asm__("cli");
+}
+
+bool Pic::isIrqEnabled() {
+  uint32_t flags;
+  __asm__("pushf;"
+          "pop %0;"
+          : "=g" (flags));
+  return flags & (1 << 9);
+}
+
+void Pic::setMask(uint8_t mask, bool clear) {
+  uint16_t port;
+  if (mask < 8) {
+    port = PIC1_DATA;
+  }
+  else {
+    port = PIC2_DATA;
+    mask -= 8;
+  }
+
+  uint8_t value;
+  if (!clear) {
+    value = Io::inb(port) | (1 << mask);
+  }
+  else {
+    value = Io::inb(port) & ~(1 << mask);
+  }
+
+  Io::outb(port, value);
+}
+
+uint16_t Pic::getIsr() {
+  return getReg(OCW3_RIS);
+}
+
+uint16_t Pic::getIrr() {
+  return getReg(OCW3_RIR);
+}
+
+uint16_t Pic::getReg(uint8_t cmd) {
+  Io::outb(PIC1_CMD, cmd);
+  Io::outb(PIC2_CMD, cmd);
+  return (Io::inb(PIC2_CMD) << 8) | Io::inb(PIC1_CMD);
+}

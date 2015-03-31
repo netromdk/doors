@@ -7,6 +7,8 @@
  * - http://wiki.osdev.org/PIC#Programming_with_the_8259_PIC
  */
 
+#include <stdint.h>
+
 // Ports.
 #define PIC1            0x20 // Master PIC.
 #define PIC2            0xA0 // Slave PIC.
@@ -42,9 +44,77 @@
 #define ICW4_BUF_MASTER 0x0C // Buffered master mode.
 #define ICW4_SFNM       0x10 // Special fully nested mode.
 
+// Output Command Words (OCW).
+#define OCW3_RIS        0x0A // Read In-Service Register.
+#define OCW3_RIR        0x0B // Read Interrupt Request Register.
+
+/* Hardware interrupts */
+
+// PIC1 / Master
+#define IRQ0         0x08
+#define IRQ1         0x09
+#define IRQ2         0x0A
+#define IRQ3         0x0B
+#define IRQ4         0x0C
+#define IRQ5         0x0D
+#define IRQ6         0x0E
+#define IRQ7         0x0F
+
+#define IRQ_TIMER    IRQ0
+#define IRQ_KEYBOARD IRQ1
+#define IRQ_CASCADE  IRQ2
+#define IRQ_SERIAL2  IRQ3
+#define IRQ_SERIAL1  IRQ4
+#define IRQ_PPORT2   IRQ5 // At systems: parallel port 2, PS/2 systems: reserved.
+#define IRQ_DISKETTE IRQ6
+#define IRQ_PPORT1   IRQ7
+
+// PIC2 / Slave
+#define IRQ8         0x70
+#define IRQ9         0x71
+#define IRQ10        0x72
+#define IRQ11        0x73
+#define IRQ12        0x74
+#define IRQ13        0x75
+#define IRQ14        0x76
+#define IRQ15        0x77
+
+#define IRQ_CMOSCLK  IRQ8  // CMOS real time clock
+#define IRQ_CGAVR    IRQ9  // CGA vertical retrace.
+#define IRQ_AUX      IRQ12 // At systems: reserved, PS/2 systems: auxiliary device.
+#define IRQ_FPU      IRQ13
+#define IRQ_HDDCTRL  IRQ14 // Hard disk controller.
+
 class Pic {
 public:
   static void init();
+
+  static void enableIrq();
+  static void disableIrq();
+  static bool isIrqEnabled();
+
+  /**
+   * Manipulates the PIC's Interrupt Mask Register (IMR) which is 8
+   * bytes wide.
+   */
+  static void setMask(uint8_t mask, bool clear = false);
+
+  /**
+   * Read the In-Service Register (cascaded value from both PICs).
+   */
+  static uint16_t getIsr();
+
+  /**
+   * Read the Interrupt Requesrt Register (cascaded value from both
+   * PICs).
+   */
+  static uint16_t getIrr();
+
+private:
+  /**
+   * Reads the cascaded value from IRR or ISR from both PICs.
+   */
+  static uint16_t getReg(uint8_t cmd);
 };
 
 #endif // ARCH_I386_PIC_H

@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #include <arch/i386/idt.h>
-#include <arch/i386/irq.h>
+#include <arch/i386/pic.h>
 
 namespace {
   void fillDesc(uint32_t offset, uint16_t selector, uint8_t type, IdtDesc *desc) {
