@@ -12,3 +12,4 @@ Things to look into later:
 # References
 * [Intel i386 manuals](http://www.intel.com/content/www/us/en/processors/architectures-software-developer-manuals.html)
 * [Logix's i386 reference](http://www.logix.cz/michal/doc/i386/)
+* [OSDev.org](http://wiki.osdev.org/Main_Page)
