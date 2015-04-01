@@ -10,6 +10,6 @@ Things to look into later:
 * USB drivers (general concept)
 
 # References
-* [Intel i386 manuals](http://www.intel.com/content/www/us/en/processors/architectures-software-developer-manuals.html)
+* [Intel i386 manuals](http://www.intel.com/content/www/us/en/processors/architectures-software-developer-manuals.html) ([PDF](http://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-manual-325462.pdf))
 * [Logix's i386 reference](http://www.logix.cz/michal/doc/i386/)
 * [OSDev.org](http://wiki.osdev.org/Main_Page)
