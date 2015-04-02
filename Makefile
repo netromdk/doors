@@ -10,10 +10,10 @@ help:
 build:
 	@./build.sh
 
-run:
+run: build
 	$(EMU) -kernel $(KERNEL)
 
-iso:
+iso: build
 	rm -fr $(TMPISODIR)
 	mkdir -p $(TMPISODIR)/boot/grub
 	cp $(KERNEL) $(TMPISODIR)/boot
@@ -21,7 +21,7 @@ iso:
 	grub-mkrescue -o $(ISO) --locale-directory=. $(TMPISODIR)
 	rm -fr $(TMPISODIR)
 
-run-iso:
+run-iso: iso
 	$(EMU) -cdrom $(ISO)
 
 clean:
