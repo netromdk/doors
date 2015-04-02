@@ -1,3 +1,6 @@
+# Doors
+The meaning of the name is the recursive accronym "Doors of Open Run-time Systems".
+
 # Concept
 
 The challenge was to write an OS using C++11 aiming for paged memory, exceptions/interrupts support, and a keyboard driver. Then dropping into a simple shell for processing simple commands like querying CPU information, uptime, memory available/used, start/stop/monitor timers etc. Maybe being able to play a simple "Snake" game or similar.
