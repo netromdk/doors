@@ -21,7 +21,7 @@ extern "C" {
   }
 
   void kmain() {
-    printf("BurOS %d.%d.%d [built %s @ %s]\n",
+    printf("Doors v%d.%d.%d [built %s @ %s]\n",
            MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
            BUILD_DATE, BUILD_TIME);
 
@@ -30,7 +30,7 @@ extern "C" {
     // TODO:
     // - Init virtual memory management
 
-    printf("\n<<BurOS is ready>>\n");
+    printf("\n<<Doors are open>>\n");
     /*
     Irq::enable();
     for (;;);

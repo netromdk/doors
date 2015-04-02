@@ -13,7 +13,7 @@ BOOTDIR?=$(EXEC_PREFIX)/boot
 INCLUDEDIR?=$(PREFIX)/include
 
 CFLAGS:=$(CFLAGS) -ffreestanding -fno-builtin -fno-exceptions -fno-rtti -Wall -Wextra
-CPPFLAGS:=$(CPPFLAGS) -D__IS_BUROS_KERNEL -Iinclude -I$(PWD)/sysroot/$(INCLUDEDIR)/include
+CPPFLAGS:=$(CPPFLAGS) -D__IS_DOORS_KERNEL -Iinclude -I$(PWD)/sysroot/$(INCLUDEDIR)/include
 LDFLAGS:=$(LDFLAGS) -L$(PWD)/sysroot/$(LIBDIR)
 LIBS:=$(LIBS) -nostdlib -lk -lgcc
 
@@ -48,13 +48,13 @@ $(CRTBEGIN_OBJ) \
 $(CRTEND_OBJ) \
 $(CRTN_OBJ) \
 
-all: buros.kernel
+all: doors.kernel
 
 .PHONY: all clean install install-headers install-kernel
 
-buros.kernel: $(OBJ_LINK_LIST) $(ARCHDIR)/linker.ld
+doors.kernel: $(OBJ_LINK_LIST) $(ARCHDIR)/linker.ld
 	$(CXX) -T $(ARCHDIR)/linker.ld -o $@ $(CFLAGS) $(OBJ_LINK_LIST) $(LDFLAGS) $(LIBS)
-	@echo "[Linked buros.kernel]"
+	@echo "[Linked doors.kernel]"
 
 %.o: %.cpp
 	$(CXX) -c $< -o $@ -std=c++11 $(CFLAGS) $(CPPFLAGS)
@@ -63,7 +63,7 @@ buros.kernel: $(OBJ_LINK_LIST) $(ARCHDIR)/linker.ld
 	$(CXX) -c $< -o $@ $(CFLAGS) $(CPPFLAGS)
 
 clean:
-	rm -f buros.kernel $(OBJS) $(ALL_OUR_OBJS) *.o */*.o */*/*.o
+	rm -f doors.kernel $(OBJS) $(ALL_OUR_OBJS) *.o */*.o */*/*.o
 
 install: install-headers install-kernel
 
@@ -71,6 +71,6 @@ install-headers:
 	@mkdir -p $(DESTDIR)$(INCLUDEDIR)
 	@cp -R include $(DESTDIR)$(INCLUDEDIR)
 
-install-kernel: buros.kernel
+install-kernel: doors.kernel
 	@mkdir -p $(DESTDIR)$(BOOTDIR)
-	@cp buros.kernel $(DESTDIR)$(BOOTDIR)
+	@cp doors.kernel $(DESTDIR)$(BOOTDIR)

@@ -1,10 +1,10 @@
-KERNEL=kernel/buros.kernel
-ISO=buros.iso
+KERNEL=kernel/doors.kernel
+ISO=doors.iso
 EMU=qemu-system-i386
-TMPISODIR=/tmp/burosiso
+TMPISODIR=/tmp/doors_iso
 
 help:
-	@echo "BurOS Makefile"
+	@echo "Doors Makefile"
 	@echo "Targets: build, run, iso, run-iso, clean"
 
 build:
