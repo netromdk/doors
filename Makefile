@@ -24,6 +24,9 @@ iso: build
 run-iso: iso
 	$(EMU) -cdrom $(ISO)
 
+tags:
+	@./gtags.sh
+
 clean:
 	@echo "Cleaning up.."
 	@./clean.sh
