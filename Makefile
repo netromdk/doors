@@ -27,6 +27,10 @@ run-iso: iso
 tags:
 	@./gtags.sh
 
+clean-tags:
+	@echo "Cleaning up tags.."
+	@rm -fv GTAGS GPATH GRTAGS
+
 clean:
 	@echo "Cleaning up.."
 	@./clean.sh
