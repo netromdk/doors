@@ -8,7 +8,7 @@ help:
 	@echo "Targets: build, run, iso, run-iso, clean"
 
 build:
-	@./build.sh
+	@./scripts/build.sh
 
 run: build
 	$(EMU) -kernel $(KERNEL)
@@ -25,7 +25,7 @@ run-iso: iso
 	$(EMU) -cdrom $(ISO)
 
 tags:
-	@./gtags.sh
+	@./scripts/gtags.sh
 
 clean-tags:
 	@echo "Cleaning up tags.."
@@ -33,4 +33,4 @@ clean-tags:
 
 clean:
 	@echo "Cleaning up.."
-	@./clean.sh
+	@./scripts/clean.sh
