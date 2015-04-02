@@ -34,3 +34,5 @@ clean-tags:
 clean:
 	@echo "Cleaning up.."
 	@./scripts/clean.sh
+
+clean-all: clean clean-tags
