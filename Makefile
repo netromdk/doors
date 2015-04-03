@@ -3,6 +3,7 @@ ISO=doors.iso
 ZIP=doors.zip
 TGZ=doors.tgz
 BZ2=doors.bz2
+XZ=doors.xz
 EMU=qemu-system-i386
 TMPISODIR=/tmp/doors_iso
 SYSROOT=sysroot
@@ -57,3 +58,7 @@ tgz: build
 bz2: build
 	rm -f $(BZ2)
 	tar -cvjf $(BZ2) $(SYSROOT)
+
+xz: build
+	rm -f $(XZ)
+	tar -cvJf $(XZ) $(SYSROOT)
