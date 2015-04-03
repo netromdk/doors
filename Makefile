@@ -4,8 +4,10 @@ EMU=qemu-system-i386
 TMPISODIR=/tmp/doors_iso
 
 help:
-	@echo "Doors Makefile"
-	@echo "Targets: build, run, iso, run-iso, clean"
+	@echo "=== Doors Makefile ==="
+	@echo "Development: build, tags, clean-tags, clean, clean-all"
+	@echo "Emulation: run, run-iso"
+	@echo "Distribution: iso"
 
 build:
 	@./scripts/build.sh
