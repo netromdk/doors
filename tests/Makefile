@@ -26,7 +26,7 @@ CXXFLAGS += -g -Wall -Wextra
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-TESTS = test_libc_string
+TESTS = test_libc_string_strlen
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -41,7 +41,7 @@ clean :
 	rm -f $(TESTS) gtest.a gtest_main.a *.o
 
 run: all
-	sh -c 'for t in $(TESTS); do ./$$t; done'
+	sh -c 'for t in $(TESTS); do `pwd`/runtest.sh $$t; done'
 
 # Builds gtest.a and gtest_main.a.
 
@@ -68,9 +68,12 @@ gtest_main.a : gtest-all.o gtest_main.o
 	$(AR) $(ARFLAGS) $@ $^
 
 ### libc tests ###
-LIBC_LIB = ../libc/libc.a
-libc_string.o: libc/string.cpp $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c libc/string.cpp -o libc_string.o
+LIBC_LIB = ../libc/libctest.a
+#libc_string.o: libc/string.cpp $(GTEST_HEADERS)
+#	$(CXX) -isystem=../sysroot/usr/include $(CPPFLAGS) $(CXXFLAGS) $(LIBC_INC) -c libc/string.cpp -o libc_string.o
 
-test_libc_string: libc_string.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
+#test_libc_string: libc_string.o gtest_main.a $(LIBC_LIB)
+#	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@
+
+test_libc_string_strlen: libc/string/strlen.cpp $(LIBC_LIB)
+	$(CXX) -isystem=../sysroot/usr/include libc/string/strlen.cpp $(LIBC_LIB) -o test_libc_string_strlen

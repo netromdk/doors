@@ -9,6 +9,11 @@ export AS=${HOST}-as
 export CC=${HOST}-gcc
 export CXX=${HOST}-g++
 
+export AR_HOST=ar
+export AS_HOST=as
+export CC_HOST=gcc
+export CXX_HOST=g++
+
 export PREFIX=/usr
 export EXEC_PREFIX=$PREFIX
 export BOOTDIR=/boot

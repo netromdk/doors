@@ -19,7 +19,8 @@ help:
 build:
 	@./scripts/build.sh
 
-test: build
+test:
+	@./scripts/buildtests.sh
 	make -C tests run
 
 clean-tests:
