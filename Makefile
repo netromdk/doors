@@ -2,6 +2,7 @@ KERNEL=kernel/doors.kernel
 ISO=doors.iso
 ZIP=doors.zip
 TGZ=doors.tgz
+BZ2=doors.bz2
 EMU=qemu-system-i386
 TMPISODIR=/tmp/doors_iso
 SYSROOT=sysroot
@@ -52,3 +53,7 @@ zip: build
 tgz: build
 	rm -f $(TGZ)
 	tar -cvzf $(TGZ) $(SYSROOT)
+
+bz2: build
+	rm -f $(BZ2)
+	tar -cvjf $(BZ2) $(SYSROOT)
