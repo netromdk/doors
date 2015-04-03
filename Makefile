@@ -1,7 +1,9 @@
 KERNEL=kernel/doors.kernel
 ISO=doors.iso
+ZIP=doors.zip
 EMU=qemu-system-i386
 TMPISODIR=/tmp/doors_iso
+SYSROOT=sysroot
 
 help:
 	@echo "=== Doors Makefile ==="
@@ -9,22 +11,9 @@ help:
 	@echo "Emulation: run, run-iso"
 	@echo "Distribution: iso"
 
+# === Development ===
 build:
 	@./scripts/build.sh
-
-run: build
-	$(EMU) -kernel $(KERNEL)
-
-iso: build
-	rm -fr $(TMPISODIR)
-	mkdir -p $(TMPISODIR)/boot/grub
-	cp $(KERNEL) $(TMPISODIR)/boot
-	cp grub.cfg $(TMPISODIR)/boot/grub
-	grub-mkrescue -o $(ISO) --locale-directory=. $(TMPISODIR)
-	rm -fr $(TMPISODIR)
-
-run-iso: iso
-	$(EMU) -cdrom $(ISO)
 
 tags:
 	@./scripts/gtags.sh
@@ -38,3 +27,25 @@ clean:
 	@./scripts/clean.sh
 
 clean-all: clean clean-tags
+
+# === Emulation ===
+run: build
+	$(EMU) -kernel $(KERNEL)
+
+run-iso: iso
+	$(EMU) -cdrom $(ISO)
+
+# === Distribution ===
+iso: build
+	rm -fr $(TMPISODIR)
+	mkdir -p $(TMPISODIR)/boot/grub
+	cp $(KERNEL) $(TMPISODIR)/boot
+	cp grub.cfg $(TMPISODIR)/boot/grub
+	grub-mkrescue -o $(ISO) --locale-directory=. $(TMPISODIR)
+	rm -fr $(TMPISODIR)
+
+zip: build
+	rm -f $(ZIP)
+	zip -r9 $(ZIP) $(SYSROOT)
+
+
