@@ -11,6 +11,11 @@ int main(int argc, char **argv) {
     return 2;
   }
 
+  const char *msg3 = "";
+  if (strlen(msg3) != 0) {
+    return 3;
+  }
+
   return 0;
 }
 
