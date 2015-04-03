@@ -14,4 +14,4 @@ GPATH
 GRTAGS
 
 # test related
-tests/
+tests/test_*
