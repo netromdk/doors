@@ -11,13 +11,19 @@ SYSROOT=sysroot
 
 help:
 	@echo "=== Doors Makefile ==="
-	@echo "Development: build, tags, clean-tags, clean, clean-all"
+	@echo "Development: build, test, tags, clean-tests, clean-tags, clean, clean-all"
 	@echo "Emulation: run, run-iso"
 	@echo "Distribution: iso, zip, tgz, bz2, xz"
 
 # === Development ===
 build:
 	@./scripts/build.sh
+
+test: build
+	make -C tests run
+
+clean-tests:
+	make -C tests clean
 
 tags:
 	@./scripts/gtags.sh
@@ -30,7 +36,7 @@ clean:
 	@echo "Cleaning up.."
 	@./scripts/clean.sh
 
-clean-all: clean clean-tags
+clean-all: clean clean-tests clean-tags
 
 # === Emulation ===
 run: build
