@@ -21,7 +21,8 @@ build:
 
 test:
 	@./scripts/buildtests.sh
-	make -C tests run
+	@./scripts/runtests.sh
+#make -C tests run
 
 clean-tests:
 	make -C tests clean

@@ -96,9 +96,6 @@ libctest.a: $(LIBCTEST_OBJS)
 
 %.libctest.o: %.cpp
 	$(CXX_HOST) -c $< -o $@ -std=c++11 $(LIBCTEST_CFLAGS) $(LIBCTEST_CPPFLAGS)
-#$(OBJCOPY_HOST) --prefix-symbols=test_ $@
-#~/git/objconv/objconv -fmacho '-np: :_test' $@ $@.tmp
-#mv $@.tmp $@
 
 %.libctest.o: %.s
 	$(CXX_HOST) -c $< -o $@ $(LIBCTEST_CFLAGS) $(LIBCTEST_CPPFLAGS)
