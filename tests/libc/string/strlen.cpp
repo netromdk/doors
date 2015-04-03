@@ -1,6 +1,6 @@
 #include <string.h>
 
-int main(int argc, char **argv) {
+int main() {
   const char *msg = "hello";
   if (strlen(msg) != 5) {
     return 1;
