@@ -9,6 +9,7 @@ int puts(const char *str) {
 #ifdef __IS_DOORS_KERNEL
   return Tty::puts(str);
 #else
-  return printf("%s\n", str);
+  // TODO: Write data to stdout when defined.
+  return strlen(str);
 #endif
 }
