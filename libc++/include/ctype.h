@@ -26,4 +26,9 @@
  */
 bool isalnum(int ch);
 
+/**
+ * Check if alphabetic.
+ */
+bool isalpha(int ch);
+
 #endif // CTYPE_H
