@@ -1,4 +1,5 @@
-TESTS = test_libc_string_strlen \
+TESTS = test_libc_string_memcpy \
+test_libc_string_strlen \
 test_libc_string_strcmp \
 test_libc_string_strncmp \
 test_libc_string_strcpy \
@@ -24,6 +25,9 @@ run: $(TESTS)
         `pwd`/scripts/posttest.sh'
 
 ### libc/string ###
+test_libc_string_memcpy: libc/string/memcpy.cpp $(LIBC_LIB)
+	$(CXX_HOST) libc/string/memcpy.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+
 test_libc_string_strlen: libc/string/strlen.cpp $(LIBC_LIB)
 	$(CXX_HOST) libc/string/strlen.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
 
