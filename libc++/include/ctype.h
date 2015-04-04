@@ -98,4 +98,9 @@ bool isspace(int ch);
  */
 bool islower(int ch);
 
+/**
+ * Check if uppercase character.
+ */
+bool isupper(int ch);
+
 #endif // CTYPE_H
