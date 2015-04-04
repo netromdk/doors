@@ -57,4 +57,9 @@ bool isblank(int ch);
  */
 bool iscntrl(int ch);
 
+/**
+ * Check if digit.
+ */
+bool isdigit(int ch);
+
 #endif // CTYPE_H
