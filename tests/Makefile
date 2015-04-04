@@ -12,7 +12,8 @@ test_libc_string_strchr \
 test_libc_string_strrchr \
 test_libc_stdlib_itos \
 test_libc_stdlib_utos \
-test_libc_stdlib_ltos
+test_libc_stdlib_ltos \
+test_libc_stdio_putchar
 
 CXXFLAGS += -I../sysroot/$(INCLUDEDIR)/include -std=c++11 -O0 -Wall -Wextra -fno-builtin
 
@@ -77,3 +78,7 @@ test_libc_stdlib_utos: libc/stdlib/utos.cpp $(LIBC_LIB)
 
 test_libc_stdlib_ltos: libc/stdlib/ltos.cpp $(LIBC_LIB)
 	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/stdlib/ltos.cpp -o $@
+
+### libc/stdio ###
+test_libc_stdio_putchar: libc/stdio/putchar.cpp $(LIBC_LIB)
+	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/stdio/putchar.cpp -o $@
