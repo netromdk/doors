@@ -2,5 +2,5 @@
 set -e
 . ./config.sh
 
-echo "=== Running tests ==="
+echo "=== Building and running tests ==="
 DESTDIR="$PWD/sysroot" $MAKE -C tests run
