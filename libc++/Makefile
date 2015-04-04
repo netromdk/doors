@@ -54,6 +54,7 @@ string/strrchr.o \
 ctype/isalnum.o \
 ctype/isalpha.o \
 ctype/isblank.o \
+ctype/iscntrl.o
 
 HOSTEDOBJS:=\
 $(ARCH_HOSTEDOBJS) \

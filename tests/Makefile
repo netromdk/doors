@@ -21,7 +21,8 @@ test_libc++_algorithm_max \
 test_libc++_algorithm_swap \
 test_libc++_ctype_isalnum \
 test_libc++_ctype_isalpha \
-test_libc++_ctype_isblank
+test_libc++_ctype_isblank \
+test_libc++_ctype_iscntrl
 
 CXXFLAGS += -I../sysroot/$(INCLUDEDIR)/include -std=c++11 -O0 -Wall -Wextra -fno-builtin
 
@@ -116,3 +117,6 @@ test_libc++_ctype_isalpha: libc++/ctype/isalpha.cpp $(LIBCPP_LIB)
 
 test_libc++_ctype_isblank: libc++/ctype/isblank.cpp $(LIBCPP_LIB)
 	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/ctype/isblank.cpp -o $@
+
+test_libc++_ctype_iscntrl: libc++/ctype/iscntrl.cpp $(LIBCPP_LIB)
+	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/ctype/iscntrl.cpp -o $@
