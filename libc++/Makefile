@@ -56,7 +56,8 @@ ctype/isalpha.o \
 ctype/isblank.o \
 ctype/iscntrl.o \
 ctype/isdigit.o \
-ctype/isgraph.o
+ctype/isgraph.o \
+ctype/ispunct.o
 
 HOSTEDOBJS:=\
 $(ARCH_HOSTEDOBJS) \

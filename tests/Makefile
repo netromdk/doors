@@ -24,7 +24,8 @@ test_libc++_ctype_isalpha \
 test_libc++_ctype_isblank \
 test_libc++_ctype_iscntrl \
 test_libc++_ctype_isdigit \
-test_libc++_ctype_isgraph
+test_libc++_ctype_isgraph \
+test_libc++_ctype_ispunct
 
 CXXFLAGS += -I../sysroot/$(INCLUDEDIR)/include -std=c++11 -O0 -Wall -Wextra -fno-builtin
 
@@ -128,3 +129,6 @@ test_libc++_ctype_isdigit: libc++/ctype/isdigit.cpp $(LIBCPP_LIB)
 
 test_libc++_ctype_isgraph: libc++/ctype/isgraph.cpp $(LIBCPP_LIB)
 	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/ctype/isgraph.cpp -o $@
+
+test_libc++_ctype_ispunct: libc++/ctype/ispunct.cpp $(LIBCPP_LIB)
+	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/ctype/ispunct.cpp -o $@

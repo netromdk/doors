@@ -83,4 +83,9 @@ bool isdigit(int ch);
  */
 bool isgraph(int ch);
 
+/**
+ * Check if punctuation character.
+ */
+bool ispunct(int ch);
+
 #endif // CTYPE_H
