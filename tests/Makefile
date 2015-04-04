@@ -1,5 +1,6 @@
 TESTS = test_libc_string_strlen \
 test_libc_string_strcmp \
+test_libc_string_strncmp \
 test_libc_string_strcpy \
 test_libc_string_strncpy
 
@@ -22,6 +23,9 @@ test_libc_string_strlen: libc/string/strlen.cpp $(LIBC_LIB)
 
 test_libc_string_strcmp: libc/string/strcmp.cpp $(LIBC_LIB)
 	$(CXX_HOST) libc/string/strcmp.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+
+test_libc_string_strncmp: libc/string/strncmp.cpp $(LIBC_LIB)
+	$(CXX_HOST) libc/string/strncmp.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
 
 test_libc_string_strcpy: libc/string/strcpy.cpp $(LIBC_LIB)
 	$(CXX_HOST) libc/string/strcpy.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
