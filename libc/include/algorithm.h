@@ -10,6 +10,11 @@ inline T min(T a, T b) {
 }
 
 template <typename T>
+inline T max(T a, T b) {
+  return (a < b ? b : a);
+}
+
+template <typename T>
 inline void swap(T &a, T &b) {
   T tmp = b;
   b = a;
