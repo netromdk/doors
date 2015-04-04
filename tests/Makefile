@@ -3,7 +3,8 @@ test_libc_string_strcmp \
 test_libc_string_strncmp \
 test_libc_string_strcpy \
 test_libc_string_strncpy \
-test_libc_string_strchr
+test_libc_string_strchr \
+test_libc_string_strrchr
 
 CXXFLAGS += -isystem=../sysroot/usr/include -Wall -Wextra -std=c++11
 
@@ -36,3 +37,6 @@ test_libc_string_strncpy: libc/string/strncpy.cpp $(LIBC_LIB)
 
 test_libc_string_strchr: libc/string/strchr.cpp $(LIBC_LIB)
 	$(CXX_HOST) libc/string/strchr.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+
+test_libc_string_strrchr: libc/string/strrchr.cpp $(LIBC_LIB)
+	$(CXX_HOST) libc/string/strrchr.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
