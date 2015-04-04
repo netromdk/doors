@@ -2,11 +2,14 @@
 TEST=$1
 PWD=`pwd`
 
+. ./testconfig.sh
+
 echo "=== Running test: $TEST ==="
 RET=`$PWD/$TEST; echo $?`
 if [ $RET -eq 0 ]; then
-    echo "Success: YES"
+    echo "YES" >> ${CNTFILE}
 else
-    echo "Success: NO"
+    echo "NO" >> ${CNTFILE}
+    echo "FAILED"
     echo "Result: $RET"
 fi

@@ -17,7 +17,11 @@ clean:
 	rm -fr $(TESTS) *.dSYM
 
 run: $(TESTS)
-	sh -c 'for t in $(TESTS); do `pwd`/runtest.sh $$t; done'
+	sh -c '`pwd`/scripts/pretest.sh; \
+        for t in $(TESTS); \
+          do `pwd`/scripts/runtest.sh $$t; \
+        done; \
+        `pwd`/scripts/posttest.sh'
 
 ### libc/string ###
 test_libc_string_strlen: libc/string/strlen.cpp $(LIBC_LIB)
