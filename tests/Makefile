@@ -14,7 +14,8 @@ test_libc_stdlib_itos \
 test_libc_stdlib_utos \
 test_libc_stdlib_ltos \
 test_libc_stdio_putchar \
-test_libc_stdio_puts
+test_libc_stdio_puts \
+test_libc_stdio_printf
 
 CXXFLAGS += -I../sysroot/$(INCLUDEDIR)/include -std=c++11 -O0 -Wall -Wextra -fno-builtin
 
@@ -86,3 +87,6 @@ test_libc_stdio_putchar: libc/stdio/putchar.cpp $(LIBC_LIB)
 
 test_libc_stdio_puts: libc/stdio/puts.cpp $(LIBC_LIB)
 	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/stdio/puts.cpp -o $@
+
+test_libc_stdio_printf: libc/stdio/printf.cpp $(LIBC_LIB)
+	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/stdio/printf.cpp -o $@
