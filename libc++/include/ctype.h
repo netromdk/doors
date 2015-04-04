@@ -21,6 +21,22 @@
 #define CTYPE_GZ_LO_START  0x67
 #define CTYPE_GZ_LO_END    0x7A
 
+// !"#$%&'()*+,-./
+#define CTYPE_PUNCT1_START 0x21
+#define CTYPE_PUNCT1_END   0x2F
+
+// :;<=>?@
+#define CTYPE_PUNCT2_START 0x3A
+#define CTYPE_PUNCT2_END   0x40
+
+// [\]^_`
+#define CTYPE_PUNCT3_START 0x5B
+#define CTYPE_PUNCT3_END   0x60
+
+// {|}~
+#define CTYPE_PUNCT4_START 0x7B
+#define CTYPE_PUNCT4_END   0x7E
+
 #define CTYPE_TAB          0x09
 #define CTYPE_SPACE        0x20
 #define CTYPE_DEL          0x7F
@@ -61,5 +77,10 @@ bool iscntrl(int ch);
  * Check if digit.
  */
 bool isdigit(int ch);
+
+/**
+ * Check if it has graphical representation.
+ */
+bool isgraph(int ch);
 
 #endif // CTYPE_H
