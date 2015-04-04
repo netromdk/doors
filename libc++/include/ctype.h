@@ -118,4 +118,9 @@ bool isprint(int ch);
  */
 int tolower(int ch);
 
+/**
+ * Convert lowercase character to uppercase.
+ */
+int toupper(int ch);
+
 #endif // CTYPE_H

@@ -63,7 +63,8 @@ ctype/isspace.o \
 ctype/islower.o \
 ctype/isupper.o \
 ctype/isprint.o \
-ctype/tolower.o
+ctype/tolower.o \
+ctype/toupper.o
 
 HOSTEDOBJS:=\
 $(ARCH_HOSTEDOBJS) \
