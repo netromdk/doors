@@ -13,11 +13,11 @@ INCLUDEDIR?=$(PREFIX)/include
 LIBDIR?=$(EXEC_PREFIX)/lib
 
 CFLAGS:=$(CFLAGS) -Wall -Wextra -fno-builtin
-CPPFLAGS:=$(CPPFLAGS) -D__IS_DOORS_LIBC -Iinclude -I$(PWD)/sysroot/$(INCLUDEDIR)/include
+CPPFLAGS:=$(CPPFLAGS) -D__IS_DOORS_LIBCPP -Iinclude -I$(PWD)/sysroot/$(INCLUDEDIR)/include
 LIBK_CFLAGS:=$(CFLAGS) -ffreestanding -fno-exceptions -fno-rtti
 LIBK_CPPFLAGS:=$(CPPFLAGS) -D__IS_DOORS_KERNEL
-LIBCTEST_CFLAGS:=$(CFLAGS) 
-LIBCTEST_CPPFLAGS:=$(CPPFLAGS) -D__IS_DOORS_LIBCTEST
+LIBCPPTEST_CFLAGS:=$(CFLAGS) 
+LIBCPPTEST_CPPFLAGS:=$(CPPFLAGS) -D__IS_DOORS_LIBCPPTEST
 
 ARCHDIR:=arch/$(HOSTARCH)
 
@@ -27,8 +27,8 @@ CFLAGS:=$(CFLAGS) $(ARCH_CFLAGS)
 CPFLAGS:=$(CPPFLAGS) $(ARCH_CPPFLAGS)
 LIBK_CFLAGS:=$(LIBK_CFLAGS) $(KERNEL_ARCH_CFLAGS)
 LIBK_CPFLAGS:=$(LIBK_CPPFLAGS) $(KERNEL_ARCH_CPPFLAGS)
-LIBCTEST_CFLAGS:=$(LIBCTEST_CFLAGS)
-LIBCTEST_CPFLAGS:=$(LIBCTEST_CPPFLAGS)
+LIBCPPTEST_CFLAGS:=$(LIBCPPTEST_CFLAGS)
+LIBCPPTEST_CPFLAGS:=$(LIBCPPTEST_CPPFLAGS)
 
 FREEOBJS:=\
 $(ARCH_FREEOBJS) \
@@ -60,27 +60,27 @@ $(HOSTEDOBJS) \
 
 LIBK_OBJS:=$(FREEOBJS:.o=.libk.o)
 
-LIBCTEST_OBJS:=$(FREEOBJS:.o=.libctest.o)
+LIBCPPTEST_OBJS:=$(FREEOBJS:.o=.libc++test.o)
 
-BINARIES=libc.a libk.a
-TESTINGBINS=libctest.a
+BINARIES=libc++.a libk.a
+TESTINGBINS=libc++test.a
 
 all: $(BINARIES)
 test: $(TESTINGBINS)
 
 .PHONY: all clean install install-headers install-libs
 
-libc.a: $(OBJS)
+libc++.a: $(OBJS)
 	$(AR) rcs $@ $(OBJS)
-	@echo "[Created libc.a]\n"
+	@echo "[Created libc++.a]\n"
 
 libk.a: $(LIBK_OBJS)
 	$(AR) rcs $@ $(LIBK_OBJS)
 	@echo "[Created libk.a]\n"
 
-libctest.a: $(LIBCTEST_OBJS)
-	$(AR_HOST) rcs $@ $(LIBCTEST_OBJS)
-	@echo "[Created libctest.a]\n"
+libc++test.a: $(LIBCPPTEST_OBJS)
+	$(AR_HOST) rcs $@ $(LIBCPPTEST_OBJS)
+	@echo "[Created libc++test.a]\n"
 
 %.o: %.cpp
 	$(CXX) -c $< -o $@ -std=c++11 $(CFLAGS) $(CPPFLAGS)
@@ -94,14 +94,14 @@ libctest.a: $(LIBCTEST_OBJS)
 %.libk.o: %.s
 	$(CXX) -c $< -o $@ $(LIBK_CFLAGS) $(LIBK_CPPFLAGS)
 
-%.libctest.o: %.cpp
-	$(CXX_HOST) -c $< -o $@ -std=c++11 $(LIBCTEST_CFLAGS) $(LIBCTEST_CPPFLAGS)
+%.libc++test.o: %.cpp
+	$(CXX_HOST) -c $< -o $@ -std=c++11 $(LIBCPPTEST_CFLAGS) $(LIBCPPTEST_CPPFLAGS)
 
-%.libctest.o: %.s
-	$(CXX_HOST) -c $< -o $@ $(LIBCTEST_CFLAGS) $(LIBCTEST_CPPFLAGS)
+%.libc++test.o: %.s
+	$(CXX_HOST) -c $< -o $@ $(LIBCPPTEST_CFLAGS) $(LIBCPPTEST_CPPFLAGS)
 
 clean:
-	rm -f $(BINARIES) $(TESTINGBINS) $(OBJS) $(LIBK_OBJS) $(LIBCTEST_OBJS) *.o */*.o */*/*.o
+	rm -f $(BINARIES) $(TESTINGBINS) $(OBJS) $(LIBK_OBJS) $(LIBCPPTEST_OBJS) *.o */*.o */*/*.o
 
 install: install-headers install-libs
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 # The following directories will be traversed to generate tags from.
-DIRS="kernel libc"
+DIRS="kernel libc++"
 
 # Do an incremental update if already present.
 ARG=""
