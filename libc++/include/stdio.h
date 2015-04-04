@@ -3,6 +3,7 @@
 
 #include <sys/cdefs.h>
 #include <stdlib.h>
+#include <assert.h>
 
 int putchar(int ic);
 int puts(const char *str);
@@ -37,8 +38,7 @@ namespace {
 
   template <typename T>
   inline int _printf(T /*value*/, char /*fmt*/) {
-    // Implement specialization!
-    // TODO: Use assert here!
+    assert(false && "Implement printf specialization!");
     return 0;
   }
 

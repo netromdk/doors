@@ -34,6 +34,8 @@ FREEOBJS:=\
 $(ARCH_FREEOBJS) \
 stdio/putchar.o \
 stdio/puts.o \
+assert/assertFail.o \
+stdlib/abort.o \
 stdlib/itos.o \
 stdlib/utos.o \
 stdlib/ltos.o \
