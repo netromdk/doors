@@ -21,6 +21,9 @@
 #define CTYPE_GZ_LO_START 0x67
 #define CTYPE_GZ_LO_END   0x7A
 
+#define CTYPE_TAB         0x09
+#define CTYPE_SPACE       0x20
+
 /**
  * Check if alphanumeric.
  */
@@ -30,5 +33,10 @@ bool isalnum(int ch);
  * Check if alphabetic.
  */
 bool isalpha(int ch);
+
+/**
+ * Check if blank, like tab or space.
+ */
+bool isblank(int ch);
 
 #endif // CTYPE_H
