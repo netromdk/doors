@@ -12,11 +12,11 @@ EXEC_PREFIX?=$(PREFIX)
 INCLUDEDIR?=$(PREFIX)/include
 LIBDIR?=$(EXEC_PREFIX)/lib
 
-CFLAGS:=$(CFLAGS) -Wall -Wextra
+CFLAGS:=$(CFLAGS) -Wall -Wextra -fno-builtin
 CPPFLAGS:=$(CPPFLAGS) -D__IS_DOORS_LIBC -Iinclude -I$(PWD)/sysroot/$(INCLUDEDIR)/include
-LIBK_CFLAGS:=$(CFLAGS) -ffreestanding -fno-builtin -fno-exceptions -fno-rtti
+LIBK_CFLAGS:=$(CFLAGS) -ffreestanding -fno-exceptions -fno-rtti
 LIBK_CPPFLAGS:=$(CPPFLAGS) -D__IS_DOORS_KERNEL
-LIBCTEST_CFLAGS:=$(CFLAGS)
+LIBCTEST_CFLAGS:=$(CFLAGS) 
 LIBCTEST_CPPFLAGS:=$(CPPFLAGS) -D__IS_DOORS_LIBCTEST
 
 ARCHDIR:=arch/$(HOSTARCH)
