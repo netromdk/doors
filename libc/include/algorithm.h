@@ -5,7 +5,7 @@
 #include <stddef.h>
 
 template <typename T>
-inline T min(T &a, T &b) {
+inline T min(T a, T b) {
   return (a < b ? a : b);
 }
 
