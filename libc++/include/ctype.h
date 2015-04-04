@@ -93,4 +93,9 @@ bool ispunct(int ch);
  */
 bool isspace(int ch);
 
+/**
+ * Check if lowercase character.
+ */
+bool islower(int ch);
+
 #endif // CTYPE_H
