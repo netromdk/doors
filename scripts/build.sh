@@ -4,5 +4,5 @@ set -e
 
 for PROJECT in $PROJECTS; do
   echo "=== Building $PROJECT ==="
-  DESTDIR="$PWD/sysroot" $MAKE -C $PROJECT install
+  DESTDIR="$PWD/sysroot" $MAKE -j ${JOBS} -C $PROJECT install
 done

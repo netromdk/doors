@@ -3,4 +3,4 @@ set -e
 . ./config.sh
 
 echo "=== Building and running tests ==="
-DESTDIR="$PWD/sysroot" $MAKE -C tests run
+DESTDIR="$PWD/sysroot" $MAKE -j ${JOBS} -C tests run
