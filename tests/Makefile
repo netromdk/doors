@@ -28,7 +28,8 @@ test_libc++_ctype_isgraph \
 test_libc++_ctype_ispunct \
 test_libc++_ctype_isspace \
 test_libc++_ctype_islower \
-test_libc++_ctype_isupper
+test_libc++_ctype_isupper \
+test_libc++_ctype_isprint
 
 CXXFLAGS += -I../sysroot/$(INCLUDEDIR)/include -std=c++11 -O0 -Wall -Wextra -fno-builtin
 
@@ -144,3 +145,6 @@ test_libc++_ctype_islower: libc++/ctype/islower.cpp $(LIBCPP_LIB)
 
 test_libc++_ctype_isupper: libc++/ctype/isupper.cpp $(LIBCPP_LIB)
 	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/ctype/isupper.cpp -o $@
+
+test_libc++_ctype_isprint: libc++/ctype/isprint.cpp $(LIBCPP_LIB)
+	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/ctype/isprint.cpp -o $@

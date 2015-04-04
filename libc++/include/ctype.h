@@ -103,4 +103,9 @@ bool islower(int ch);
  */
 bool isupper(int ch);
 
+/**
+ * Check if printable.
+ */
+bool isprint(int ch);
+
 #endif // CTYPE_H
