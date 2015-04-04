@@ -18,7 +18,8 @@ test_libc++_stdio_puts \
 test_libc++_stdio_printf \
 test_libc++_algorithm_min \
 test_libc++_algorithm_max \
-test_libc++_algorithm_swap
+test_libc++_algorithm_swap \
+test_libc++_ctype_isalnum
 
 CXXFLAGS += -I../sysroot/$(INCLUDEDIR)/include -std=c++11 -O0 -Wall -Wextra -fno-builtin
 
@@ -94,7 +95,7 @@ test_libc++_stdio_puts: libc++/stdio/puts.cpp $(LIBCPP_LIB)
 test_libc++_stdio_printf: libc++/stdio/printf.cpp $(LIBCPP_LIB)
 	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/stdio/printf.cpp -o $@
 
-### lib/algorithm ###
+### libc++/algorithm ###
 test_libc++_algorithm_min: libc++/algorithm/min.cpp $(LIBCPP_LIB)
 	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/algorithm/min.cpp -o $@
 
@@ -103,3 +104,7 @@ test_libc++_algorithm_max: libc++/algorithm/max.cpp $(LIBCPP_LIB)
 
 test_libc++_algorithm_swap: libc++/algorithm/swap.cpp $(LIBCPP_LIB)
 	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/algorithm/swap.cpp -o $@
+
+### libc++/ctype ###
+test_libc++_ctype_isalnum: libc++/ctype/isalnum.cpp $(LIBCPP_LIB)
+	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/ctype/isalnum.cpp -o $@
