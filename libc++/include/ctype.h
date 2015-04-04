@@ -88,4 +88,9 @@ bool isgraph(int ch);
  */
 bool ispunct(int ch);
 
+/**
+ * Check if white-space.
+ */
+bool isspace(int ch);
+
 #endif // CTYPE_H
