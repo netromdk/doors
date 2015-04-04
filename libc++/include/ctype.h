@@ -79,6 +79,11 @@ bool iscntrl(int ch);
 bool isdigit(int ch);
 
 /**
+ * Check if hexadecimal digit.
+ */
+bool isxdigit(int ch);
+
+/**
  * Check if it has graphical representation.
  */
 bool isgraph(int ch);

@@ -56,6 +56,7 @@ ctype/isalpha.o \
 ctype/isblank.o \
 ctype/iscntrl.o \
 ctype/isdigit.o \
+ctype/isxdigit.o \
 ctype/isgraph.o \
 ctype/ispunct.o \
 ctype/isspace.o \

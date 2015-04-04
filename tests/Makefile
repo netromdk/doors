@@ -24,6 +24,7 @@ test_libc++_ctype_isalpha \
 test_libc++_ctype_isblank \
 test_libc++_ctype_iscntrl \
 test_libc++_ctype_isdigit \
+test_libc++_ctype_isxdigit \
 test_libc++_ctype_isgraph \
 test_libc++_ctype_ispunct \
 test_libc++_ctype_isspace \
@@ -130,6 +131,9 @@ test_libc++_ctype_iscntrl: libc++/ctype/iscntrl.cpp $(LIBCPP_LIB)
 
 test_libc++_ctype_isdigit: libc++/ctype/isdigit.cpp $(LIBCPP_LIB)
 	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/ctype/isdigit.cpp -o $@
+
+test_libc++_ctype_isxdigit: libc++/ctype/isxdigit.cpp $(LIBCPP_LIB)
+	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/ctype/isxdigit.cpp -o $@
 
 test_libc++_ctype_isgraph: libc++/ctype/isgraph.cpp $(LIBCPP_LIB)
 	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/ctype/isgraph.cpp -o $@
