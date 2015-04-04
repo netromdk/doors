@@ -2,6 +2,7 @@ TESTS = test_libc_string_memcpy \
 test_libc_string_memset \
 test_libc_string_memcmp \
 test_libc_string_memmove \
+test_libc_string_memchr \
 test_libc_string_strlen \
 test_libc_string_strcmp \
 test_libc_string_strncmp \
@@ -39,6 +40,9 @@ test_libc_string_memcmp: libc/string/memcmp.cpp $(LIBC_LIB)
 
 test_libc_string_memmove: libc/string/memmove.cpp $(LIBC_LIB)
 	$(CXX_HOST) libc/string/memmove.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+
+test_libc_string_memchr: libc/string/memchr.cpp $(LIBC_LIB)
+	$(CXX_HOST) libc/string/memchr.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
 
 test_libc_string_strlen: libc/string/strlen.cpp $(LIBC_LIB)
 	$(CXX_HOST) libc/string/strlen.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
