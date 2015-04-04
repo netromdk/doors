@@ -9,9 +9,10 @@ test_libc_string_strncmp \
 test_libc_string_strcpy \
 test_libc_string_strncpy \
 test_libc_string_strchr \
-test_libc_string_strrchr
+test_libc_string_strrchr \
+test_libc_stdlib_itos
 
-CXXFLAGS += -isystem=../sysroot/usr/include -Wall -Wextra -std=c++11
+CXXFLAGS += -I../sysroot/$(INCLUDEDIR)/include -std=c++11 -O0 -Wall -Wextra -fno-builtin
 
 LIBC_LIB = ../libc/libctest.a
 
@@ -30,37 +31,41 @@ run: $(TESTS)
 
 ### libc/string ###
 test_libc_string_memcpy: libc/string/memcpy.cpp $(LIBC_LIB)
-	$(CXX_HOST) libc/string/memcpy.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/string/memcpy.cpp -o $@
 
 test_libc_string_memset: libc/string/memset.cpp $(LIBC_LIB)
-	$(CXX_HOST) libc/string/memset.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/string/memset.cpp -o $@
 
 test_libc_string_memcmp: libc/string/memcmp.cpp $(LIBC_LIB)
-	$(CXX_HOST) libc/string/memcmp.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/string/memcmp.cpp -o $@
 
 test_libc_string_memmove: libc/string/memmove.cpp $(LIBC_LIB)
-	$(CXX_HOST) libc/string/memmove.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/string/memmove.cpp -o $@
 
 test_libc_string_memchr: libc/string/memchr.cpp $(LIBC_LIB)
-	$(CXX_HOST) libc/string/memchr.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/string/memchr.cpp -o $@
 
 test_libc_string_strlen: libc/string/strlen.cpp $(LIBC_LIB)
-	$(CXX_HOST) libc/string/strlen.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/string/strlen.cpp -o $@
 
 test_libc_string_strcmp: libc/string/strcmp.cpp $(LIBC_LIB)
-	$(CXX_HOST) libc/string/strcmp.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/string/strcmp.cpp -o $@
 
 test_libc_string_strncmp: libc/string/strncmp.cpp $(LIBC_LIB)
-	$(CXX_HOST) libc/string/strncmp.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/string/strncmp.cpp -o $@
 
 test_libc_string_strcpy: libc/string/strcpy.cpp $(LIBC_LIB)
-	$(CXX_HOST) libc/string/strcpy.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/string/strcpy.cpp -o $@
 
 test_libc_string_strncpy: libc/string/strncpy.cpp $(LIBC_LIB)
-	$(CXX_HOST) libc/string/strncpy.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/string/strncpy.cpp -o $@
 
 test_libc_string_strchr: libc/string/strchr.cpp $(LIBC_LIB)
-	$(CXX_HOST) libc/string/strchr.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/string/strchr.cpp -o $@
 
 test_libc_string_strrchr: libc/string/strrchr.cpp $(LIBC_LIB)
-	$(CXX_HOST) libc/string/strrchr.cpp $(LIBC_LIB) $(CXXFLAGS) -o $@
+	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/string/strrchr.cpp -o $@
+
+### libc/stdlib ###
+test_libc_stdlib_itos: libc/stdlib/itos.cpp $(LIBC_LIB)
+	$(CXX_HOST) $(CXXFLAGS) $(LIBC_LIB) libc/stdlib/itos.cpp -o $@
