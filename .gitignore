@@ -12,3 +12,6 @@ sysroot
 GTAGS
 GPATH
 GRTAGS
+
+# test related
+tests/test_*

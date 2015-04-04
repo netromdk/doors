@@ -15,7 +15,7 @@ int printf(const char *format, ...) {
       continue;
     }
 
-    char* tmp; // holder of temp. strings
+    char *tmp; // holder of temp. strings
     c = *format++; // get format character
 
     switch (c) {
