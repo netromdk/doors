@@ -27,13 +27,8 @@ extern "C" {
 
     Arch::init();
 
-    // TODO:
-    // - Init virtual memory management
-
     printf("\n<<Doors are open>>\n");
-    /*
-    Irq::enable();
-    for (;;);
-    */
+
+    Arch::start();
   }
 }

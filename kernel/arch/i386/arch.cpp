@@ -40,3 +40,8 @@ void Arch::init() {
   printf("Init Programmable Interrupt Interface..\n");
   Pic::init();
 }
+
+void Arch::start() {
+  Pic::enableInt();
+  for (;;);
+}

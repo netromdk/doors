@@ -4,6 +4,7 @@
 class Arch {
 public:
   static void init();
+  static void start();
 };
 
 #endif // KERNEL_ARCH_H
