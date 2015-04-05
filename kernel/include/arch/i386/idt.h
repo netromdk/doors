@@ -1,7 +1,7 @@
 #ifndef ARCH_I386_IDT_H
 #define ARCH_I386_IDT_H
 
-#define IDT_BASE 0x00000000
+#define IDT_BASE 0x00000400
 #define IDT_SIZE 0xFF
 
 #define INTR_GATE 0x8E
@@ -18,7 +18,7 @@ struct IdtDesc {
 } __attribute__ ((packed));
 
 struct IdtReg {
-  uint16_t size;
+  uint16_t limit;
   uint32_t base;
 } __attribute__ ((packed));
 

@@ -3,9 +3,9 @@
 
 #include <stdint.h>
 
-// The IDT is from 0x0 to 0x7F8 (= 0xFF * sizeof(IdtDesc)) so this
-// seems a good place to put the GDT.
-#define GDT_BASE 0x00000800
+// The IDT is from 0x400 to 0xBF8 (= 0x400 + 0xFF * sizeof(IdtDesc))
+// so this seems a good place to put the GDT.
+#define GDT_BASE 0x00001000
 #define GDT_SIZE 0xFF
 
 struct GdtDesc {
@@ -68,7 +68,7 @@ struct GdtDesc {
   FLAG_PRIV(3) | FLAG_DATA_RDWR
 
 struct GdtReg {
-  uint16_t size;
+  uint16_t limit;
   uint32_t base;
 } __attribute__ ((packed));
 

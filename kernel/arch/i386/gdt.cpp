@@ -28,9 +28,9 @@ void Gdt::init() {
   fillDesc(0, 0xFFFFF, (GDT_DATA_PL3), &gdt[4]);
 
   // Create gdt register and put it at the base memory address.
-  gdtr.size = GDT_SIZE * sizeof(GdtDesc);
+  gdtr.limit = GDT_SIZE * sizeof(GdtDesc);
   gdtr.base = GDT_BASE;
-  memcpy((void*) gdtr.base, (void*) gdt, gdtr.size);
+  memcpy((void*) gdtr.base, (void*) gdt, gdtr.limit);
 
   __asm__
     ("lgdtl (gdtr);" // Load gdt.

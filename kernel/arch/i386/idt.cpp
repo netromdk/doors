@@ -35,9 +35,9 @@ void Idt::init() {
   // (Defined pic.cpp)
   
   // Create idt register and put it at the base memory address.
-  idtr.size = IDT_SIZE * sizeof(IdtDesc);
+  idtr.limit = IDT_SIZE * sizeof(IdtDesc);
   idtr.base = IDT_BASE;
-  memcpy((void*) idtr.base, (void*) idt, idtr.size);
+  memcpy((void*) idtr.base, (void*) idt, idtr.limit);
 
   // Load idt.
   __asm__("lidtl (idtr)");
