@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdint.h>
 
+#include <kernel/kbd.h>
 #include <arch/i386/idt.h>
 #include <arch/i386/pic.h>
 
@@ -71,6 +72,12 @@ extern "C" {
     */
     Pic::sendEoi();
   }
+
+  void asmIntKbd();
+  void intKbd() {
+    Pic::sendEoi();
+    Kbd::readScanCode();
+  }
 }
 
 void Idt::init() {
@@ -96,6 +103,7 @@ void Idt::init() {
 
   // Master interrupts.
   fillDesc((uint32_t) asmIntTick, IRQ_TIMER, INTR_GATE, &idt[32]); // 0: Hardware timer
+  fillDesc((uint32_t) asmIntKbd, IRQ_TIMER, INTR_GATE, &idt[33]); // 1: Keyboard
 
   // Create idt register and put it at the base memory address.
   idtr.limit = IDT_SIZE * sizeof(IdtDesc);

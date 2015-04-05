@@ -31,3 +31,4 @@ asmInt\name:
 
 INTHANDLER Dummy
 INTHANDLER Tick
+INTHANDLER Kbd
