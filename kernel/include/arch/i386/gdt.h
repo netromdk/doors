@@ -1,6 +1,11 @@
 #ifndef ARCH_I386_GDT_H
 #define ARCH_I386_GDT_H
 
+/**
+ * The Global Descriptor Table (GDT) tells the CPU information about
+ * memory segments.
+ */
+
 #include <stdint.h>
 
 // The IDT is from 0x400 to 0xBF8 (= 0x400 + 0xFF * sizeof(IdtDesc))

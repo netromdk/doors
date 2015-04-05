@@ -1,6 +1,11 @@
 #ifndef ARCH_I386_IDT_H
 #define ARCH_I386_IDT_H
 
+/**
+ * The Interrupt Descriptor Table (IDT) tells the CPU information
+ * about the Interrupt Service Routines (ISRs) and where to load them.
+ */
+
 #define IDT_BASE 0x00000400
 #define IDT_SIZE 0xFF
 

@@ -89,9 +89,9 @@ class Pic {
 public:
   static void init();
 
-  static void enableIrq();
-  static void disableIrq();
-  static bool isIrqEnabled();
+  static void enableInt();
+  static void disableInt();
+  static bool isIntEnabled();
 
   /**
    * Manipulates the PIC's Interrupt Mask Register (IMR) which is 8

@@ -27,15 +27,17 @@ void Pic::init() {
   Io::outb(PIC2_DATA, mask2);
 }
 
-void Pic::enableIrq() {
+void Pic::enableInt() {
+  // Set interrupt-enable flag to enable interrupts.
   __asm__("sti");
 }
 
-void Pic::disableIrq() {
+void Pic::disableInt() {
+  // Clear interrupt-enable flag to disable interrupts.
   __asm__("cli");
 }
 
-bool Pic::isIrqEnabled() {
+bool Pic::isIntEnabled() {
   uint32_t flags;
   __asm__("pushf;"
           "pop %0;"

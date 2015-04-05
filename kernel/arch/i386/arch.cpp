@@ -26,6 +26,11 @@ void Arch::init() {
   }
   */
 
+  if (Pic::isIntEnabled()) {
+    printf("Disabling interrupts..\n");
+    Pic::disableInt();
+  }
+
   printf("Init Global Descriptor Table..\n");
   Gdt::init();
 
