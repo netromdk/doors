@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <kernel/cpu.h>
 #include <kernel/arch.h>
@@ -12,8 +13,7 @@ void Arch::init() {
 
   // Detect information about the CPU, and write to term.
   if (!Cpu::init()) {
-    // TODO: Do kernel panic here.
-    return;
+    abort();
   }
   Cpu::dump();
 
