@@ -1,31 +1,13 @@
 /* Interrupt service routines */
 
-.globl asmIntDummy
-.align 4
-asmIntDummy:
-        pushal // Save registers.
-        cld
-        call intDummy
-        popal // Restore registers.
-        iret
-
-.globl asmIntTick
-.align 4
-asmIntTick:
-        pushal
-        cld
-        call intTick
-        popal
-        iret
-
 .macro EXCHANDLER name
 .globl asmExc\name
 .align 4
 asmExc\name:
-        pushal
+        pushal // Save registers.
         cld
         call exc\name
-        popal
+        popal // Restore registers.
         iret
 .endm
 
@@ -35,3 +17,17 @@ EXCHANDLER SegNp
 EXCHANDLER Sf
 EXCHANDLER Gp
 EXCHANDLER Pf
+
+.macro INTHANDLER name
+.globl asmInt\name
+.align 4
+asmInt\name:
+        pushal
+        cld
+        call int\name
+        popal
+        iret
+.endm
+
+INTHANDLER Dummy
+INTHANDLER Tick
