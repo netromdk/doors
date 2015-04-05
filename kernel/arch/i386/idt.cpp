@@ -21,13 +21,49 @@ IdtReg idtr;
 
 // Wrappers are defined in isr.s and will call methods here.
 extern "C" {
-  void asmIrqDummy();
-  void irqDummy() {
+  void asmIntDummy();
+  void intDummy() {
     Pic::sendEoi();
   }
 
-  void asmIrqTick();
-  void irqTick() {
+  void asmExcDivZero();
+  void excDivZero() {
+    printf("Divide by zero!\n");
+    abort();
+  }
+
+  void asmExcInvOp();
+  void excInvOp() {
+    printf("Invalid opcode!\n");
+    abort();
+  }
+
+  void asmExcSegNP();
+  void excSegNP() {
+    printf("Segment not present!\n");
+    abort();
+  }
+
+  void asmExcSf();
+  void excSf() {
+    printf("Stack fault!\n");
+    abort();
+  }
+
+  void asmExcGp();
+  void excGp() {
+    printf("General protection exception!\n");
+    abort();
+  }
+
+  void asmExcPf();
+  void excPf() {
+    printf("Page fault!\n");
+    abort();
+  }
+
+  void asmIntTick();
+  void intTick() {
     /*
     static uint32_t ticks = 0;
     ticks++;
@@ -47,11 +83,19 @@ void Idt::init() {
   // Initialize IRQ (interrupt requests) with dummy routines because
   // the entries must be defined.
   for (size_t i = 0; i < IDT_SIZE; i++) {
-    fillDesc((uint32_t) asmIrqDummy, IRQ_TIMER, INTR_GATE, &idt[i]);
+    fillDesc((uint32_t) asmIntDummy, IRQ_TIMER, INTR_GATE, &idt[i]);
   }
 
-  // Master interrupt 0: Hardware timer tick
-  fillDesc((uint32_t) asmIrqTick, IRQ_TIMER, INTR_GATE, &idt[32]);
+  // Exceptions.
+  fillDesc((uint32_t) asmExcDivZero, IRQ_TIMER, INTR_GATE, &idt[0]);
+  fillDesc((uint32_t) asmExcInvOp, IRQ_TIMER, INTR_GATE, &idt[6]);
+  fillDesc((uint32_t) asmExcSegNP, IRQ_TIMER, INTR_GATE, &idt[11]);
+  fillDesc((uint32_t) asmExcSf, IRQ_TIMER, INTR_GATE, &idt[12]);
+  fillDesc((uint32_t) asmExcGp, IRQ_TIMER, INTR_GATE, &idt[13]);
+  fillDesc((uint32_t) asmExcPf, IRQ_TIMER, INTR_GATE, &idt[14]);
+
+  // Master interrupts.
+  fillDesc((uint32_t) asmIntTick, IRQ_TIMER, INTR_GATE, &idt[32]); // 0: Hardware timer
 
   // Create idt register and put it at the base memory address.
   idtr.limit = IDT_SIZE * sizeof(IdtDesc);
