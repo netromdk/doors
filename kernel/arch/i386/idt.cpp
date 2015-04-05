@@ -19,13 +19,19 @@ namespace {
 IdtDesc idt[IDT_SIZE];
 IdtReg idtr;
 
-// Defined in isr.s
-/*extern */void irqCall() {}
+// Wrapper defined in isr.s and it will call irqCall().
+extern "C" {
+  void isrWrapper();
+
+  void irqCall() {
+    printf("irqCall\n");
+  }
+}
 
 void Idt::init() {
   // Initialize IRQ (interrupt requests).
   for (size_t i = 0; i < IDT_SIZE; i++) {
-    fillDesc((uint32_t) irqCall, IRQ_TIMER, INTR_GATE, &idt[i]);
+    fillDesc((uint32_t) isrWrapper, IRQ_TIMER, INTR_GATE, &idt[i]);
   }
 
   // Interrupt vectors:

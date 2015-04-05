@@ -1,10 +1,10 @@
 // Interrupt service routines.
-.globl irqCall
+.globl isrWrapper
 .align 4
 
-irqCall:
-    /*pushad*/
+isrWrapper:
+    pushal // Save registers.
     cld
-    /*call irqCall*/
-    /*popad*/
+    call irqCall
+    popal  // Restore registers.
     iret

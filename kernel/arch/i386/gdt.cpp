@@ -21,7 +21,7 @@ GdtDesc gdt[GDT_SIZE];
 GdtReg gdtr;
 
 void Gdt::init() {
-  // Never used by the CPU but requried to be present.
+  // Never used by the CPU but required to be present.
   fillDesc(0, 0, 0, &gdt[0]);
 
   // Code segment for use by SYSENTER.
