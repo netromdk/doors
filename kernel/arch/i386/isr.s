@@ -1,10 +1,21 @@
-// Interrupt service routines.
-.globl isrWrapper
-.align 4
+/* Interrupt service routines */
 
-isrWrapper:
-    pushal // Save registers.
-    cld
-    call irqCall
-    popal  // Restore registers.
-    iret
+// asmIrqDummy
+.globl asmIrqDummy
+.align 4
+asmIrqDummy:
+        pushal // Save registers.
+        cld
+        call irqDummy
+        popal // Restore registers.
+        iret
+
+// asmIrqTick
+.globl asmIrqTick
+.align 4
+asmIrqTick:
+        pushal // Save registers.
+        cld
+        call irqTick
+        popal // Restore registers.
+        iret
