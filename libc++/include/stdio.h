@@ -2,6 +2,8 @@
 #define STDIO_H
 
 #include <sys/cdefs.h>
+
+#include <ctype.h>
 #include <stdlib.h>
 #include <assert.h>
 
@@ -24,6 +26,7 @@ namespace {
       return 8;
 
     case 'x': // hexadecimal
+    case 'X':
       return 16;
     }
   }
@@ -63,7 +66,7 @@ namespace {
   template <>
   inline int _printf(uint32_t value, char fmt) {
     char buf[255];
-    utos(value, buf, fmtToBase(fmt));
+    utos(value, buf, fmtToBase(fmt), isupper(fmt));
     return puts(buf);
   }
 
@@ -73,7 +76,7 @@ namespace {
     if (fmtIsUnsigned(fmt)) {
       return _printf((uint32_t) value, fmt);
     }
-    itos(value, buf, fmtToBase(fmt));
+    itos(value, buf, fmtToBase(fmt), isupper(fmt));
     return puts(buf);
   }
 
@@ -99,7 +102,7 @@ namespace {
   template <>
   inline int _printf(uint64_t value, char fmt) {
     char buf[255];
-    ltos(value, buf, fmtToBase(fmt));
+    ltos(value, buf, fmtToBase(fmt), isupper(fmt));
     return puts(buf);
   }
 
@@ -109,7 +112,7 @@ namespace {
     if (fmtIsUnsigned(fmt)) {
       return _printf((uint64_t) value, fmt);
     }
-    ltos(value, buf, fmtToBase(fmt));
+    ltos(value, buf, fmtToBase(fmt), isupper(fmt));
     return puts(buf);
   }
 
