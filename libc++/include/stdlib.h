@@ -7,8 +7,8 @@
 __attribute__((__noreturn__))
 void abort();
 
-void itos(int32_t num, char *str, uint8_t base = 10);
-void utos(uint32_t num, char *str, uint8_t base = 10);
-void ltos(uint64_t num, char *str, uint8_t base = 10);
+void itos(int32_t num, char *str, uint8_t base = 10, bool upcase = false);
+void utos(uint32_t num, char *str, uint8_t base = 10, bool upcase = false);
+void ltos(uint64_t num, char *str, uint8_t base = 10, bool upcase = false);
 
 #endif // STDLIB_H

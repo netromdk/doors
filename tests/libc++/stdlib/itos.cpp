@@ -23,35 +23,41 @@ int main() {
   }
 
   memset(str, 0, 64);
+  itos(10, str, 16, true);
+  if (strcmp(str, "A") != 0) {
+    return 4;
+  }
+
+  memset(str, 0, 64);
   itos(-10, str, 16);
   if (strcmp(str, "-a") != 0) {
-    return 4;
+    return 5;
   }
 
   // Octal.
   memset(str, 0, 64);
   itos(10, str, 8);
   if (strcmp(str, "12") != 0) {
-    return 5;
+    return 6;
   }
 
   memset(str, 0, 64);
   itos(-10, str, 8);
   if (strcmp(str, "-12") != 0) {
-    return 6;
+    return 7;
   }
 
   // Binary.
   memset(str, 0, 64);
   itos(10, str, 2);
   if (strcmp(str, "1010") != 0) {
-    return 7;
+    return 8;
   }
 
   memset(str, 0, 64);
   itos(-10, str, 2);
   if (strcmp(str, "-1010") != 0) {
-    return 8;
+    return 9;
   }
 
   return 0;
