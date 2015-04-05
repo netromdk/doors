@@ -27,7 +27,7 @@ Before you `build` take a look at "config.sh". It will use the `ARCH-ABI-*` GNU 
 
 `run` will build and use QEmu to run the kernel directly.
 
-`run-iso` will build, create ISO and use QEmu to load the ISO as a CD-ROM.
+`run-iso` will build, create ISO and use QEmu to load the ISO as a CD-ROM. Note that to create the ISO it uses `grub-mkrescue` which requires [GRUB 2+](https://www.gnu.org/software/grub/) and [xorriso 1.3.8+](https://www.gnu.org/software/xorriso/). 
 
 # References
 * [Intel i386 manuals](http://www.intel.com/content/www/us/en/processors/architectures-software-developer-manuals.html) ([PDF](http://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-manual-325462.pdf))
