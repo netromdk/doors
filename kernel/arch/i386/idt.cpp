@@ -75,8 +75,8 @@ extern "C" {
 
   void asmIntKbd();
   void intKbd() {
-    Pic::sendEoi();
     Kbd::readScanCode();
+    Pic::sendEoi();
   }
 }
 
