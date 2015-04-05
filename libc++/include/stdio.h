@@ -36,9 +36,14 @@ namespace {
     return fmt == 'c';
   }
 
+  bool fmtIsBool(char fmt) {
+    return fmt == 'b';
+  }
+
   template <typename T>
   inline int _printf(T /*value*/, char /*fmt*/) {
-    assert(false && "Implement printf specialization!");
+    // Implement printf specialization!
+    assert(false);
     return 0;
   }
 
@@ -106,6 +111,14 @@ namespace {
     }
     ltos(value, buf, fmtToBase(fmt));
     return puts(buf);
+  }
+
+  template <>
+  inline int _printf(bool value, char fmt) {
+    if (fmtIsBool(fmt)) {
+      return puts(value ? "true" : "false");
+    }
+    return puts(value ? "1" : "0");
   }
 }
 
