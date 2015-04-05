@@ -94,6 +94,12 @@ public:
   static bool isIntEnabled();
 
   /**
+   * Acknowledge interrupt to PIC (by sending end-of-interrupt) so it
+   * will process new/pending ones.
+   */
+  static void sendEoi();
+
+  /**
    * Manipulates the PIC's Interrupt Mask Register (IMR) which is 8
    * bytes wide.
    */

@@ -45,6 +45,12 @@ bool Pic::isIntEnabled() {
   return flags & (1 << 9);
 }
 
+void Pic::sendEoi() {
+  // Send to both master and slave PIC.
+  Io::outb(PIC1, ICW2_EOI);
+  Io::outb(PIC2, ICW2_EOI);
+}
+
 void Pic::setMask(uint8_t mask, bool clear) {
   uint16_t port;
   if (mask < 8) {
