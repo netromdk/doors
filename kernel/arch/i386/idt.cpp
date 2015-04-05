@@ -38,8 +38,8 @@ extern "C" {
     abort();
   }
 
-  void asmExcSegNP();
-  void excSegNP() {
+  void asmExcSegNp();
+  void excSegNp() {
     printf("Segment not present!\n");
     abort();
   }
@@ -89,7 +89,7 @@ void Idt::init() {
   // Exceptions.
   fillDesc((uint32_t) asmExcDivZero, IRQ_TIMER, INTR_GATE, &idt[0]);
   fillDesc((uint32_t) asmExcInvOp, IRQ_TIMER, INTR_GATE, &idt[6]);
-  fillDesc((uint32_t) asmExcSegNP, IRQ_TIMER, INTR_GATE, &idt[11]);
+  fillDesc((uint32_t) asmExcSegNp, IRQ_TIMER, INTR_GATE, &idt[11]);
   fillDesc((uint32_t) asmExcSf, IRQ_TIMER, INTR_GATE, &idt[12]);
   fillDesc((uint32_t) asmExcGp, IRQ_TIMER, INTR_GATE, &idt[13]);
   fillDesc((uint32_t) asmExcPf, IRQ_TIMER, INTR_GATE, &idt[14]);

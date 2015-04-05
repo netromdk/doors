@@ -18,56 +18,20 @@ asmIntTick:
         popal
         iret
 
-.globl asmExcDivZero
+.macro EXCHANDLER name
+.globl asmExc\name
 .align 4
-asmExcDivZero:
+asmExc\name:
         pushal
         cld
-        call excDivZero
+        call exc\name
         popal
         iret
+.endm
 
-.globl asmExcInvOp
-.align 4
-asmExcInvOp:
-        pushal
-        cld
-        call excInvOp
-        popal
-        iret
-
-.globl asmExcSegNP
-.align 4
-asmExcSegNP:
-        pushal
-        cld
-        call excSegNP
-        popal
-        iret
-
-.globl asmExcSf
-.align 4
-asmExcSf:
-        pushal
-        cld
-        call excSf
-        popal
-        iret
-
-.globl asmExcGp
-.align 4
-asmExcGp:
-        pushal
-        cld
-        call excGp
-        popal
-        iret
-
-.globl asmExcPf
-.align 4
-asmExcPf:
-        pushal
-        cld
-        call excPf
-        popal
-        iret
+EXCHANDLER DivZero
+EXCHANDLER InvOp
+EXCHANDLER SegNp
+EXCHANDLER Sf
+EXCHANDLER Gp
+EXCHANDLER Pf
