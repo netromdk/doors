@@ -21,10 +21,19 @@ GdtDesc gdt[GDT_SIZE];
 GdtReg gdtr;
 
 void Gdt::init() {
+  // Never used by the CPU but requried to be present.
   fillDesc(0, 0, 0, &gdt[0]);
+
+  // Code segment for use by SYSENTER.
   fillDesc(0, 0xFFFFF, (GDT_CODE_PL0), &gdt[1]);
+
+  // SYSENTER will use this stack.
   fillDesc(0, 0xFFFFF, (GDT_DATA_PL0), &gdt[2]);
+
+  // Code after SYSEXIT.
   fillDesc(0, 0xFFFFF, (GDT_CODE_PL3), &gdt[3]);
+
+  // User-mode stack after SYSEXIT.
   fillDesc(0, 0xFFFFF, (GDT_DATA_PL3), &gdt[4]);
 
   // Create gdt register and put it at the base memory address.

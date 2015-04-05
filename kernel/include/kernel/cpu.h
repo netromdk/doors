@@ -40,6 +40,11 @@ public:
   static bool hasTsc();
 
   /**
+   * Checks if the CPU supports SYSENTER/SYSEXIT routines.
+   */
+  static bool hasSysEnter();
+
+  /**
    * Reads the current time stamp.
    */
   static uint32_t getTimeStamp();

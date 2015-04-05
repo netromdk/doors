@@ -256,6 +256,11 @@ bool Cpu::init() {
     cpuBrandString(brand);
   }
 
+  if (!hasSysEnter()) {
+    printf("CPU does not support SYSENTER/SYSEXIT routines!\n");
+    return false;
+  }
+
   return true;
 }
 
@@ -326,6 +331,11 @@ bool Cpu::hasVendorId(const char *id) {
 
 bool Cpu::hasTsc() {
   return features.features.TSC;
+}
+
+bool Cpu::hasSysEnter() {
+  return features.features.SEP &&
+    !(family == 6 && model < 3 && stepping < 3);
 }
 
 uint32_t Cpu::getTimeStamp() {
