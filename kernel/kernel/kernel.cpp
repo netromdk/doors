@@ -16,8 +16,10 @@
 #include <kernel/version.h>
 #include <kernel/multiboot.h>
 
+multiboot_info *mbi = nullptr;
+
 extern "C" {
-  void kmainInit(multiboot_info *mbi, uint32_t magic) {
+  void kmainInit(multiboot_info *mbi_, uint32_t magic) {
     Tty::cls();
 
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
@@ -25,6 +27,8 @@ extern "C" {
       printf("Expected: %X", MULTIBOOT_BOOTLOADER_MAGIC);
       abort();
     }
+
+    mbi = mbi_;
   }
 
   void kmain() {
@@ -32,8 +36,7 @@ extern "C" {
            MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
            BUILD_DATE, BUILD_TIME);
 
-    // TODO: Pass multiboot_header to init().
-    Arch::init();
+    Arch::init(mbi);
 
     printf("\n<<Doors are open>>\n");
 
