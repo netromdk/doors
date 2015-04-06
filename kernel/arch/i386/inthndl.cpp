@@ -6,11 +6,14 @@
 #ifndef KERNEL_I386_INTERRUPT_HANDLERS_H
 #define KERNEL_I386_INTERRUPT_HANDLERS_H
 
+#include <stdio.h>
+
 #include <kernel/kbd.h>
 #include <arch/i386/pic.h>
 
 extern "C" {
   void intDummy() {
+    printf("Dummy interrupt handler called. Find out which one!\n");
     Pic::sendEoi();
   }
 
