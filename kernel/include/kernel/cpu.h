@@ -53,6 +53,11 @@ public:
    * Determines the average amount of cycles for performing an FDIV.
    */
   static uint32_t getCyclesPrFDiv();
+
+  /**
+   * Read the contents of the EFLAGS register.
+   */
+  static uint32_t getEflags();
 };
 
 #endif // KERNEL_CPU_H

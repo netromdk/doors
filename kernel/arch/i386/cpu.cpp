@@ -404,3 +404,12 @@ uint32_t Cpu::getCyclesPrFDiv() {
   }
   return (cycles / count) - (base / count);
 }
+
+uint32_t Cpu::getEflags() {
+  uint32_t flags;
+  __asm__
+    ("pushfl;" // Push eflags on stack.
+     "pop %%eax;" // Save to EAX.
+     : "=a" (flags));
+  return flags;
+}
