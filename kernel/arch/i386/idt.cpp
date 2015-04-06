@@ -1,8 +1,6 @@
-#include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 
-#include <kernel/kbd.h>
 #include <arch/i386/idt.h>
 #include <arch/i386/pic.h>
 
@@ -20,64 +18,19 @@ namespace {
 IdtDesc idt[IDT_SIZE];
 IdtReg idtr;
 
-// Wrappers are defined in isr.s and will call methods here.
+// Wrappers are defined in isr.s and will call functions in
+// inthndl.cpp and exchndl.cpp.
 extern "C" {
-  void asmIntDummy();
-  void intDummy() {
-    Pic::sendEoi();
-  }
-
   void asmExcDivZero();
-  void excDivZero() {
-    printf("Divide by zero!\n");
-    abort();
-  }
-
   void asmExcInvOp();
-  void excInvOp() {
-    printf("Invalid opcode!\n");
-    abort();
-  }
-
   void asmExcSegNp();
-  void excSegNp() {
-    printf("Segment not present!\n");
-    abort();
-  }
-
   void asmExcSf();
-  void excSf() {
-    printf("Stack fault!\n");
-    abort();
-  }
-
   void asmExcGp();
-  void excGp() {
-    printf("General protection exception!\n");
-    abort();
-  }
-
   void asmExcPf();
-  void excPf() {
-    printf("Page fault!\n");
-    abort();
-  }
 
+  void asmIntDummy();
   void asmIntTick();
-  void intTick() {
-    /*
-    static uint32_t ticks = 0;
-    ticks++;
-    printf("ticks: %u\n", ticks);
-    */
-    Pic::sendEoi();
-  }
-
   void asmIntKbd();
-  void intKbd() {
-    Kbd::readScanCode();
-    Pic::sendEoi();
-  }
 }
 
 void Idt::init() {
