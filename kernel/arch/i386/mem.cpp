@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include <kernel/mem.h>
-#include <kernel/bda.h>
+#include <arch/i386/bda.h>
 
 uint16_t Mem::detectLowMem() {
   uint16_t mem = 0, res = 0;

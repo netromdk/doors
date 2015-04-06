@@ -43,6 +43,7 @@ void Arch::init() {
 
   printf("\nDetecting memory information:\n");
   printf("Low memory: %u KB\n", Mem::detectLowMem());
+  // TODO: Detect upper memory!
 }
 
 void Arch::start() {
