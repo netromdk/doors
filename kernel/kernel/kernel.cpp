@@ -17,7 +17,7 @@
 #include <kernel/multiboot.h>
 
 extern "C" {
-  void kmainInit(multiboot_header *mbh, uint32_t magic) {
+  void kmainInit(multiboot_info *mbi, uint32_t magic) {
     Tty::cls();
 
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
@@ -32,6 +32,7 @@ extern "C" {
            MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
            BUILD_DATE, BUILD_TIME);
 
+    // TODO: Pass multiboot_header to init().
     Arch::init();
 
     printf("\n<<Doors are open>>\n");
