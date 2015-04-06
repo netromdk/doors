@@ -6,7 +6,9 @@
  * about the Interrupt Service Routines (ISRs) and where to load them.
  */
 
-#define IDT_BASE 0x00000400
+// The GDT is from 0x500 to 0xCF8 (= 0x500 + 0xFF * sizeof(GdtDesc))
+// so we put it right after it.
+#define IDT_BASE 0x00000CF9
 #define IDT_SIZE 0xFF
 
 #define INTR_GATE 0x8E

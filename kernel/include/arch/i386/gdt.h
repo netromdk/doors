@@ -8,9 +8,8 @@
 
 #include <stdint.h>
 
-// The IDT is from 0x400 to 0xBF8 (= 0x400 + 0xFF * sizeof(IdtDesc))
-// so this seems a good place to put the GDT.
-#define GDT_BASE 0x00001000
+// 0x0500 to 0x7BFF is guaranteed to be free for use.
+#define GDT_BASE 0x0000500
 #define GDT_SIZE 0xFF
 
 struct GdtDesc {
