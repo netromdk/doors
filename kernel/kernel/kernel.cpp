@@ -12,12 +12,19 @@
 #include <stdio.h>
 
 #include <kernel/tty.h>
-#include <kernel/version.h>
 #include <kernel/arch.h>
+#include <kernel/version.h>
+#include <kernel/multiboot.h>
 
 extern "C" {
-  void kmainInit() {
+  void kmainInit(multiboot_header *mbh, uint32_t magic) {
     Tty::cls();
+
+    if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
+      printf("Invalid bootloader magic: %X\n", magic);
+      printf("Expected: %X", MULTIBOOT_BOOTLOADER_MAGIC);
+      abort();
+    }
   }
 
   void kmain() {

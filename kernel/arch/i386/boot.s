@@ -34,6 +34,8 @@ _start:
 	movl $stack_top, %esp
 
         # Call kernel initialization function.
+        push %eax # Pass Multiboot magic number.
+        push %ebx # Pass Multiboot info structure.
         call kmainInit
 
         # Call global constructors.
