@@ -100,6 +100,16 @@ namespace {
   }
 
   template <>
+  inline int _printf(int16_t value, char fmt) {
+    return _printf((int) value, fmt);
+  }
+
+  template <>
+  inline int _printf(uint16_t value, char fmt) {
+    return _printf((uint32_t) value, fmt);
+  }
+
+  template <>
   inline int _printf(uint64_t value, char fmt) {
     char buf[255];
     ltos(value, buf, fmtToBase(fmt), isupper(fmt));
