@@ -5,6 +5,10 @@
 
 uint16_t Mem::detectLowMem() {
   uint16_t mem = 0, res = 0;
+  /*
+     Don't use this solution because it triggers the interrupt handler
+     0x12=18 which is just a dummy handler.
+
   __asm__
     ("xor %%ax, %%ax;" // Put zero in AX.
 
@@ -20,6 +24,7 @@ uint16_t Mem::detectLowMem() {
      "end:;"
      : "=a" (mem),
        "=b" (res));
+  */
 
   // If it fails then read BDA base address. If the above didn't failt
   // it would output the same value.
