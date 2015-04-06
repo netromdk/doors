@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include <kernel/cpu.h>
+#include <kernel/mem.h>
 #include <kernel/arch.h>
 
 #include <arch/i386/gdt.h>
@@ -39,6 +40,9 @@ void Arch::init() {
 
   printf("Init Programmable Interrupt Interface..\n");
   Pic::init();
+
+  printf("\nDetecting memory information:\n");
+  printf("Low memory: %u KB\n", Mem::detectLowMem());
 }
 
 void Arch::start() {
