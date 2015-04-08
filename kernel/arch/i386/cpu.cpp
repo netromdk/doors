@@ -329,6 +329,10 @@ bool Cpu::hasVendorId(const char *id) {
   return strcmp(vendorId, id) == 0;
 }
 
+bool Cpu::hasPae() {
+  return features.features.PAE;
+}
+
 bool Cpu::hasTsc() {
   return features.features.TSC;
 }

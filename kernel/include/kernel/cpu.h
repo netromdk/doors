@@ -35,6 +35,12 @@ public:
   static bool hasVendorId(const char *id);
 
   /**
+   * Checks if the CPU supports Physical Address Extension (for 4+ GB
+   * RAM).
+   */
+  static bool hasPae();
+
+  /**
    * Checks if the CPU supports Time Stamp Counter.
    */
   static bool hasTsc();
