@@ -28,6 +28,14 @@ extern "C" {
       abort();
     }
 
+    // Ensure bit 6 (7) is set because it ensures that the "mmap_*"
+    // fields will be valid.
+    if (!(mbi_->flags & (1 << 6))) {
+      printf("Requires multiboot flags with bit 6 set!\n");
+      printf("Flags: %b\n", (uint32_t) mbi_->flags);
+      abort();
+    }
+
     mbi = mbi_;
   }
 
