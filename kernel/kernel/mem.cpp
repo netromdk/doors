@@ -2,11 +2,13 @@
 #include <stddef.h>
 
 #include <kernel/mem.h>
+#include <kernel/cpu.h>
 
 namespace {
-  // Lower/upper memory specified in bytes.
-  uint32_t lowerMem = 0, // 0-640 KB
-    upperMem = 0; // from 1+ MB
+  // Lower/upper memory specified in KB.
+  uint64_t lowerMem = 0, // 0-640 KB.
+    upperMem = 0, // From 1+ MB.
+    totalUpperMem = 0;
 
   constexpr size_t memMax = 255;
   multiboot_memory_map_t *memMap[memMax] = {nullptr};
@@ -14,16 +16,26 @@ namespace {
 }
 
 bool Mem::init(multiboot_info *mbi) {
-  lowerMem = mbi->mem_lower * 1024;
-  upperMem = mbi->mem_upper * 1024;
+  lowerMem = mbi->mem_lower;
+  upperMem = mbi->mem_upper;
 
-  // Traverse mmap
+  // Traverse memory map.
   multiboot_memory_map_t *mmap = (multiboot_memory_map_t*) mbi->mmap_addr;
 	while (mmap < (multiboot_memory_map_t*) (mbi->mmap_addr + mbi->mmap_length)) {
-    // Only take free blocks in upper memory.
+    // Only take free chunks in upper memory.
     if (mmap->type == 1 && mmap->addr >= 1048576) {
-      memMap[memCnt] = mmap;
-      memCnt++;
+      /*
+      printf("chunk addr = 0x%X, size = %u KB\n",
+             (uint64_t) mmap->addr, (uint64_t) mmap->len);
+      */
+
+      // Only include 4+ GB if PAE is supported by the CPU.
+      if (mmap->addr < 0x100000000 ||
+          (mmap->addr >= 0x100000000 && Cpu::hasPae())) {
+        memMap[memCnt] = mmap;
+        memCnt++;
+        totalUpperMem += mmap->len;
+      }
     }
 
     if (memCnt == memMax) {
@@ -47,6 +59,6 @@ bool Mem::init(multiboot_info *mbi) {
 
 void Mem::dump() {
   printf("Memory information:\n");
-  printf("  Lower: %u B\n", lowerMem);
-  printf("  Upper: %u B (%u chunks)\n\n", upperMem, memCnt);
+  printf("  Lower: %u KB\n", lowerMem);
+  printf("  Upper: %u KB (%u chunks)\n\n", totalUpperMem, memCnt);
 }
