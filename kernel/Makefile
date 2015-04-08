@@ -30,6 +30,7 @@ OBJS:=\
 $(KERNEL_ARCH_OBJS) \
 kernel/kernel.o \
 kernel/runtime.o \
+kernel/mem.o \
 kernel/keymap.o \
 
 CRTI_OBJ:=$(ARCHDIR)/crti.o

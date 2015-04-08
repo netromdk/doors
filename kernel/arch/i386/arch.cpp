@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include <kernel/cpu.h>
+#include <kernel/mem.h>
 #include <kernel/arch.h>
 
 #include <arch/i386/gdt.h>
@@ -17,10 +18,6 @@ void Arch::init(multiboot_info *mbi) {
   }
   Cpu::dump();
 
-  printf("Detecting memory information:\n");
-  printf("  Lower: %u KB\n", (uint32_t) mbi->mem_lower);
-  printf("  Upper: %u KB\n\n", (uint32_t) mbi->mem_upper);
-
   /*
   bool tsc = Cpu::hasTsc();
   printf("\nHas TSC=%s\n", (tsc ? "yes" : "no"));
@@ -29,6 +26,11 @@ void Arch::init(multiboot_info *mbi) {
     printf("Avg. cycles pr. fdiv: %u\n", cfdiv);
   }
   */
+
+  if (!Mem::init(mbi)) {
+    abort();
+  }
+  Mem::dump();
 
   if (Pic::isIntEnabled()) {
     printf("Disabling interrupts..\n");
