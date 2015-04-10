@@ -28,15 +28,15 @@ LIBS:=$(LIBS) $(KERNEL_ARCH_LIBS)
 
 OBJS:=\
 $(KERNEL_ARCH_OBJS) \
-kernel/kernel.o \
-kernel/runtime.o \
-kernel/mem.o \
-kernel/keymap.o \
+kernel/Kernel.o \
+kernel/Runtime.o \
+kernel/Mem.o \
+kernel/Keymap.o \
 
-CRTI_OBJ:=$(ARCHDIR)/crti.o
-CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=crtbegin.o)
-CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=crtend.o)
-CRTN_OBJ:=$(ARCHDIR)/crtn.o
+CRTI_OBJ:=$(ARCHDIR)/Crti.o
+CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=Crtbegin.o)
+CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=Crtend.o)
+CRTN_OBJ:=$(ARCHDIR)/Crtn.o
 
 ALL_OUR_OBJS:=\
 $(OBJS) \
@@ -54,8 +54,8 @@ all: doors.kernel
 
 .PHONY: all clean install install-headers install-kernel
 
-doors.kernel: $(OBJ_LINK_LIST) $(ARCHDIR)/linker.ld
-	$(CXX) -T $(ARCHDIR)/linker.ld -o $@ $(CFLAGS) $(OBJ_LINK_LIST) $(LDFLAGS) $(LIBS)
+doors.kernel: $(OBJ_LINK_LIST) $(ARCHDIR)/Linker.ld
+	$(CXX) -T $(ARCHDIR)/Linker.ld -o $@ $(CFLAGS) $(OBJ_LINK_LIST) $(LDFLAGS) $(LIBS)
 	@echo "[Linked doors.kernel]"
 
 %.o: %.cpp
