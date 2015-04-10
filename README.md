@@ -32,4 +32,6 @@ Before you `build` take a look at "config.sh". It will use the `ARCH-ABI-*` GNU 
 # References
 * [Intel i386 manuals](http://www.intel.com/content/www/us/en/processors/architectures-software-developer-manuals.html) ([PDF](http://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-manual-325462.pdf))
 * [Logix's i386 reference](http://www.logix.cz/michal/doc/i386/)
+* [Modern Operating Systems](http://www.amazon.com/Modern-Operating-Systems-Andrew-Tanenbaum/dp/013359162X/ref=sr_1_1?ie=UTF8&qid=1428699443&sr=8-1&keywords=Modern+Operating+Systems) (book)
+* [Operating Systems Principles](http://www.amazon.com/Operating-Systems-Principles-Lubomir-Bic/dp/0130266116) (book)
 * [osdev.org](http://wiki.osdev.org/Main_Page)
