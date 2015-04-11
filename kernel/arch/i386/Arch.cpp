@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <kernel/cpu.h>
-#include <kernel/mem.h>
-#include <kernel/arch.h>
+#include <kernel/Cpu.h>
+#include <kernel/Mem.h>
+#include <kernel/Pmm.h>
+#include <kernel/Arch.h>
 
-#include <arch/i386/gdt.h>
-#include <arch/i386/idt.h>
-#include <arch/i386/pic.h>
+#include <arch/i386/Gdt.h>
+#include <arch/i386/Idt.h>
+#include <arch/i386/Pic.h>
 
 void Arch::init(multiboot_info *mbi) {
   printf("Arch x86 init..\n\n");
@@ -31,6 +32,11 @@ void Arch::init(multiboot_info *mbi) {
     abort();
   }
   Mem::dump();
+
+  if (!Pmm::init()) {
+    abort();
+  }
+  Pmm::dump();
 
   if (Pic::isIntEnabled()) {
     printf("Disabling interrupts..\n");
