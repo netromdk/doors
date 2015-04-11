@@ -1,8 +1,7 @@
 #include <stdio.h>
-#include <stddef.h>
 
-#include <kernel/mem.h>
-#include <kernel/cpu.h>
+#include <kernel/Mem.h>
+#include <kernel/Cpu.h>
 
 namespace {
   // Lower/upper memory specified in KB.
@@ -61,4 +60,9 @@ void Mem::dump() {
   printf("Memory information:\n");
   printf("  Lower: %u KB\n", lowerMem);
   printf("  Upper: %u KB (%u chunks)\n\n", totalUpperMem, memCnt);
+}
+
+multiboot_memory_map_t **Mem::getMap(size_t &chunks) {
+  chunks = memCnt;
+  return memMap;
 }
