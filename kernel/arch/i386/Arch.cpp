@@ -11,7 +11,7 @@
 #include <arch/i386/Pic.h>
 
 void Arch::init(multiboot_info *mbi) {
-  printf("Arch x86 init..\n\n");
+  printf("Arch: i386\n\n");
 
   // Detect information about the CPU, and write to term.
   if (!Cpu::init()) {

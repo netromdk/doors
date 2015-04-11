@@ -29,23 +29,21 @@ bool Pmm::init() {
     physmem[pfr] = addr;
   }
 
-  pmTop = --pfr;
-  pmMax = pmTop;
+  pmMax = pmTop = pfr;
   return true;
 }
 
 void Pmm::dump() {
-  printf("Physical memory management:\n");
-  printf("  Page frames: %u of %u bytes", getMaxPages(), PAGE_FRAME_SIZE);
-  printf("\n\n");
+  printf("Physical memory: %u page frames of %u KB each\n\n",
+         getMaxPages(), PAGE_FRAME_SIZE / 1024);
 }
 
 uint32_t Pmm::getFreePages() {
-  return pmTop + 1;
+  return pmTop;
 }
 
 uint32_t Pmm::getMaxPages() {
-  return pmMax + 1;
+  return pmMax;
 }
 
 uintptr_t Pmm::allocPage() {
@@ -64,7 +62,8 @@ uintptr_t Pmm::allocPage() {
 
 void Pmm::deallocPage(uintptr_t addr) {
   if (pmTop + 1 > pmMax) {
-    printf("Invalid deallocation!\n");
+    printf("Invalid deallocation of 0x%X!\n", addr);
+    printf("Stack pointer %u > max pointer %y\n", pmTop + 1, pmMax);
     abort();
   }
 

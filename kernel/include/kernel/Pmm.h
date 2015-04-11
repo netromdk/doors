@@ -16,6 +16,7 @@ public:
   
   static uint32_t getFreePages();
   static uint32_t getMaxPages();
+
   static uintptr_t allocPage();
   static void deallocPage(uintptr_t addr);
 };
