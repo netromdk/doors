@@ -4,7 +4,7 @@
 #include <kernel/Io.h>
 #include <kernel/Cmos.h>
 
-#define YEAR_OF_FILE 2015
+#define THIS_CENTURY 2000
 
 #define CMOS_PORT 0x70
 #define CMOS_DATA 0x71
@@ -93,10 +93,7 @@ namespace {
     //
     // TODO: When the century register is detected using FADT then use
     // that value instead.
-    year += YEAR_OF_FILE / 100 * 100;
-    if (year < YEAR_OF_FILE) {
-      year += 100;
-    }    
+    year += THIS_CENTURY;
   }
 }
 
