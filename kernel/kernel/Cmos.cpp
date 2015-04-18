@@ -104,7 +104,17 @@ void Cmos::printTime() {
 
 uint64_t Cmos::unixTime() {
   readRtcValues();
-  uint64_t res = 0;
-  // TODO
+
+  uint64_t res = day;
+  static const int monthDays[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  for (size_t i = 0; i < month - 1; i++) { // Don't count this month.
+    res += monthDays[i];
+  }
+
+  static const uint64_t HOUR = 3600, DAY = 86400, YEAR = 31536000;
+  res *= DAY; // Days of this year to seconds.
+
+  res += (year - 1970) * YEAR +
+    seconds + (minutes * 60) + (hours * HOUR);
   return res;
 }
