@@ -11,7 +11,7 @@ namespace {
   
   uint8_t *detectRsdp() {
     static const char *ID = "RSD PTR ";
-    const size_t idSize = strlen(ID);
+    static const size_t idSize = strlen(ID);
   
     uint8_t *ptr = (uint8_t*) BDA_BASE_ADDR;
     bool found = false;
