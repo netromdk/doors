@@ -47,8 +47,8 @@ void Arch::init(multiboot_info *mbi) {
   printf("Init Programmable Interrupt Interface..\n");
   Pic::init();
 
-  bool acpi = Acpi::init();
-  printf("ACPI supported: %b\n", acpi);
+  printf("Init Advanced Configuration and Power Interface..\n");
+  Acpi::init();
 }
 
 void Arch::start() {
