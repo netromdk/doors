@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <string.h>
 
+#include <kernel/Io.h>
 #include <kernel/Bda.h>
 #include <kernel/Acpi.h>
 
@@ -107,6 +108,12 @@ bool Acpi::init() {
     cleanup();
     printf("FADT checksum invalid.\n");
     return false;
+  }
+
+  if (fadt->smiCommandPort != 0 && fadt->acpiEnable != 0 &&
+      fadt->acpiDisable != 0) {
+    printf("Enabling ACPI explicitly.\n");
+    Io::outb(fadt->smiCommandPort, fadt->acpiEnable);
   }
 
   return true;

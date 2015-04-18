@@ -47,7 +47,7 @@ struct Fadt {
   uint32_t firmwareCtrl;
   uint32_t dsdt;
   uint8_t reserved;
-  uint8_t rreferredPowerManagementProfile;
+  uint8_t referredPowerManagementProfile;
   uint16_t sciInterrupt;
   uint32_t smiCommandPort;
   uint8_t acpiEnable;
