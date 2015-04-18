@@ -4,6 +4,7 @@
 #include <kernel/Cpu.h>
 #include <kernel/Mem.h>
 #include <kernel/Arch.h>
+#include <kernel/Acpi.h>
 
 #include <arch/i386/Gdt.h>
 #include <arch/i386/Idt.h>
@@ -45,6 +46,9 @@ void Arch::init(multiboot_info *mbi) {
 
   printf("Init Programmable Interrupt Interface..\n");
   Pic::init();
+
+  bool acpi = Acpi::init();
+  printf("ACPI supported: %b\n", acpi);
 }
 
 void Arch::start() {

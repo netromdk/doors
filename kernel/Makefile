@@ -33,6 +33,7 @@ kernel/Runtime.o \
 kernel/Mem.o \
 kernel/Keymap.o \
 kernel/Cmos.o \
+kernel/Acpi.o \
 
 CRTI_OBJ:=$(ARCHDIR)/Crti.o
 CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=Crtbegin.o)
