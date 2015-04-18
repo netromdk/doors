@@ -79,7 +79,7 @@
 #define IRQ14        0x76
 #define IRQ15        0x77
 
-#define IRQ_CMOSCLK  IRQ8  // CMOS real time clock
+#define IRQ_RTC      IRQ8  // CMOS real-time clock
 #define IRQ_CGAVR    IRQ9  // CGA vertical retrace.
 #define IRQ_AUX      IRQ12 // At systems: reserved, PS/2 systems: auxiliary device.
 #define IRQ_FPU      IRQ13
