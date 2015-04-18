@@ -1,14 +1,9 @@
-#include <stdio.h>
+#include <kernel/Runtime.h>
 
-#include "Runtime.h"
-
-/*
-int __cxa_atexit(void (*destructor) (void*), void *arg, void *__dso_handle) {
-  printf("__cxa_atexit\n");
-  return 0;
+int __cxa_guard_acquire(__guard *g) {
+  return !*g;
 }
 
-void __cxa_finalize(void *f) {
-  printf("__cxa_finalize\n");
+void __cxa_guard_release (__guard *g) {
+  *g = 1;
 }
-*/
