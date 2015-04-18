@@ -8,8 +8,8 @@
 
 #include <stdio.h>
 
-#include <kernel/kbd.h>
-#include <arch/i386/pic.h>
+#include <kernel/Kbd.h>
+#include <arch/i386/Pic.h>
 
 extern "C" {
   void intDummy() {

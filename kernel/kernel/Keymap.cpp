@@ -1,4 +1,4 @@
-#include <kernel/keymap.h>
+#include <kernel/Keymap.h>
 
 char KeyMap::toText(Key key, bool *ok) {
   auto val = (uint32_t) key;

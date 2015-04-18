@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#include <arch/i386/gdt.h>
+#include <arch/i386/Gdt.h>
 
 namespace {
   void fillDesc(uint32_t base, uint32_t limit, uint16_t flags, GdtDesc *desc) {

@@ -1,7 +1,7 @@
 #ifndef KERNEL_ARCH_H
 #define KERNEL_ARCH_H
 
-#include <kernel/multiboot.h>
+#include <kernel/Multiboot.h>
 
 class Arch {
 public:

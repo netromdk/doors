@@ -11,10 +11,10 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <kernel/tty.h>
-#include <kernel/arch.h>
-#include <kernel/version.h>
-#include <kernel/multiboot.h>
+#include <kernel/Tty.h>
+#include <kernel/Arch.h>
+#include <kernel/Version.h>
+#include <kernel/Multiboot.h>
 
 multiboot_info *mbi = nullptr;
 

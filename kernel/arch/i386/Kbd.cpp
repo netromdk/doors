@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stddef.h>
 
-#include <kernel/io.h>
-#include <kernel/kbd.h>
-#include <arch/i386/pic.h>
+#include <kernel/Io.h>
+#include <kernel/Kbd.h>
+#include <arch/i386/Pic.h>
 
 // Ports
 #define KBD_DATA_PORT   0x60 // PS/2 device (Read/write).

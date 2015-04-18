@@ -1,5 +1,5 @@
-#include <kernel/io.h>
-#include <arch/i386/pic.h>
+#include <kernel/Io.h>
+#include <arch/i386/Pic.h>
 
 void Pic::init() {
   // Save masks

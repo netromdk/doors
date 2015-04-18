@@ -4,8 +4,8 @@
 #include <string.h>
 #include <algorithm.h>
 
-#include <kernel/vga.h>
-#include <kernel/tty.h>
+#include <kernel/Vga.h>
+#include <kernel/Tty.h>
 
 namespace {
   uint8_t termRow = 0,

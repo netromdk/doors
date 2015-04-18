@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#include <kernel/cpu.h>
+#include <kernel/Cpu.h>
 
 namespace {
   union CpuFeatures_ {

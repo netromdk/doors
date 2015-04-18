@@ -1,8 +1,8 @@
 #include <string.h>
 #include <stdint.h>
 
-#include <arch/i386/idt.h>
-#include <arch/i386/pic.h>
+#include <arch/i386/Idt.h>
+#include <arch/i386/Pic.h>
 
 namespace {
   void fillDesc(uint32_t offset, uint16_t selector, uint8_t type, IdtDesc *desc) {

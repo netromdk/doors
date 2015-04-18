@@ -1,4 +1,4 @@
-#include <kernel/io.h>
+#include <kernel/Io.h>
 
 uint8_t Io::inb(uint16_t port) {
   uint8_t b;
