@@ -16,5 +16,8 @@ void ltos(uint64_t num, char *str, uint8_t base = 10, bool upcase = false);
  * auto-detect base.
  */
 int32_t strtol(const char *str, char **endptr = nullptr, int base = 0);
+uint32_t strtoul(const char *str, char **endptr = nullptr, int base = 0);
+int64_t strtoll(const char *str, char **endptr = nullptr, int base = 0);
+uint64_t strtoull(const char *str, char **endptr = nullptr, int base = 0);
 
 #endif // STDLIB_H

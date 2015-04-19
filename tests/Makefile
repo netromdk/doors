@@ -14,6 +14,9 @@ test_libc++_stdlib_itos \
 test_libc++_stdlib_utos \
 test_libc++_stdlib_ltos \
 test_libc++_stdlib_strtol \
+test_libc++_stdlib_strtoul \
+test_libc++_stdlib_strtoll \
+test_libc++_stdlib_strtoull \
 test_libc++_stdio_putchar \
 test_libc++_stdio_puts \
 test_libc++_stdio_printf \
@@ -101,6 +104,15 @@ test_libc++_stdlib_ltos: libc++/stdlib/ltos.cpp $(LIBCPP_LIB)
 
 test_libc++_stdlib_strtol: libc++/stdlib/strtol.cpp $(LIBCPP_LIB)
 	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/stdlib/strtol.cpp -o $@
+
+test_libc++_stdlib_strtoul: libc++/stdlib/strtoul.cpp $(LIBCPP_LIB)
+	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/stdlib/strtoul.cpp -o $@
+
+test_libc++_stdlib_strtoll: libc++/stdlib/strtoll.cpp $(LIBCPP_LIB)
+	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/stdlib/strtoll.cpp -o $@
+
+test_libc++_stdlib_strtoull: libc++/stdlib/strtoull.cpp $(LIBCPP_LIB)
+	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/stdlib/strtoull.cpp -o $@
 
 ### libc++/stdio ###
 test_libc++_stdio_putchar: libc++/stdio/putchar.cpp $(LIBCPP_LIB)

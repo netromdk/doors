@@ -40,6 +40,9 @@ stdlib/itos.o \
 stdlib/utos.o \
 stdlib/ltos.o \
 stdlib/strtol.o \
+stdlib/strtoul.o \
+stdlib/strtoll.o \
+stdlib/strtoull.o \
 string/memcpy.o \
 string/memmove.o \
 string/memset.o \
