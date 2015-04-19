@@ -121,5 +121,9 @@ bool Acpi::init() {
 }
 
 bool Acpi::isSupported() {
-  return rsdp && rsdt;
+  return rsdp && rsdt && fadt;
+}
+
+Fadt *Acpi::getFadt() {
+  return fadt;
 }

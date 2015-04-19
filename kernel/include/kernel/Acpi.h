@@ -107,6 +107,7 @@ class Acpi {
 public:
   static bool init();
   static bool isSupported();
+  static Fadt *getFadt();
 };
 
 #endif // KERNEL_ACPI_H
