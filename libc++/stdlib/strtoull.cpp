@@ -6,7 +6,6 @@ uint64_t strtoull(const char *str, char **endptr, int base) {
   uint64_t res = 0;
 
   size_t len = strlen(str), i;
-  bool sign = false;
   for (i = 0; i < len; i++) {
     char ch = str[i];
 
@@ -61,5 +60,5 @@ uint64_t strtoull(const char *str, char **endptr, int base) {
     *endptr = const_cast<char*>(str) + i;
   }
 
-  return res * (sign ? -1 : 1);
+  return res;
 }
