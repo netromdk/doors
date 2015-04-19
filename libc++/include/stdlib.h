@@ -20,4 +20,9 @@ uint32_t strtoul(const char *str, char **endptr = nullptr, int base = 0);
 int64_t strtoll(const char *str, char **endptr = nullptr, int base = 0);
 uint64_t strtoull(const char *str, char **endptr = nullptr, int base = 0);
 
+template <typename T>
+inline T abs(T num) {
+  return (num >= 0 ? num : num * -1);
+}
+
 #endif // STDLIB_H
