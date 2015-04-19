@@ -39,6 +39,7 @@ stdlib/abort.o \
 stdlib/itos.o \
 stdlib/utos.o \
 stdlib/ltos.o \
+stdlib/strtol.o \
 string/memcpy.o \
 string/memmove.o \
 string/memset.o \

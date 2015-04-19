@@ -13,6 +13,7 @@ test_libc++_string_strrchr \
 test_libc++_stdlib_itos \
 test_libc++_stdlib_utos \
 test_libc++_stdlib_ltos \
+test_libc++_stdlib_strtol \
 test_libc++_stdio_putchar \
 test_libc++_stdio_puts \
 test_libc++_stdio_printf \
@@ -97,6 +98,9 @@ test_libc++_stdlib_utos: libc++/stdlib/utos.cpp $(LIBCPP_LIB)
 
 test_libc++_stdlib_ltos: libc++/stdlib/ltos.cpp $(LIBCPP_LIB)
 	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/stdlib/ltos.cpp -o $@
+
+test_libc++_stdlib_strtol: libc++/stdlib/strtol.cpp $(LIBCPP_LIB)
+	$(CXX_HOST) $(CXXFLAGS) $(LIBCPP_LIB) libc++/stdlib/strtol.cpp -o $@
 
 ### libc++/stdio ###
 test_libc++_stdio_putchar: libc++/stdio/putchar.cpp $(LIBCPP_LIB)
