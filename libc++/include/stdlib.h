@@ -31,4 +31,21 @@ inline T abs(T num) {
   return (num >= 0 ? num : num * -1);
 }
 
+template <typename T>
+struct div_t {
+  T quot;
+  T rem;
+};
+
+/**
+ * Integral division of numerator by denominator.
+ */
+template <typename T>
+div_t<T> div(T numer, T denom) {
+  div_t<T> res;
+  res.quot = numer / denom;
+  res.rem = numer % denom;
+  return res;
+}
+
 #endif // STDLIB_H
