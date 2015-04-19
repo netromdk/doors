@@ -28,7 +28,7 @@ struct Sdt {
 // Root System Descriptor Table that points to the other SDTs.
 struct Rsdt {
   Sdt header;
-  uint32_t *otherSdts;
+  uint32_t otherSdts[4];
 } __attribute__ ((packed));
 
 // Generic Address Structure.

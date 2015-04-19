@@ -11,7 +11,7 @@ namespace {
   Rsd *rsdp = nullptr;
   Rsdt *rsdt = nullptr;
   Fadt *fadt = nullptr;
-  
+
   Rsd *detectRsdp() {
     static const char *ID = "RSD PTR ";
     static const size_t idSize = strlen(ID);
@@ -58,7 +58,8 @@ namespace {
    * Detect the FADT which has the signature "FACP".
    */
   Sdt *detectFadt(Rsdt *rsdt) {
-    size_t nelm = (rsdt->header.length - sizeof(rsdt->header)) / 4;
+    size_t nelm =
+      (rsdt->header.length - sizeof(rsdt->header)) / sizeof(uint32_t);
     for (size_t i = 0; i < nelm; i++) {
       Sdt *sdt = (Sdt*) rsdt->otherSdts[i];
       if (strncmp(sdt->sig, "FACP", 4) == 0) {
