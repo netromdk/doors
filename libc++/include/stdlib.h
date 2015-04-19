@@ -20,6 +20,12 @@ uint32_t strtoul(const char *str, char **endptr = nullptr, int base = 0);
 int64_t strtoll(const char *str, char **endptr = nullptr, int base = 0);
 uint64_t strtoull(const char *str, char **endptr = nullptr, int base = 0);
 
+/**
+ * Convert string to a base 10 number.
+ */
+int32_t atoi(const char *str);
+int64_t atol(const char *str);
+
 template <typename T>
 inline T abs(T num) {
   return (num >= 0 ? num : num * -1);

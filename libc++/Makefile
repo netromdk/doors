@@ -43,6 +43,8 @@ stdlib/strtol.o \
 stdlib/strtoul.o \
 stdlib/strtoll.o \
 stdlib/strtoull.o \
+stdlib/atoi.o \
+stdlib/atol.o \
 string/memcpy.o \
 string/memmove.o \
 string/memset.o \
