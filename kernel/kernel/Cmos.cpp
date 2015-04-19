@@ -3,6 +3,7 @@
 
 #include <kernel/Io.h>
 #include <kernel/Cmos.h>
+#include <kernel/Acpi.h>
 
 #define THIS_CENTURY 2000
 
@@ -35,7 +36,7 @@ namespace {
     return getRtcReg(CMOS_REG_STAT_A) & 0x80; // test 8th bit
   }
 
-  void getRtcComps(uint8_t comps[6]) {
+  void getRtcComps(uint8_t comps[7], uint8_t century = CMOS_REG_CENTURY) {
     while (isUpdating());
     comps[0] = getRtcReg(CMOS_REG_SECONDS);
     comps[1] = getRtcReg(CMOS_REG_MINUTES);
@@ -43,10 +44,18 @@ namespace {
     comps[3] = getRtcReg(CMOS_REG_DAY);
     comps[4] = getRtcReg(CMOS_REG_MONTH);
     comps[5] = getRtcReg(CMOS_REG_YEAR);
+    comps[6] = getRtcReg(century);
   }
   
   void readRtcValues() {
-    constexpr size_t size = 6;
+    uint8_t centuryReg = CMOS_REG_CENTURY;
+    Fadt *fadt = Acpi::getFadt();
+    if (fadt && fadt->century != 0) {
+      centuryReg = fadt->century;
+      printf("Using century register from FADT = %d\n", centuryReg);
+    }
+
+    constexpr size_t size = 7;
     uint8_t comps[size];
     getRtcComps(comps);
 
@@ -90,10 +99,12 @@ namespace {
     // century we are in. Either we use the century register, but not
     // all CMOS supports it, or we keep track of the year this file
     // was compiled and use that information.
-    //
-    // TODO: When the century register is detected using FADT then use
-    // that value instead.
-    year += THIS_CENTURY;
+    if (fadt && fadt->century != 0) {
+      year += comps[6] * 100;
+    }
+    else {
+      year += THIS_CENTURY;
+    }
   }
 }
 
