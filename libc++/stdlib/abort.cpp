@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 __attribute__((__noreturn__))
-void abort() {
+void abort() noexcept {
 #ifdef __IS_DOORS_KERNEL
   // TODO: Do an actual kernel panic here?
   printf("Kernel Panic: abort()\n");
