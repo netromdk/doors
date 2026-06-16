@@ -68,7 +68,7 @@ run: check-qemu build
 	$(EMU) -kernel $(KERNEL)
 
 run-iso: check-qemu iso
-	$(EMU) -cdrom $(ISO)
+	$(EMU) -cdrom $(ISO) -boot d
 
 # === Distribution ===
 iso: check-iso-deps build
