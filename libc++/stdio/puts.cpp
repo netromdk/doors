@@ -2,7 +2,7 @@
 #include <string.h>
 
 #ifdef __IS_DOORS_KERNEL
-  #include <kernel/tty.h>
+  #include <kernel/Tty.h>
 #endif
 
 int puts(const char *str) {

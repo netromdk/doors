@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #ifdef __IS_DOORS_KERNEL
-  #include <kernel/tty.h>
+  #include <kernel/Tty.h>
 #endif
 
 int putchar(int ic) {

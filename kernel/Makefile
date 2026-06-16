@@ -36,8 +36,8 @@ kernel/Cmos.o \
 kernel/Keymap.o \
 
 CRTI_OBJ:=$(ARCHDIR)/Crti.o
-CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=Crtbegin.o)
-CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=Crtend.o)
+CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=crtbegin.o)
+CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=crtend.o)
 CRTN_OBJ:=$(ARCHDIR)/Crtn.o
 
 ALL_OUR_OBJS:=\

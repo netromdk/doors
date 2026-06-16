@@ -1,7 +1,7 @@
 #ifndef KERNEL_MEMORY_H
 #define KERNEL_MEMORY_H
 
-#include <kernel/multiboot.h>
+#include <kernel/Multiboot.h>
 
 class Mem {
 public:

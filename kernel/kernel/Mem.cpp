@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stddef.h>
 
-#include <kernel/mem.h>
-#include <kernel/cpu.h>
+#include <kernel/Mem.h>
+#include <kernel/Cpu.h>
 
 namespace {
   // Lower/upper memory specified in KB.
