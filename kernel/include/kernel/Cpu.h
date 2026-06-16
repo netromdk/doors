@@ -3,19 +3,19 @@
 
 #include <stdint.h>
 
-#define CPUID_VENDOR_OLDAMD       "AMDisbetter!"
-#define CPUID_VENDOR_AMD          "AuthenticAMD"
-#define CPUID_VENDOR_INTEL        "GenuineIntel"
-#define CPUID_VENDOR_VIA          "CentaurHauls"
-#define CPUID_VENDOR_OLDTRANSMETA "TransmetaCPU"
-#define CPUID_VENDOR_TRANSMETA    "GenuineTMx86"
-#define CPUID_VENDOR_CYRIX        "CyrixInstead"
-#define CPUID_VENDOR_CENTAUR      "CentaurHauls"
-#define CPUID_VENDOR_NEXGEN       "NexGenDriven"
-#define CPUID_VENDOR_UMC          "UMC UMC UMC "
-#define CPUID_VENDOR_SIS          "SiS SiS SiS "
-#define CPUID_VENDOR_NSC          "Geode by NSC"
-#define CPUID_VENDOR_RISE         "RiseRiseRise"
+static constexpr auto CPUID_VENDOR_OLDAMD = "AMDisbetter!",
+  CPUID_VENDOR_AMD = "AuthenticAMD",
+  CPUID_VENDOR_INTEL = "GenuineIntel",
+  CPUID_VENDOR_VIA = "CentaurHauls",
+  CPUID_VENDOR_OLDTRANSMETA = "TransmetaCPU",
+  CPUID_VENDOR_TRANSMETA = "GenuineTMx86",
+  CPUID_VENDOR_CYRIX = "CyrixInstead",
+  CPUID_VENDOR_CENTAUR = "CentaurHauls",
+  CPUID_VENDOR_NEXGEN = "NexGenDriven",
+  CPUID_VENDOR_UMC = "UMC UMC UMC ",
+  CPUID_VENDOR_SIS = "SiS SiS SiS ",
+  CPUID_VENDOR_NSC = "Geode by NSC",
+  CPUID_VENDOR_RISE = "RiseRiseRise";
 
 class Cpu {
 public:

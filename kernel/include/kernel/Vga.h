@@ -8,8 +8,7 @@
 static uint16_t *VGA_RAM = (uint16_t*) 0xB8000;
 
 // VGA standard terminal dimensions.
-static const size_t VGA_WIDTH = 80,
-  VGA_HEIGHT = 25;
+static constexpr size_t VGA_WIDTH = 80, VGA_HEIGHT = 25;
 
 // VGA standard hardware colors.
 enum VgaColor {
@@ -35,7 +34,7 @@ inline uint8_t vgaColor(VgaColor fg, VgaColor bg) {
   return fg | bg << 4;
 }
 
-inline uint16_t vgaEntry(char ch, uint8_t color) {
+constexpr inline uint16_t vgaEntry(char ch, uint8_t color) {
   return uint16_t(ch) | uint16_t(color) << 8;
 }
 

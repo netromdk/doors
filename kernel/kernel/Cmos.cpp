@@ -5,21 +5,21 @@
 #include <kernel/Cmos.h>
 #include <kernel/Acpi.h>
 
-#define THIS_CENTURY 2000
+static constexpr uint32_t THIS_CENTURY = 2000;
 
-#define CMOS_PORT 0x70
-#define CMOS_DATA 0x71
+static constexpr uint16_t CMOS_PORT = 0x70,
+  CMOS_DATA = 0x71;
 
-#define CMOS_REG_SECONDS 0x00
-#define CMOS_REG_MINUTES 0x02
-#define CMOS_REG_HOURS   0x04
-#define CMOS_REG_WEEKDAY 0x06 // Not reliable!
-#define CMOS_REG_DAY     0x07 // ..of month
-#define CMOS_REG_MONTH   0x08
-#define CMOS_REG_YEAR    0x09
-#define CMOS_REG_CENTURY 0x32 // Get value from FADT!
-#define CMOS_REG_STAT_A  0x0A
-#define CMOS_REG_STAT_B  0x0B
+static constexpr uint8_t CMOS_REG_SECONDS = 0x00,
+  CMOS_REG_MINUTES = 0x02,
+  CMOS_REG_HOURS =   0x04,
+  CMOS_REG_WEEKDAY = 0x06, // Not reliable!
+  CMOS_REG_DAY =     0x07, // ..of month
+  CMOS_REG_MONTH =   0x08,
+  CMOS_REG_YEAR =    0x09,
+  CMOS_REG_CENTURY = 0x32, // Get value from FADT!
+  CMOS_REG_STAT_A =  0x0A,
+  CMOS_REG_STAT_B =  0x0B;
 
 namespace {
   uint8_t seconds = 0, minutes = 0, hours = 0;
@@ -46,7 +46,7 @@ namespace {
     comps[5] = getRtcReg(CMOS_REG_YEAR);
     comps[6] = getRtcReg(century);
   }
-  
+
   void readRtcValues() {
     uint8_t centuryReg = CMOS_REG_CENTURY;
     Fadt *fadt = Acpi::getFadt();
