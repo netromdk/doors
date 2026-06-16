@@ -43,7 +43,7 @@ namespace {
       uint32_t PBE : 1;        // Pending Break Enable
     } features;
   };
-  typedef union CpuFeatures_ CpuFeatures;
+  using CpuFeatures = union CpuFeatures_;
 
   // Extended features
   union CpuExtFeatures_ {
@@ -58,7 +58,7 @@ namespace {
       uint32_t RESERVED_4 : 2;
     } features;
   };
-  typedef union CpuExtFeatures_ CpuExtFeatures;
+  using CpuExtFeatures = union CpuExtFeatures_;
 
   // Extended features 2
   union CpuExtFeatures2_ {
@@ -71,8 +71,8 @@ namespace {
       uint32_t RESERVED_1 : 31;
     } features;
   };
-  typedef union CpuExtFeatures2_ CpuExtFeatures2;
-  
+  using CpuExtFeatures2 = union CpuExtFeatures2_;
+
   bool cpuidSupported() {
     // This method uses the ID flag in bit 21 of the EFLAGS register. If
     // software can change the value of this flag, the CPUID instruction
