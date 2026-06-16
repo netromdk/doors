@@ -206,13 +206,13 @@ namespace {
     result[48] = 0;
   }
 
-  uint32_t funcMax = 0, funcMaxExt = 0;
-  char vendorId[13] = {0}, brand[49] = {0};
-  uint8_t stepping = 0, model = 0, family = 0, procType = 0;
+  static constinit uint32_t funcMax = 0, funcMaxExt = 0;
+  static constinit char vendorId[13] = {0}, brand[49] = {0};
+  static constinit uint8_t stepping = 0, model = 0, family = 0, procType = 0;
 
-  CpuFeatures features;
-  CpuExtFeatures efeatures;
-  CpuExtFeatures2 efeatures2;
+  static constinit CpuFeatures features;
+  static constinit CpuExtFeatures efeatures;
+  static constinit CpuExtFeatures2 efeatures2;
 }
 
 bool Cpu::init() {

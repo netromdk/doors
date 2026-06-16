@@ -8,15 +8,15 @@ namespace {
   void fillDesc(uint32_t offset, uint16_t selector, uint8_t type, IdtDesc *desc) {
     desc->offset_low  =  offset & 0x0000FFFF;
     desc->offset_high = (offset & 0xFFFF0000) >> 16;
-    
+
     desc->selector = selector;
     desc->zero = 0;
     desc->type = type;
   }
 }
 
-IdtDesc idt[IDT_SIZE];
-IdtReg idtr;
+constinit IdtDesc idt[IDT_SIZE];
+constinit IdtReg idtr;
 
 // Wrappers are defined in isr.s and will call functions in
 // inthndl.cpp and exchndl.cpp.

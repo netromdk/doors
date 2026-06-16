@@ -5,15 +5,17 @@
 #include <kernel/Cpu.h>
 
 namespace {
-  // Lower/upper memory specified in KB.
-  uint64_t lowerMem = 0, // 0-640 KB.
-    upperMem = 0, // From 1+ MB.
-    totalUpperMem = 0;
 
-  constexpr size_t memMax = 255;
-  multiboot_memory_map_t *memMap[memMax] = {nullptr};
-  size_t memCnt = 0;
-}
+// Lower/upper memory specified in KB.
+static constinit uint64_t lowerMem = 0, // 0-640 KB.
+  upperMem = 0,                         // From 1+ MB.
+  totalUpperMem = 0;
+
+static constexpr size_t memMax = 255;
+static constinit multiboot_memory_map_t *memMap[memMax] = {nullptr};
+static constinit size_t memCnt = 0;
+
+} // namespace
 
 bool Mem::init(multiboot_info *mbi) {
   lowerMem = mbi->mem_lower;

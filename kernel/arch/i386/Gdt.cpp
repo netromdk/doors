@@ -17,8 +17,8 @@ namespace {
   }
 }
 
-GdtDesc gdt[GDT_SIZE];
-GdtReg gdtr;
+constinit GdtDesc gdt[GDT_SIZE];
+constinit GdtReg gdtr;
 
 void Gdt::init() {
   // Never used by the CPU but required to be present.

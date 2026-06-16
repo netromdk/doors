@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 // Address of VRAM - color text mode.
-static uint16_t *VGA_RAM = (uint16_t*) 0xB8000;
+static constinit uint16_t *VGA_RAM = (uint16_t *) 0xB8000;
 
 // VGA standard terminal dimensions.
 static constexpr size_t VGA_WIDTH = 80, VGA_HEIGHT = 25;

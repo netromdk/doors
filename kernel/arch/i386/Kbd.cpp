@@ -26,8 +26,8 @@ static constexpr uint16_t KBD_RSP_ERROR1 = 0x00,
   KBD_RSP_ERROR2  = 0xFF;
 
 namespace {
-  uint8_t lastCodes[64] = {0};
-  size_t lastCodesCnt = 0;
+  static constinit uint8_t lastCodes[64] = {0};
+  static constinit size_t lastCodesCnt = 0;
 
   /**
    * Sends ECHO and expects the same reply.

@@ -12,10 +12,10 @@
 #endif
 
 namespace {
-  uint8_t termRow = 0,
+  static constinit uint8_t termRow = 0,
     termCol = 0,
     termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
-  bool scrolling = true;
+  static constinit bool scrolling = true;
 
   void clearRow(uint8_t row) {
     termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);

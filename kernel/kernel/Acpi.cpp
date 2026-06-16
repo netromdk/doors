@@ -8,14 +8,14 @@
 #include <kernel/Acpi.h>
 
 namespace {
-  Rsd *rsdp = nullptr;
-  Rsdt *rsdt = nullptr;
-  Fadt *fadt = nullptr;
+  static constinit Rsd *rsdp = nullptr;
+  static constinit Rsdt *rsdt = nullptr;
+  static constinit Fadt *fadt = nullptr;
 
   Rsd *detectRsdp() {
     static const char *ID = "RSD PTR ";
     static const size_t idSize = strlen(ID);
-  
+
     uint8_t *ptr = (uint8_t*) BDA_BASE_ADDR;
     bool found = false;
     for (size_t i = 0; i < 1024; i++, ptr++) {
@@ -32,7 +32,7 @@ namespace {
           found = true;
           break;
         }
-      }    
+      }
     }
 
     return (found ? (Rsd*) ptr : nullptr);

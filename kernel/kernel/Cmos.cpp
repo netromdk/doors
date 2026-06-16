@@ -22,9 +22,9 @@ static constexpr uint8_t CMOS_REG_SECONDS = 0x00,
   CMOS_REG_STAT_B =  0x0B;
 
 namespace {
-  uint8_t seconds = 0, minutes = 0, hours = 0;
-  uint32_t day = 0, month = 0, year = 0;
-  
+  static constinit uint8_t seconds = 0, minutes = 0, hours = 0;
+  static constinit uint32_t day = 0, month = 0, year = 0;
+
   uint8_t getRtcReg(uint8_t reg) {
     Io::outb(CMOS_PORT, reg);
     return Io::inb(CMOS_DATA);

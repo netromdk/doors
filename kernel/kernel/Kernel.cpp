@@ -17,7 +17,7 @@
 #include <kernel/Version.h>
 #include <kernel/Multiboot.h>
 
-multiboot_info *mbi = nullptr;
+constinit multiboot_info *mbi = nullptr;
 
 extern "C" {
   void kmainInit(multiboot_info *mbi_, uint32_t magic) {
