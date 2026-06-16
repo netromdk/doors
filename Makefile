@@ -47,6 +47,23 @@ check-qemu:
 		exit 1; \
 	}
 
+check-iso-deps:
+	@which grub-mkrescue > /dev/null 2>&1 || { \
+		echo "Error: grub-mkrescue not found."; \
+		echo "Install it with: sudo apt install grub-pc-bin grub-common"; \
+		exit 1; \
+	}
+	@which mformat > /dev/null 2>&1 || { \
+		echo "Error: mformat not found (required by grub-mkrescue)."; \
+		echo "Install it with: sudo apt install mtools"; \
+		exit 1; \
+	}
+	@test -d /usr/lib/grub/i386-pc || { \
+		echo "Error: GRUB i386-pc BIOS modules not found (required for bootable ISO)."; \
+		echo "Install them with: sudo apt install grub-pc-bin"; \
+		exit 1; \
+	}
+
 run: check-qemu build
 	$(EMU) -kernel $(KERNEL)
 
@@ -54,7 +71,7 @@ run-iso: check-qemu iso
 	$(EMU) -cdrom $(ISO)
 
 # === Distribution ===
-iso: build
+iso: check-iso-deps build
 	@echo "Creating distribution: $(ISO)"
 	@rm -fr $(TMPISODIR)
 	@mkdir -p $(TMPISODIR)/boot/grub
