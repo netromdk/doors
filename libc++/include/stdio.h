@@ -109,6 +109,12 @@ namespace {
     return _printf((uint32_t) value, fmt);
   }
 
+  // `long` is equivalent to `int`.
+  template <>
+  inline int _printf(long value, char fmt) {
+    return _printf((int) value, fmt);
+  }
+
   template <>
   inline int _printf(uint64_t value, char fmt) {
     char buf[255];
