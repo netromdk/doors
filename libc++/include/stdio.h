@@ -109,6 +109,12 @@ namespace {
     return _printf((uint32_t) value, fmt);
   }
 
+  // `size_t` is `unsigned long`.
+  template <>
+  inline int _printf(unsigned long value, char fmt) {
+    return _printf((uint32_t) value, fmt);
+  }
+
   // `long` is equivalent to `int`.
   template <>
   inline int _printf(long value, char fmt) {
