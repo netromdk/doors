@@ -16,3 +16,5 @@ GRTAGS
 
 # test related
 tests/test_*
+/kernel/.cppflags.stamp
+/libc++/.cppflags.stamp

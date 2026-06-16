@@ -16,7 +16,7 @@ CFLAGS:=$(CFLAGS) -Wall -Wextra -fno-builtin
 CPPFLAGS:=$(CPPFLAGS) -D__IS_DOORS_LIBCPP -Iinclude -I$(PWD)/sysroot/$(INCLUDEDIR)/include
 LIBK_CFLAGS:=$(CFLAGS) -ffreestanding -fno-exceptions -fno-rtti
 LIBK_CPPFLAGS:=$(CPPFLAGS) -D__IS_DOORS_KERNEL
-LIBCPPTEST_CFLAGS:=$(CFLAGS) 
+LIBCPPTEST_CFLAGS:=$(CFLAGS)
 LIBCPPTEST_CPPFLAGS:=$(CPPFLAGS) -D__IS_DOORS_LIBCPPTEST
 
 ARCHDIR:=arch/$(HOSTARCH)
@@ -89,7 +89,11 @@ TESTINGBINS=libc++test.a
 all: $(BINARIES)
 test: $(TESTINGBINS)
 
-.PHONY: all clean install install-headers install-libs
+.PHONY: all clean install install-headers install-libs FORCE
+
+.cppflags.stamp: FORCE
+	@printf '%s' '$(CPPFLAGS)|$(LIBK_CPPFLAGS)|$(LIBCPPTEST_CPPFLAGS)' | cmp -s - $@ || \
+	  printf '%s' '$(CPPFLAGS)|$(LIBK_CPPFLAGS)|$(LIBCPPTEST_CPPFLAGS)' > $@
 
 libc++.a: $(OBJS)
 	$(AR) rcs $@ $(OBJS)
@@ -103,26 +107,26 @@ libc++test.a: $(LIBCPPTEST_OBJS)
 	$(AR_HOST) rcs $@ $(LIBCPPTEST_OBJS)
 	@echo "[Created libc++test.a]\n"
 
-%.o: %.cpp
+%.o: %.cpp .cppflags.stamp
 	$(CXX) -c $< -o $@ -std=c++11 $(CFLAGS) $(CPPFLAGS)
 
-%.o: %.s
+%.o: %.s .cppflags.stamp
 	$(CXX) -c $< -o $@ $(CFLAGS) $(CPPFLAGS)
 
-%.libk.o: %.cpp
+%.libk.o: %.cpp .cppflags.stamp
 	$(CXX) -c $< -o $@ -std=c++11 $(LIBK_CFLAGS) $(LIBK_CPPFLAGS)
 
-%.libk.o: %.s
+%.libk.o: %.s .cppflags.stamp
 	$(CXX) -c $< -o $@ $(LIBK_CFLAGS) $(LIBK_CPPFLAGS)
 
-%.libc++test.o: %.cpp
+%.libc++test.o: %.cpp .cppflags.stamp
 	$(CXX_HOST) -c $< -o $@ -std=c++11 $(LIBCPPTEST_CFLAGS) $(LIBCPPTEST_CPPFLAGS)
 
-%.libc++test.o: %.s
+%.libc++test.o: %.s .cppflags.stamp
 	$(CXX_HOST) -c $< -o $@ $(LIBCPPTEST_CFLAGS) $(LIBCPPTEST_CPPFLAGS)
 
 clean:
-	rm -f $(BINARIES) $(TESTINGBINS) $(OBJS) $(LIBK_OBJS) $(LIBCPPTEST_OBJS) *.o */*.o */*/*.o
+	rm -f $(BINARIES) $(TESTINGBINS) $(OBJS) $(LIBK_OBJS) $(LIBCPPTEST_OBJS) *.o */*.o */*/*.o .cppflags.stamp
 
 install: install-headers install-libs
 

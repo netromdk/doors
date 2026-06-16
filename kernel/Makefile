@@ -55,20 +55,25 @@ $(CRTN_OBJ) \
 
 all: doors.kernel
 
-.PHONY: all clean install install-headers install-kernel
+.PHONY: all clean install install-headers install-kernel FORCE
+
+# Recompile all objects when flags change (cmp -s skips writing and updating mtime when the flags
+# haven't actually changed).
+.cppflags.stamp: FORCE
+	@printf '%s' '$(CPPFLAGS)' | cmp -s - $@ || printf '%s' '$(CPPFLAGS)' > $@
 
 doors.kernel: $(OBJ_LINK_LIST) $(ARCHDIR)/Linker.ld
 	$(CXX) -T $(ARCHDIR)/Linker.ld -o $@ $(CFLAGS) $(OBJ_LINK_LIST) $(LDFLAGS) $(LIBS)
 	@echo "[Linked doors.kernel]"
 
-%.o: %.cpp
+%.o: %.cpp .cppflags.stamp
 	$(CXX) -c $< -o $@ -std=c++11 $(CFLAGS) $(CPPFLAGS)
 
-%.o: %.s
+%.o: %.s .cppflags.stamp
 	$(CXX) -c $< -o $@ $(CFLAGS) $(CPPFLAGS)
 
 clean:
-	rm -f doors.kernel $(OBJS) $(ALL_OUR_OBJS) *.o */*.o */*/*.o
+	rm -f doors.kernel $(OBJS) $(ALL_OUR_OBJS) *.o */*.o */*/*.o .cppflags.stamp
 
 install: install-headers install-kernel
 
