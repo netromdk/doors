@@ -30,7 +30,7 @@ enum VgaColor {
   COLOR_WHITE         = 0xF
 };
 
-inline uint8_t vgaColor(VgaColor fg, VgaColor bg) {
+consteval inline uint8_t vgaColor(VgaColor fg, VgaColor bg) {
   return fg | bg << 4;
 }
 
