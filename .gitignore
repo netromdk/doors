@@ -7,6 +7,7 @@
 sysroot
 *.iso
 *.kernel
+/bootstrap/
 
 # gtags
 GTAGS

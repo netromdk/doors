@@ -1,6 +1,8 @@
 SYSTEM_HEADER_PROJECTS="libc++ kernel"
 PROJECTS="libc++ kernel"
 
+export PATH="$PWD/bootstrap/bin:$PATH"
+
 export MAKE=${MAKE:-make}
 export HOST=${HOST:-$(./scripts/default-host.sh)}
 
