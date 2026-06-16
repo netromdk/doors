@@ -40,10 +40,17 @@ clean:
 clean-all: clean clean-tests clean-tags
 
 # === Emulation ===
-run: build
+check-qemu:
+	@which $(EMU) > /dev/null 2>&1 || { \
+		echo "Error: $(EMU) not found."; \
+		echo "Install it with: sudo apt install qemu-system-x86"; \
+		exit 1; \
+	}
+
+run: check-qemu build
 	$(EMU) -kernel $(KERNEL)
 
-run-iso: iso
+run-iso: check-qemu iso
 	$(EMU) -cdrom $(ISO)
 
 # === Distribution ===
