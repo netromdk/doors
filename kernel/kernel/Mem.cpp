@@ -21,12 +21,12 @@ bool Mem::init(multiboot_info *mbi) {
 
   // Traverse memory map.
   multiboot_memory_map_t *mmap = (multiboot_memory_map_t*) mbi->mmap_addr;
-	while (mmap < (multiboot_memory_map_t*) (mbi->mmap_addr + mbi->mmap_length)) {
+  while (mmap < (multiboot_memory_map_t*) (mbi->mmap_addr + mbi->mmap_length)) {
     // Only take free chunks in upper memory.
     if (mmap->type == 1 && mmap->addr >= 1048576) {
       /*
       printf("chunk addr = 0x%X, size = %u KB\n",
-             (uint64_t) mmap->addr, (uint64_t) mmap->len);
+             (uint64_t) mmap->addr, (uint64_t) mmap->len / 1024);
       */
 
       // Only include 4+ GB if PAE is supported by the CPU.
@@ -34,7 +34,7 @@ bool Mem::init(multiboot_info *mbi) {
           (mmap->addr >= 0x100000000 && Cpu::hasPae())) {
         memMap[memCnt] = mmap;
         memCnt++;
-        totalUpperMem += mmap->len;
+        totalUpperMem += mmap->len / 1024;
       }
     }
 
