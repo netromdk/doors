@@ -7,7 +7,7 @@ export MAKE=${MAKE:-make}
 export HOST=${HOST:-$(./scripts/default-host.sh)}
 
 # Number of simultaneous compilation jobs to keep.
-export JOBS=8
+export JOBS=${JOBS:-$(nproc)}
 
 export AR=${HOST}-ar
 export AS=${HOST}-as
