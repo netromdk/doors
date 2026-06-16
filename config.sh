@@ -25,6 +25,8 @@ export BOOTDIR=/boot
 export LIBDIR=$EXEC_PREFIX/lib
 export INCLUDEDIR=$PREFIX/include
 
+export CXX_STD=-std=c++11
+
 export CFLAGS='-O0'
 
 # When `DEBUG_THROUGH_SERIAL_COM1` is defined, all `printf()` will be output to COM1 (and QEMU

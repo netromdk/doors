@@ -67,7 +67,7 @@ doors.kernel: $(OBJ_LINK_LIST) $(ARCHDIR)/Linker.ld
 	@echo "[Linked doors.kernel]"
 
 %.o: %.cpp .cppflags.stamp
-	$(CXX) -c $< -o $@ -std=c++11 $(CFLAGS) $(CPPFLAGS)
+	$(CXX) -c $< -o $@ $(CXX_STD) $(CFLAGS) $(CPPFLAGS)
 
 %.o: %.s .cppflags.stamp
 	$(CXX) -c $< -o $@ $(CFLAGS) $(CPPFLAGS)

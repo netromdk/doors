@@ -42,7 +42,7 @@ test_libc++_ctype_isprint \
 test_libc++_ctype_tolower \
 test_libc++_ctype_toupper
 
-CXXFLAGS += -I../sysroot/$(INCLUDEDIR)/include -std=c++11 -O0 -Wall -Wextra -fno-builtin
+CXXFLAGS += -I../sysroot/$(INCLUDEDIR)/include $(CXX_STD) -O0 -Wall -Wextra -fno-builtin
 
 LIBCPP_LIB = ../libc++/libc++test.a
 

@@ -108,19 +108,19 @@ libc++test.a: $(LIBCPPTEST_OBJS)
 	@echo "[Created libc++test.a]\n"
 
 %.o: %.cpp .cppflags.stamp
-	$(CXX) -c $< -o $@ -std=c++11 $(CFLAGS) $(CPPFLAGS)
+	$(CXX) -c $< -o $@ $(CXX_STD) $(CFLAGS) $(CPPFLAGS)
 
 %.o: %.s .cppflags.stamp
 	$(CXX) -c $< -o $@ $(CFLAGS) $(CPPFLAGS)
 
 %.libk.o: %.cpp .cppflags.stamp
-	$(CXX) -c $< -o $@ -std=c++11 $(LIBK_CFLAGS) $(LIBK_CPPFLAGS)
+	$(CXX) -c $< -o $@ $(CXX_STD) $(LIBK_CFLAGS) $(LIBK_CPPFLAGS)
 
 %.libk.o: %.s .cppflags.stamp
 	$(CXX) -c $< -o $@ $(LIBK_CFLAGS) $(LIBK_CPPFLAGS)
 
 %.libc++test.o: %.cpp .cppflags.stamp
-	$(CXX_HOST) -c $< -o $@ -std=c++11 $(LIBCPPTEST_CFLAGS) $(LIBCPPTEST_CPPFLAGS)
+	$(CXX_HOST) -c $< -o $@ $(CXX_STD) $(LIBCPPTEST_CFLAGS) $(LIBCPPTEST_CPPFLAGS)
 
 %.libc++test.o: %.s .cppflags.stamp
 	$(CXX_HOST) -c $< -o $@ $(LIBCPPTEST_CFLAGS) $(LIBCPPTEST_CPPFLAGS)
