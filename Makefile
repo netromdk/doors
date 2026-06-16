@@ -20,6 +20,8 @@ help:
 build:
 	@./scripts/build.sh
 
+rebuild: clean build
+
 test:
 	@./scripts/buildtests.sh
 	@./scripts/runtests.sh
