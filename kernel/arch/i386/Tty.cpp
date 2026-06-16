@@ -7,6 +7,10 @@
 #include <kernel/Vga.h>
 #include <kernel/Tty.h>
 
+#ifdef DEBUG_THROUGH_SERIAL_COM1
+#include <kernel/Serial.h>
+#endif
+
 namespace {
   uint8_t termRow = 0,
     termCol = 0,
@@ -74,6 +78,11 @@ void Tty::cls() {
 }
 
 void Tty::putc(char ch) {
+  // Write all characters through serial COM1 when enabled for debugging purposes.
+#ifdef DEBUG_THROUGH_SERIAL_COM1
+  Serial::write(ch);
+#endif
+
   if (ch == '\n') {
     advRow();
     termCol = 0;

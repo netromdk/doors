@@ -26,7 +26,11 @@ export LIBDIR=$EXEC_PREFIX/lib
 export INCLUDEDIR=$PREFIX/include
 
 export CFLAGS='-O0'
-export CPPFLAGS=''
+
+# When `DEBUG_THROUGH_SERIAL_COM1` is defined, all `printf()` will be output to COM1 (and QEMU
+# captures and into a log file via `EMUFLAGS` in the top-level Makefile).
+export CPPFLAGS='-DDEBUG_THROUGH_SERIAL_COM1'
+#export CPPFLAGS=''
 
 # Configure the cross-compiler to use the desired system root.
 #export CC="$CC --sysroot=$PWD/sysroot"

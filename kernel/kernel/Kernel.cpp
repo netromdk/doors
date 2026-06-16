@@ -47,6 +47,9 @@ extern "C" {
            BUILD_DATE, BUILD_TIME);
 
     printf("Serial COM1 ready..");
+#ifdef DEBUG_THROUGH_SERIAL_COM1
+    printf(" (debug log enabled)");
+#endif
     printf("\n");
 
     Arch::init(mbi);
