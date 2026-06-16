@@ -25,7 +25,7 @@ export BOOTDIR=/boot
 export LIBDIR=$EXEC_PREFIX/lib
 export INCLUDEDIR=$PREFIX/include
 
-export CXX_STD=-std=c++11
+export CXX_STD=-std=c++20
 
 export CFLAGS='-O0'
 
