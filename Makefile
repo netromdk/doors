@@ -6,6 +6,7 @@ TGZ=$(NAME).tgz
 BZ2=$(NAME).bz2
 XZ=$(NAME).xz
 EMU=qemu-system-i386
+EMUFLAGS=-serial file:doors.log
 TMPISODIR=/tmp/$(NAME)_iso
 SYSROOT=sysroot
 
@@ -65,10 +66,10 @@ check-iso-deps:
 	}
 
 run: check-qemu build
-	$(EMU) -kernel $(KERNEL)
+	$(EMU) $(EMUFLAGS) -kernel $(KERNEL)
 
 run-iso: check-qemu iso
-	$(EMU) -cdrom $(ISO) -boot d
+	$(EMU) $(EMUFLAGS) -cdrom $(ISO) -boot d
 
 # === Distribution ===
 iso: check-iso-deps build
