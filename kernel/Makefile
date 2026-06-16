@@ -30,6 +30,7 @@ OBJS:=\
 $(KERNEL_ARCH_OBJS) \
 kernel/Kernel.o \
 kernel/Runtime.o \
+kernel/Serial.o \
 kernel/Mem.o \
 kernel/Acpi.o \
 kernel/Cmos.o \

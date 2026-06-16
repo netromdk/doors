@@ -1,7 +1,7 @@
 #if defined(__LINUX__) || defined(__APPLE__)
   #error "Seems you are not using a cross-compiler"
 #endif
- 
+
 #ifndef __i386__
   #error "This must be compiled as x86"
 #endif
@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include <kernel/Tty.h>
+#include <kernel/Serial.h>
 #include <kernel/Arch.h>
 #include <kernel/Version.h>
 #include <kernel/Multiboot.h>
@@ -20,6 +21,7 @@ multiboot_info *mbi = nullptr;
 
 extern "C" {
   void kmainInit(multiboot_info *mbi_, uint32_t magic) {
+    Serial::init();
     Tty::cls();
 
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
@@ -43,6 +45,9 @@ extern "C" {
     printf("Doors v%d.%d.%d [built %s @ %s]\n",
            MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
            BUILD_DATE, BUILD_TIME);
+
+    printf("Serial COM1 ready..");
+    printf("\n");
 
     Arch::init(mbi);
 
