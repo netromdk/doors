@@ -27,7 +27,7 @@ int32_t atoi(const char *str);
 int64_t atol(const char *str);
 
 template <typename T>
-inline T abs(T num) {
+constexpr inline T abs(T num) {
   return (num >= 0 ? num : num * -1);
 }
 
@@ -41,7 +41,7 @@ struct div_t {
  * Integral division of numerator by denominator.
  */
 template <typename T>
-div_t<T> div(T numer, T denom) {
+constexpr div_t<T> div(T numer, T denom) {
   div_t<T> res;
   res.quot = numer / denom;
   res.rem = numer % denom;

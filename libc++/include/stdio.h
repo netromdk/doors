@@ -13,7 +13,7 @@ int puts(const char *str);
 /** printf **/
 
 namespace {
-  int fmtToBase(char fmt) {
+  constexpr int fmtToBase(char fmt) {
     switch (fmt) {
     default:
     case 'd': // decimal
@@ -31,15 +31,15 @@ namespace {
     }
   }
 
-  bool fmtIsUnsigned(char fmt) {
+  constexpr bool fmtIsUnsigned(char fmt) {
     return fmt == 'u';
   }
 
-  bool fmtIsChar(char fmt) {
+  constexpr bool fmtIsChar(char fmt) {
     return fmt == 'c';
   }
 
-  bool fmtIsBool(char fmt) {
+  constexpr bool fmtIsBool(char fmt) {
     return fmt == 'b';
   }
 
