@@ -56,21 +56,7 @@ string/strncpy.o \
 string/strcmp.o \
 string/strncmp.o \
 string/strchr.o \
-string/strrchr.o \
-ctype/isalnum.o \
-ctype/isalpha.o \
-ctype/isblank.o \
-ctype/iscntrl.o \
-ctype/isdigit.o \
-ctype/isxdigit.o \
-ctype/isgraph.o \
-ctype/ispunct.o \
-ctype/isspace.o \
-ctype/islower.o \
-ctype/isupper.o \
-ctype/isprint.o \
-ctype/tolower.o \
-ctype/toupper.o
+string/strrchr.o
 
 HOSTEDOBJS:=\
 $(ARCH_HOSTEDOBJS) \
