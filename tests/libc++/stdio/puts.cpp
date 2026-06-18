@@ -1,9 +1,6 @@
+#include <doctest/doctest.h>
 #include <stdio.h>
 
-int main() {
-  if (puts("hello world") != 11) {
-    return 1;
-  }
-  
-  return 0;
+TEST_CASE("puts") {
+  CHECK(puts("hello world") == 11);
 }

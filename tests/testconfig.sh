@@ -1,1 +1,0 @@
-export CNTFILE=/tmp/doorstestcnt

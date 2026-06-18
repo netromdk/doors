@@ -1,25 +1,10 @@
+#include <doctest/doctest.h>
 #include <ctype.h>
 
-int main() {
-  if (!iscntrl(0)) {
-    return 1;
-  }
-
-  if (!iscntrl(7)) {
-    return 2;
-  }
-
-  if (!iscntrl('\t')) {
-    return 3;
-  }
-
-  if (!iscntrl('\f')) {
-    return 4;
-  }
-
-  if (!iscntrl('\n')) {
-    return 5;
-  }
-
-  return 0;
+TEST_CASE("iscntrl") {
+  CHECK(iscntrl(0));
+  CHECK(iscntrl(7));
+  CHECK(iscntrl('\t'));
+  CHECK(iscntrl('\f'));
+  CHECK(iscntrl('\n'));
 }

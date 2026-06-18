@@ -1,15 +1,12 @@
+#include <doctest/doctest.h>
 #include <stdlib.h>
 
-int main() {
+TEST_CASE("div") {
   div_t<int> res = div(38, 5);
-  if (res.quot != 7 || res.rem != 3) {
-    return 1;
-  }
+  CHECK(res.quot == 7);
+  CHECK(res.rem == 3);
 
   res = div(31558149, 3600);
-  if (res.quot != 8766 || res.rem != 549) {
-    return 2;
-  }
-
-  return 0;
+  CHECK(res.quot == 8766);
+  CHECK(res.rem == 549);
 }

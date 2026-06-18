@@ -213,5 +213,5 @@ done
 TOTAL=$(elapsed)
 echo ""
 echo "Cross-compiler ready in ${TOTAL}."
-echo "'make build' now possible."
+echo "CMake will pick it up now."
 echo ""

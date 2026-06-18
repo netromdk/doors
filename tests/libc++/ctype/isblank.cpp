@@ -1,17 +1,8 @@
+#include <doctest/doctest.h>
 #include <ctype.h>
 
-int main() {
-  if (!isblank('\t')) {
-    return 1;
-  }
-
-  if (!isblank(' ')) {
-    return 2;
-  }
-
-  if (isblank('a')) {
-    return 3;
-  }
-
-  return 0;
+TEST_CASE("isblank") {
+  CHECK(isblank('\t'));
+  CHECK(isblank(' '));
+  CHECK_FALSE(isblank('a'));
 }

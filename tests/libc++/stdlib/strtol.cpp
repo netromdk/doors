@@ -1,79 +1,45 @@
+#include <doctest/doctest.h>
 #include <stdlib.h>
 
-int main() {
-  if (strtol("123", nullptr, 10) != 123) {
-    return 1;
-  }
+TEST_CASE("strtol") {
+  CHECK(strtol("123", nullptr, 10) == 123);
 
   const char *buf = "hello 123 there";
   char *ptr = nullptr;
-  if (strtol(buf + 6, &ptr, 10) != 123) {
-    return 2;
-  }
+  CHECK(strtol(buf + 6, &ptr, 10) == 123);
 
   // 'ptr' must point to right after the number found.
-  if (!ptr || ptr != buf + 9) {
-    return 3;
-  }
+  CHECK(ptr == buf + 9);
 
   // Interpret hexadecimal.
-  if (strtol("a", nullptr, 16) != 0xA) {
-    return 4;
-  }
+  CHECK(strtol("a", nullptr, 16) == 0xA);
 
   // Case doesn't matter.
-  if (strtol("A", nullptr, 16) != 0xA) {
-    return 5;
-  }
+  CHECK(strtol("A", nullptr, 16) == 0xA);
 
   // When not detecting a number then expect zero.
-  if (strtol("no text") != 0) {
-    return 6;
-  }
-  
-  // Respect sign.
-  if (strtol("-10") != -10) {
-    return 7;
-  }
+  CHECK(strtol("no text") == 0);
 
-  if (strtol("+10") != 10) {
-    return 8;
-  }
+  // Respect sign.
+  CHECK(strtol("-10") == -10);
+  CHECK(strtol("+10") == 10);
 
   // Interpret binary.
-  if (strtol("101", nullptr, 2) != 5) {
-    return 9;
-  }
+  CHECK(strtol("101", nullptr, 2) == 5);
 
   // Interpret octal.
-  if (strtol("10", nullptr, 8) != 8) {
-    return 10;
-  }
+  CHECK(strtol("10", nullptr, 8) == 8);
 
   // Ignore any whitespace preceding the first digit.
-  if (strtol("  2") != 2) {
-    return 11;
-  }
+  CHECK(strtol("  2") == 2);
 
-  // Using base zero should auto-detect the base. If it could not then
-  // default to decimal base 10.
-  if (strtol("10") != 10) {
-    return 12;
-  }
+  // Using base zero should auto-detect the base.
+  // If it could not then default to decimal base 10.
+  CHECK(strtol("10") == 10);
 
   // Auto-detect octal base.
-  if (strtol("010") != 8) {
-    return 13;
-  }
+  CHECK(strtol("010") == 8);
 
-  // Auto-detect hexadecimal base.
-  if (strtol("0x10") != 0x10) {
-    return 14;
-  }
-
-  if (strtol("0XB") != 0xB) {
-    return 15;
-  }
-
-  return 0;
+  CHECK(strtol("0x10") == 0x10);
+  CHECK(strtol("0XB") == 0xB);
 }

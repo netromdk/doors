@@ -1,42 +1,32 @@
+#include <doctest/doctest.h>
 #include <algorithm.h>
 
 class Test {
 public:
   Test(int value) : value(value) { }
 
-  inline bool operator<(Test &other) {
+  inline bool operator<(const Test &other) const {
     return value < other.value;
   }
 
-  inline bool operator==(Test &other) {
+  inline bool operator==(const Test &other) const {
     return value == other.value;
   }
 
-  inline bool operator!=(Test &other) {
+  inline bool operator!=(const Test &other) const {
     return !(*this == other);
-  }  
+  }
 
   int value;
 };
 
-int main() {
-  if (min(1, 2) != 1) {
-    return 1;
-  }
-
-  if (min(100, 20) != 20) {
-    return 2;
-  }
+TEST_CASE("min") {
+  CHECK(min(1, 2) == 1);
+  CHECK(min(100, 20) == 20);
 
   int a = 10, b = 20;
-  if (min<int&>(a, b) != a) {
-    return 3;
-  }
+  CHECK(min<int&>(a, b) == a);
 
   Test t1(100), t2(30);
-  if (min(t1, t2) != t2) {
-    return 4;
-  }
-
-  return 0;
+  CHECK(min(t1, t2) == t2);
 }
