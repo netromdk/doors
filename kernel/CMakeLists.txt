@@ -63,6 +63,19 @@ target_include_directories(kernel_objs PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(kernel_objs PRIVATE k)
 
+if (KERNEL_UBSAN)
+  target_sources(kernel_objs PRIVATE kernel/Ubsan.cpp)
+  target_compile_options(kernel_objs PRIVATE
+    -fsanitize=undefined
+    -fno-sanitize-recover=all  # Trap immediately. No recovery in a bare-metal kernel.
+  )
+
+  # Exclude Ubsan.cpp itself from instrumentation to prevent recursive handler invocations.
+  set_source_files_properties(kernel/Ubsan.cpp PROPERTIES
+    COMPILE_OPTIONS "-fno-sanitize=all"
+  )
+endif()
+
 add_executable(doors_kernel $<TARGET_OBJECTS:kernel_objs>)
 set_target_properties(doors_kernel PROPERTIES
   OUTPUT_NAME "doors"
@@ -80,6 +93,10 @@ target_link_libraries(doors_kernel PRIVATE
   "${CRTN_OBJ}"
   k
   -lgcc)
+
+if (KERNEL_UBSAN)
+  target_link_options(doors_kernel PRIVATE -fsanitize=undefined)
+endif()
 
 add_dependencies(doors_kernel crt_objects)
 

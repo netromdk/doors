@@ -22,7 +22,7 @@ Things to look into later:
 
 | Tool | Purpose | Install |
 |---|---|---|
-| i386-elf cross-compiler | Builds the kernel | `./scripts/bootstrap.sh` |
+| i386-elf cross-compiler (GCC 14.2.0) | Builds the kernel | `./scripts/bootstrap.sh` |
 | CMake 3.25+ | Build system | `sudo apt install cmake` |
 | Ninja | Build tool | `sudo apt install ninja-build` |
 | Clang or GCC | Host compiler for tests | `sudo apt install clang` |
@@ -33,7 +33,7 @@ QEMU and GRUB are optional and only needed for `run`, `run-iso`, and `iso` targe
 
 ### Cross-compiler
 
-The i386-elf cross-compiler (GCC 13.2.0 + Binutils 2.42) must be built before configuring CMake. The
+The i386-elf cross-compiler (GCC 14.2.0 + Binutils 2.42) must be built before configuring CMake. The
 bootstrap script downloads, builds, and installs it into `bootstrap/`:
 
 ```sh
@@ -114,6 +114,7 @@ ninja xz     # build/default/doors.xz
 | `VERBOSE_BUILD` | `OFF` | Show raw compiler/linker commands during build |
 | `HOST_CXX_COMPILER` | _(auto)_ | Host C++ compiler for tests; auto-detects clang++ then g++ |
 | `SANITIZERS` | _(none)_ | Sanitizers for host-compiled tests (e.g. `address;undefined`) |
+| `KERNEL_UBSAN` | `OFF` | Instrument the kernel with UBSan (handlers panic via direct UART I/O) |
 
 Pass options at configure time:
 
@@ -122,6 +123,7 @@ cmake --preset default -DVERBOSE_BUILD=ON
 cmake --preset default -DBUILD_TESTS=OFF
 cmake --preset default -DHOST_CXX_COMPILER=g++
 cmake --preset default -DSANITIZERS="address;undefined"
+cmake --preset default -DKERNEL_UBSAN=ON
 ```
 
 ## References

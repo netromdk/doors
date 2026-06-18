@@ -17,3 +17,7 @@ Empty = auto-detect (clang++ preferred, g++ fallback).")
 set(SANITIZERS "" CACHE STRING
   "Semicolon-separated sanitizers for host-compiled targets \
 (e.g. \"address;undefined\"). Supported: address, undefined.")
+
+option(KERNEL_UBSAN
+  "Instrument the kernel with UBSan (freestanding, handlers panic via direct UART I/O)"
+  OFF)
