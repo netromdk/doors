@@ -75,6 +75,19 @@ cd build/serial-debug
 ninja run   # doors.log is written to build/serial-debug/doors.log
 ```
 
+### Sanitize preset
+
+Builds tests with `AddressSanitizer` and `UndefinedBehaviorSanitizer`:
+
+```sh
+cmake --preset sanitize
+cd build/sanitize
+ninja test
+```
+
+ASan and UBSan are supported by both Clang and GCC. Any violation aborts the test
+immediately with a detailed report.
+
 Available presets: `cmake --list-presets`
 
 ### Cleaning
@@ -100,6 +113,7 @@ ninja xz     # build/default/doors.xz
 | `BUILD_TESTS` | `ON` | Build tests and include them in the default (`all`) target |
 | `VERBOSE_BUILD` | `OFF` | Show raw compiler/linker commands during build |
 | `HOST_CXX_COMPILER` | _(auto)_ | Host C++ compiler for tests; auto-detects clang++ then g++ |
+| `SANITIZERS` | _(none)_ | Sanitizers for host-compiled tests (e.g. `address;undefined`) |
 
 Pass options at configure time:
 
@@ -107,6 +121,7 @@ Pass options at configure time:
 cmake --preset default -DVERBOSE_BUILD=ON
 cmake --preset default -DBUILD_TESTS=OFF
 cmake --preset default -DHOST_CXX_COMPILER=g++
+cmake --preset default -DSANITIZERS="address;undefined"
 ```
 
 ## References

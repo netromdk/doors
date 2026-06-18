@@ -22,6 +22,16 @@
       "cacheVariables": {
         "SERIAL_DEBUG": "ON"
       }
+    },
+    {
+      "name": "sanitize",
+      "displayName": "Sanitize",
+      "description": "Default build with ASan + UBSan enabled for host-compiled tests",
+      "inherits": "default",
+      "binaryDir": "${sourceDir}/build/sanitize",
+      "cacheVariables": {
+        "SANITIZERS": "address;undefined"
+      }
     }
   ],
   "buildPresets": [
@@ -34,6 +44,11 @@
       "name": "serial-debug",
       "inherits": "default",
       "configurePreset": "serial-debug"
+    },
+    {
+      "name": "sanitize",
+      "inherits": "default",
+      "configurePreset": "sanitize"
     }
   ],
   "testPresets": [
@@ -45,6 +60,11 @@
     {
       "name": "serial-debug",
       "configurePreset": "serial-debug",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "sanitize",
+      "configurePreset": "sanitize",
       "output": { "outputOnFailure": true }
     }
   ]

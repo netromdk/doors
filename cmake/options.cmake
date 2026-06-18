@@ -13,3 +13,7 @@ option(VERBOSE_BUILD
 set(HOST_CXX_COMPILER "" CACHE STRING
   "Host C++ compiler for tests and other host-compiled targets. \
 Empty = auto-detect (clang++ preferred, g++ fallback).")
+
+set(SANITIZERS "" CACHE STRING
+  "Semicolon-separated sanitizers for host-compiled targets \
+(e.g. \"address;undefined\"). Supported: address, undefined.")

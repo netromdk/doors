@@ -7,6 +7,17 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_compile_options(-O0 -Wall -Wextra)
 
+if (SANITIZERS)
+  string(REPLACE ";" "," _san_flag "${SANITIZERS}")
+  set(_san_flag "-fsanitize=${_san_flag}")
+  add_compile_options(
+    "${_san_flag}"
+    -fno-omit-frame-pointer   # Preserve frame pointers for accurate ASan stack traces.
+    -fno-sanitize-recover=all # Abort on first violation instead of continuing.
+  )
+  add_link_options("${_san_flag}")
+endif()
+
 if(NOT DEFINED DOORS_LIBC_SRC_DIR)
   set(DOORS_LIBC_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../libc++")
   set(DOORS_LIBC_INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../libc++/include")
