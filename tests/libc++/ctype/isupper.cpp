@@ -1,21 +1,9 @@
+#include <doctest/doctest.h>
 #include <ctype.h>
 
-int main() {
-  if (isupper('a')) {
-    return 1;
-  }
-
-  if (isupper('g')) {
-    return 2;
-  }
-
-  if (!isupper('A')) {
-    return 3;
-  }
-
-  if (!isupper('G')) {
-    return 4;
-  }
-
-  return 0;
+TEST_CASE("isupper") {
+  CHECK_FALSE(isupper('a'));
+  CHECK_FALSE(isupper('g'));
+  CHECK(isupper('A'));
+  CHECK(isupper('G'));
 }

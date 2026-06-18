@@ -1,15 +1,9 @@
+#include <doctest/doctest.h>
 #include <ctype.h>
 
-int main() {
+TEST_CASE("isdigit") {
   for (int i = 0; i < 9; i++) {
-    if (!isdigit(i + '1')) {
-      return i+1;
-    }
+    CHECK(isdigit(i + '1'));
   }
-
-  if (isdigit('a')) {
-    return 10;
-  }
-
-  return 0;
+  CHECK_FALSE(isdigit('a'));
 }

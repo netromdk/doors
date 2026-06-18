@@ -1,11 +1,9 @@
+#include <doctest/doctest.h>
 #include <algorithm.h>
 
-int main() {
+TEST_CASE("swap") {
   int a = 1, b = 2;
   swap(a, b);
-  if (a != 2 || b != 1) {
-    return 1;
-  }
-  
-  return 0;
+  CHECK(a == 2);
+  CHECK(b == 1);
 }

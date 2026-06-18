@@ -2,7 +2,7 @@
 set -euo pipefail
 
 BINUTILS_VERSION="2.42"
-GCC_VERSION="13.2.0"
+GCC_VERSION="14.2.0"
 TARGET="i386-elf"
 NPROC=$(nproc 2>/dev/null || echo 4)
 
@@ -213,5 +213,5 @@ done
 TOTAL=$(elapsed)
 echo ""
 echo "Cross-compiler ready in ${TOTAL}."
-echo "'make build' now possible."
+echo "CMake will pick it up now."
 echo ""

@@ -1,64 +1,42 @@
+#include <doctest/doctest.h>
 #include <stdlib.h>
 #include <string.h>
 
-int main() {
-  // Decimal.
-  char str[64] = {0};
+TEST_CASE("itos") {
+  char str[64]{};
+
   itos(10, str);
-  if (strcmp(str, "10") != 0) {
-    return 1;
-  }
+  CHECK(strcmp(str, "10") == 0);
 
-  memset(str, 0, 64); // clear just in case.
+  memset(str, 0, 64);
   itos(-10, str);
-  if (strcmp(str, "-10") != 0) {
-    return 2;
-  }
+  CHECK(strcmp(str, "-10") == 0);
 
-  // Hexadecimal.
   memset(str, 0, 64);
   itos(10, str, 16);
-  if (strcmp(str, "a") != 0) {
-    return 3;
-  }
+  CHECK(strcmp(str, "a") == 0);
 
   memset(str, 0, 64);
   itos(10, str, 16, true);
-  if (strcmp(str, "A") != 0) {
-    return 4;
-  }
+  CHECK(strcmp(str, "A") == 0);
 
   memset(str, 0, 64);
   itos(-10, str, 16);
-  if (strcmp(str, "-a") != 0) {
-    return 5;
-  }
+  CHECK(strcmp(str, "-a") == 0);
 
-  // Octal.
   memset(str, 0, 64);
   itos(10, str, 8);
-  if (strcmp(str, "12") != 0) {
-    return 6;
-  }
+  CHECK(strcmp(str, "12") == 0);
 
   memset(str, 0, 64);
   itos(-10, str, 8);
-  if (strcmp(str, "-12") != 0) {
-    return 7;
-  }
+  CHECK(strcmp(str, "-12") == 0);
 
-  // Binary.
   memset(str, 0, 64);
   itos(10, str, 2);
-  if (strcmp(str, "1010") != 0) {
-    return 8;
-  }
+  CHECK(strcmp(str, "1010") == 0);
 
   memset(str, 0, 64);
   itos(-10, str, 2);
-  if (strcmp(str, "-1010") != 0) {
-    return 9;
-  }
-
-  return 0;
+  CHECK(strcmp(str, "-1010") == 0);
 }

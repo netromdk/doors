@@ -1,25 +1,12 @@
+#include <doctest/doctest.h>
 #include <string.h>
 
-int main() {
-  // Compare "he" and "he".
-  if (strncmp("hello", "hello", 2) != 0) {
-    return 1;
-  }
+TEST_CASE("strncmp") {
+  CHECK(strncmp("hello", "hello", 2) == 0);
 
   // Compares using the minimum length of inputs and 200 = 5.
-  if (strncmp("hello", "hello", 200) != 0) {
-    return 2;
-  }
+  CHECK(strncmp("hello", "hello", 200) == 0);
 
-  // 1 < a
-  if (strncmp("1", "a", 1) != -1) {
-    return 3;
-  }
-
-  // a > 1
-  if (strncmp("a", "1", 1) != 1) {
-    return 4;
-  }
-
-  return 0;
+  CHECK(strncmp("1", "a", 1) == -1);
+  CHECK(strncmp("a", "1", 1) == 1);
 }

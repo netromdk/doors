@@ -1,25 +1,20 @@
+#include <doctest/doctest.h>
 #include <stdio.h>
 
-int main() {
-  if (printf("hello world\n") != 12) {
-    return 1;
-  }
-  
+TEST_CASE("printf") {
+  CHECK(printf("hello world\n") == 12);
+
   // hello = +5
   // \n = +1
   // = 6
-  if (printf("%s\n", "hello") != 6) {
-    return 2;
-  }
+  CHECK(printf("%s\n", "hello") == 6);
 
   // hello = +5
   // space = +1
   // world = +5
   // \n = +1
   // = 12
-  if (printf("hello %s\n", "world") != 12) {
-    return 3;
-  }
+  CHECK(printf("hello %s\n", "world") == 12);
 
   // I = +1
   // space = +1
@@ -28,9 +23,7 @@ int main() {
   // 1337 = 0x539 = +3
   // \n = +1
   // = 9
-  if (printf("I am %x\n", 1337) != 9) {
-    return 4;
-  }
+  CHECK(printf("I am %x\n", 1337) == 9);
 
   // Unsign = +6
   // space = +1
@@ -40,17 +33,11 @@ int main() {
   // \n = +1
   // = 33
   int64_t n = -1;
-  if (printf("Unsign this %u\n", n) != 33) {
-    return 5;
-  }
+  CHECK(printf("Unsign this %u\n", n) == 33);
 
   // (const char*) nullptr = (NULL) = +6
   // \n = +1
   // = 7
   const char *str = nullptr;
-  if (printf("%s\n", str) != 7) {
-    return 6;
-  }
-
-  return 0;
+  CHECK(printf("%s\n", str) == 7);
 }
