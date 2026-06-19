@@ -27,7 +27,7 @@ extern "C" {
   }
 
   void intKbd() {
-    Kbd::readScanCode();
+    Kbd::isrHandler();
     Pic::sendEoi();
   }
 }
