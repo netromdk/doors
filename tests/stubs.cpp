@@ -17,3 +17,7 @@ void Pic::setMask(uint8_t, bool)
 void Pic::enableInt()
 {
 }
+
+void Pic::disableInt()
+{
+}

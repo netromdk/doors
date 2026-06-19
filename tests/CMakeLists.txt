@@ -171,6 +171,7 @@ set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cpp")
 doors_test_module(test_shell
   shell/tokenizer.cpp
   shell/dispatch.cpp
+  shell/commands.cpp
   stubs.cpp
   "${KBD_SRC}"
   "${KBD_KEYMAP_SRC}"
