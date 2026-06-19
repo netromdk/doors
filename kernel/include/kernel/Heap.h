@@ -1,0 +1,32 @@
+#ifndef KERNEL_HEAP_H
+#define KERNEL_HEAP_H
+
+#include <stddef.h>
+#include <stdint.h>
+
+class Heap {
+public:
+  static constexpr size_t BLOCK_ALIGN = 16;
+  static constexpr size_t MIN_BLOCK = 32;
+
+  static void init(void *start, size_t size);
+  static void *alloc(size_t size);
+  static void free(void *ptr);
+
+  static size_t freeMem();
+  static size_t largestFreeBlock();
+
+private:
+  struct Header;
+  struct FreeNode;
+
+  static void addToFreeList(FreeNode *node);
+  static void removeFromFreeList(FreeNode *target, FreeNode *prev);
+  static void coalesce(FreeNode *node);
+
+  static FreeNode *freeList_;
+  static size_t heapStart_;
+  static size_t heapEnd_;
+};
+
+#endif // KERNEL_HEAP_H
