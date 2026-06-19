@@ -43,6 +43,14 @@ else()
   message(STATUS "Sanitizers: none")
 endif()
 
+if (KERNEL_UBSAN AND SERIAL_DEBUG)
+  message(FATAL_ERROR
+    "KERNEL_UBSAN and SERIAL_DEBUG cannot be enabled simultaneously.\n"
+    "UBSan handlers write directly to UART I/O, which conflicts with the serial debug hook.\n"
+    "Disable one of them and reconfigure.\n"
+  )
+endif()
+
 if (KERNEL_UBSAN)
   message(STATUS "Kernel UBSan: ON")
 else()
