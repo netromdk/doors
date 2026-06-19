@@ -164,3 +164,15 @@ doors_test_module(test_pit
   stubs.cpp
   "${PIT_SRC}"
 )
+
+set(SHELL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Shell.cpp")
+set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cpp")
+set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cpp")
+doors_test_module(test_shell
+  shell/tokenizer.cpp
+  shell/dispatch.cpp
+  stubs.cpp
+  "${KBD_SRC}"
+  "${KBD_KEYMAP_SRC}"
+  "${SHELL_SRC}"
+)
