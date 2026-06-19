@@ -67,7 +67,10 @@ include(CTest)
 
 function(doors_test_module name)
   add_executable(${name} ${ARGN})
-  target_include_directories(${name} PRIVATE "${DOORS_LIBC_INC_DIR}")
+  target_include_directories(${name} PRIVATE
+    "${DOORS_LIBC_INC_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/include"
+  )
   target_link_libraries(${name} PRIVATE test_main libc++test)
   add_test(NAME ${name} COMMAND ${name})
 endfunction()
@@ -128,4 +131,15 @@ doors_test_module(test_algorithm
   libc++/algorithm/min.cpp
   libc++/algorithm/max.cpp
   libc++/algorithm/swap.cpp
+)
+
+# Kernel heap is compiled from the kernel source tree for host-side testing.
+set(HEAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Heap.cpp")
+doors_test_module(test_heap
+  heap/kmalloc.cpp
+  heap/kfree.cpp
+  heap/fragmentation.cpp
+  heap/alignment.cpp
+  heap/oom.cpp
+  "${HEAP_SRC}"
 )
