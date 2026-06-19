@@ -59,6 +59,22 @@ bool Mem::init(multiboot_info *mbi) {
   return true;
 }
 
+size_t Mem::availableAbove(void *addr)
+{
+  uintptr_t start = reinterpret_cast<uintptr_t>(addr);
+
+  for (size_t i = 0; i < memCnt; i++) {
+    uintptr_t chunkStart = memMap[i]->addr;
+    uintptr_t chunkEnd = chunkStart + memMap[i]->len;
+
+    if (start >= chunkStart && start < chunkEnd) {
+      return chunkEnd - start;
+    }
+  }
+
+  return 0;
+}
+
 void Mem::dump() {
   printf("Memory information:\n");
   printf("  Lower: %u KB\n", lowerMem);

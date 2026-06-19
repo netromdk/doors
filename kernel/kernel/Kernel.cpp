@@ -11,11 +11,13 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <kernel/Tty.h>
-#include <kernel/Serial.h>
 #include <kernel/Arch.h>
-#include <kernel/Version.h>
+#include <kernel/Heap.h>
+#include <kernel/Mem.h>
 #include <kernel/Multiboot.h>
+#include <kernel/Serial.h>
+#include <kernel/Tty.h>
+#include <kernel/Version.h>
 
 constinit multiboot_info *mbi = nullptr;
 
@@ -53,6 +55,18 @@ extern "C" {
     printf("\n");
 
     Arch::init(mbi);
+
+    // Seed the heap from `_kernel_end` (Linker.ld) to the top of the first available upper-memory
+    // chunk.
+    extern char _kernel_end[];
+    void *heapStart = reinterpret_cast<void *>(_kernel_end);
+    size_t heapSize = Mem::availableAbove(heapStart);
+    if (heapSize > 0) {
+      Heap::init(heapStart, heapSize);
+    }
+    else {
+      printf("Warning: no memory available for heap\n");
+    }
 
     printf("\n<<Doors are open>>\n");
 
