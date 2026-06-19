@@ -2,6 +2,8 @@
 #include <kernel/Shell.h>
 #include <string.h>
 
+#include "TestHelpers.h"
+
 namespace {
 
 constexpr int MAX_ARGS = 16;
@@ -18,11 +20,6 @@ void testHandler(int argc, char **argv)
   handlerArgv0 = argv[0];
   handlerArgv1 = argv[1];
 }
-
-auto dispatchLine = []<size_t N>(char *line, char *(&argv)[N]) {
-  int argc = Shell::tokenize(line, argv, N);
-  return Shell::dispatch(argc, argv);
-};
 
 } // namespace
 
