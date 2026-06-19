@@ -4,8 +4,7 @@
 #include <kernel/Tty.h>
 #include <kernel/Vga.h>
 
-static uint16_t vgaTestBuffer[80 * 25];
-uint16_t *VGA_RAM = vgaTestBuffer;
+// VGA_RAM defined in vga_ram.cpp.
 
 TEST_CASE("backspace_moves_col_left")
 {

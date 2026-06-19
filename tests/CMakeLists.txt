@@ -181,5 +181,8 @@ doors_test_module(test_shell
 set(TTY_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Tty.cpp")
 doors_test_module(test_tty
   tty/backspace.cpp
+  tty/cursor.cpp
+  tty/vga_ram.cpp
+  stubs.cpp
   "${TTY_SRC}"
 )
