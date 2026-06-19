@@ -17,8 +17,6 @@ if (BUILD_TESTS AND NOT DOORS_HOST_CXX)
   )
 endif()
 
-string(REPLACE ";" "\\;" SANITIZERS_ESCAPED "${SANITIZERS}")
-
 set(_ep_exclude "")
 if (NOT BUILD_TESTS)
   set(_ep_exclude EXCLUDE_FROM_ALL TRUE)
@@ -41,7 +39,7 @@ ExternalProject_Add(tests
     "-DCMAKE_AR=ar"
     "-DDOORS_LIBC_SRC_DIR=${CMAKE_SOURCE_DIR}/libc++"
     "-DDOORS_LIBC_INC_DIR=${CMAKE_SOURCE_DIR}/libc++/include"
-    "-DSANITIZERS=${SANITIZERS_ESCAPED}"
+  CMAKE_CACHE_ARGS "-DSANITIZERS:STRING=${SANITIZERS}"
   BUILD_COMMAND   "${CMAKE_MAKE_PROGRAM}" -C <BINARY_DIR> ${_build_flags}
   BUILD_ALWAYS    TRUE
   INSTALL_COMMAND ""
