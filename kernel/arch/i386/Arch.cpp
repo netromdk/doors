@@ -5,6 +5,7 @@
 #include <kernel/Mem.h>
 #include <kernel/Arch.h>
 #include <kernel/Acpi.h>
+#include <kernel/Pit.h>
 
 #include <arch/i386/Gdt.h>
 #include <arch/i386/Idt.h>
@@ -49,6 +50,9 @@ void Arch::init(multiboot_info *mbi) {
 
   printf("Init Advanced Configuration and Power Interface..\n");
   Acpi::init();
+
+  printf("Init Programmable Interval Timer..\n");
+  Pit::init();
 }
 
 void Arch::start() {

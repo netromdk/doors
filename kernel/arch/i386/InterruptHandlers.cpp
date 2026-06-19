@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include <kernel/Kbd.h>
+#include <kernel/Pit.h>
 #include <arch/i386/Pic.h>
 
 extern "C" {
@@ -18,11 +19,7 @@ extern "C" {
   }
 
   void intTick() {
-    /*
-      static uint32_t ticks = 0;
-      ticks++;
-      printf("ticks: %u\n", ticks);
-    */
+    Pit::tick();
     Pic::sendEoi();
   }
 
