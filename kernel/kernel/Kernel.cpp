@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include <kernel/Arch.h>
+#include <kernel/Commands.h>
 #include <kernel/Heap.h>
 #include <kernel/Mem.h>
 #include <kernel/Multiboot.h>
@@ -71,6 +72,7 @@ extern "C" {
 
     printf("\n<<Doors are open>>\n");
 
+    initCommands();
     Shell::run();
   }
 }
