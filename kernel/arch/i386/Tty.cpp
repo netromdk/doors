@@ -6,6 +6,7 @@
 
 #include <kernel/Vga.h>
 #include <kernel/Tty.h>
+#include <kernel/Io.h>
 
 #ifdef DEBUG_THROUGH_SERIAL_COM1
 #include <kernel/Serial.h>
@@ -67,6 +68,52 @@ namespace {
       termCol = VGA_WIDTH - 1;
     }
   }
+
+  // There are two VGA CRTC cursor-location registers: 0x3D4 for the index and 0x3D5 for data. The
+  // cursor location is set via the high register (bits 15-8) via 0x0E and the low register (bits
+  // 7-0) via 0x0F. The position is `row * VGA_WIDTH + col` (0..3999 for 80x25).
+  void cursorUpdate() {
+    const uint16_t pos = static_cast<uint16_t>(termRow * VGA_WIDTH + termCol);
+
+    // High bits.
+    Io::outb(0x3D4, 0x0E);
+    Io::outb(0x3D5, static_cast<uint8_t>(pos >> 8));
+
+    // Low bits.
+    Io::outb(0x3D4, 0x0F);
+    Io::outb(0x3D5, static_cast<uint8_t>(pos));
+  }
+}
+
+// The two VGA CRTC cursor-shape registers, start (0x0A) and end (0x0B), define scanlines of the
+// cursor. With a 16-scanline font (numbered 0-15, top to bottom), scanlines 14-15 produce a
+// blinking two-scanline underline.
+void Tty::cursorEnable() {
+  // Cursor start at scanline 14.
+  // 0x0E (0b00001110) meaning 5th bit is 0 (cursor is visible) and bits 4-0 (0b01110 = 14) is the
+  // scanline.
+  Io::outb(0x3D4, 0x0A);
+  Io::outb(0x3D5, 0x0E);
+
+  // Cursor end at scanline 15.
+  // 0x0F (0b00001111) also has 5th bit = 0 (visible) and bits 4-0 (0b01111 = 15) is the
+  // scanline.
+  Io::outb(0x3D4, 0x0B);
+  Io::outb(0x3D5, 0x0F);
+  cursorUpdate();
+}
+
+// Writing 0x20 (0b100000) to the Cursor Start Register sets bit 5, which hides the cursor without
+// affecting its position.
+void Tty::cursorDisable() {
+  Io::outb(0x3D4, 0x0A);
+  Io::outb(0x3D5, 0x20);
+}
+
+void Tty::cursorSetPos(uint8_t row, uint8_t col) {
+  termRow = row;
+  termCol = col;
+  cursorUpdate();
 }
 
 void Tty::setColor(uint8_t color) {
@@ -82,9 +129,9 @@ void Tty::cls() {
   termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
   size_t total = VGA_WIDTH * VGA_HEIGHT;
   for (size_t i = 0; i < total; i++) {
-    putc(' ');
+    VGA_RAM[i] = vgaEntry(' ', termColor);
   }
-  termRow = termCol = 0;
+  cursorUpdate();
 }
 
 void Tty::putc(char ch) {
@@ -96,16 +143,16 @@ void Tty::putc(char ch) {
   if (ch == '\n') {
     advRow();
     termCol = 0;
-    return;
   }
-
-  if (ch == '\b') {
+  else if (ch == '\b') {
     decCol();
-    return;
+  }
+  else {
+    putc(ch, termRow, termCol);
+    advCol();
   }
 
-  putc(ch, termRow, termCol);
-  advCol();
+  cursorUpdate();
 }
 
 void Tty::putc(char ch, uint8_t row, uint8_t col) {

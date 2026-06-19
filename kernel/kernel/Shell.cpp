@@ -4,6 +4,7 @@
 
 #include <kernel/Kbd.h>
 #include <kernel/Shell.h>
+#include <kernel/Tty.h>
 #include <arch/i386/Pic.h>
 
 namespace {
@@ -17,6 +18,7 @@ int numCmds = 0;
 void Shell::run()
 {
   Pic::enableInt();
+  Tty::cursorEnable();
   char line[256];
   char *argv[16];
   constexpr int MAX_ARGS = sizeof(argv) / sizeof(*argv);
