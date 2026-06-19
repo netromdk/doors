@@ -71,9 +71,20 @@ bool Shell::dispatch(int argc, char **argv)
   return false;
 }
 
+void Shell::printHelp()
+{
+  printf("Commands:\n");
+  for (int i = 0; i < numCmds; i++) {
+    if (cmdTable[i].desc) {
+      printf("  %s - %s\n", cmdTable[i].name, cmdTable[i].desc);
+    }
+  }
+}
+
 void Shell::registerCmd(const Command &cmd)
 {
-  if (numCmds < MAX_CMDS) {
-    cmdTable[numCmds++] = cmd;
+  if (numCmds >= MAX_CMDS) {
+    return;
   }
+  cmdTable[numCmds++] = cmd;
 }

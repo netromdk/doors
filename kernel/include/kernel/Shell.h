@@ -15,6 +15,7 @@ public:
   static int tokenize(char *line, char **argv, int max);
   static bool dispatch(int argc, char **argv);
   static void registerCmd(const Command &cmd);
+  static void printHelp();
 };
 
 #endif // KERNEL_SHELL_H
