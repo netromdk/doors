@@ -15,6 +15,9 @@ public:
 
   static int puts(const char *str);
   static int puts(const char *str, uint8_t row, uint8_t col);
+
+  static uint8_t getRow();
+  static uint8_t getCol();
 };
 
 #endif // KERNEL_TTY_H

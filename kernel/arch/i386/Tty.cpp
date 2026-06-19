@@ -57,6 +57,16 @@ namespace {
       advRow();
     }
   }
+
+  void decCol() {
+    if (termCol > 0) {
+      termCol--;
+    }
+    else if (termRow > 0) {
+      termRow--;
+      termCol = VGA_WIDTH - 1;
+    }
+  }
 }
 
 void Tty::setColor(uint8_t color) {
@@ -89,6 +99,11 @@ void Tty::putc(char ch) {
     return;
   }
 
+  if (ch == '\b') {
+    decCol();
+    return;
+  }
+
   putc(ch, termRow, termCol);
   advCol();
 }
@@ -109,4 +124,14 @@ int Tty::puts(const char *str, uint8_t row, uint8_t col) {
   termRow = row;
   termCol = col;
   return puts(str);
+}
+
+uint8_t Tty::getRow()
+{
+  return termRow;
+}
+
+uint8_t Tty::getCol()
+{
+  return termCol;
 }
