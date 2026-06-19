@@ -13,13 +13,15 @@
 #endif
 
 namespace {
+  constexpr uint8_t DEFAULT_COLOR = vgaColor(COLOR_LIGHT_GREEN, COLOR_BLACK);
+
   static constinit uint8_t termRow = 0,
     termCol = 0,
-    termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
+    termColor = DEFAULT_COLOR;
   static constinit bool scrolling = true;
 
   void clearRow(uint8_t row) {
-    termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
+    termColor = DEFAULT_COLOR;
     for (uint8_t col = 0; col < VGA_WIDTH; col++) {
       Tty::putc(' ', row, col);
     }
@@ -126,7 +128,7 @@ void Tty::setScrolling(bool enabled) {
 
 void Tty::cls() {
   termRow = termCol = 0;
-  termColor = vgaColor(COLOR_WHITE, COLOR_BLACK);
+  termColor = DEFAULT_COLOR;
   size_t total = VGA_WIDTH * VGA_HEIGHT;
   for (size_t i = 0; i < total; i++) {
     VGA_RAM[i] = vgaEntry(' ', termColor);
