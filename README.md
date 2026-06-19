@@ -4,19 +4,60 @@ The name is the recursive acronym "Doors of Open Run-time Systems".
 
 ## Concept
 
-The challenge was to write a 32-bit OS using C++20 aiming for paged memory, exceptions/interrupts
-support, and a keyboard driver. Then dropping into a simple shell for processing simple commands
-like querying CPU information, uptime, memory available/used, start/stop/monitor timers etc. Maybe
-being able to play a simple "Snake" game or similar.
+The challenge was to write a 32-bit OS using C++20 (originally C++11) aiming for paged memory,
+exceptions/interrupts support, and a keyboard driver. Then dropping into a simple shell for
+processing simple commands like querying CPU information, uptime, memory available/used,
+start/stop/monitor timers etc. Maybe being able to play a simple "Snake" game or similar.
 
-Things to look into later:
+![Doors shell running in QEMU](misc/doors.png)
 
-- Floating-point support ([IEEE-754](https://en.wikipedia.org/wiki/IEEE_754-1985))
-- Multi-task scheduling
-- Real-Time Clock/CMOS support
-- Hard disk driver (FAT32 or EXT2, for booting from disk)
-- Mouse driver
-- USB drivers
+## What it does
+
+| Subsystem | Status | Details |
+|---|---|---|
+| **Boot** | Working | Multiboot-compliant, GRUB-loaded, 32-bit protected mode |
+| **VGA TTY** | Working | 80×25 text mode |
+| **printf** | Working | Variadic template with `%d %u %x %s %c %b` support |
+| **Keyboard** | Working | Set 1 scancodes, shift/ctrl/alt/caps, 256-byte ring buffer, line editing (backspace, Ctrl+U) |
+| **PIT timer** | Working | 1000 Hz, uptime ms/s queries |
+| **Heap** | Working | Best-fit free-list allocator, coalescing, 16-byte aligned |
+| **Shell** | Working | Prompt loop, tokenizer, command dispatch (11 built-in commands) |
+| **IDT / PIC** | Working | Exception handlers (0, 6, 11–14), IRQ 0 (timer) + IRQ 1 (keyboard), PIC remapped |
+| **GDT** | Working | 5 entries: null, code/data PL0, code/data PL3 |
+| **CMOS/RTC** | Working | Time-of-day read at boot |
+| **CPU detection** | Working | Vendor, brand string, feature flags |
+| **Memory map** | Working | Multiboot memory map, upper/lower KB detection |
+| **Serial debug** | Optional | COM1 mirror for `printf` (conflicts with `KERNEL_UBSAN`) |
+| **UBSan (kernel)** | Optional | Instrument kernel with `-fsanitize=undefined`, panics via COM1 + VGA |
+| **Test suite** | Working | ~200+ host-compiled doctest cases, ASan/UBSan enabled |
+
+### Shell commands
+
+```
+uptime    - Show system uptime
+cpuinfo   - Show CPU vendor, brand, features
+meminfo   - Show memory information and heap stats
+clear     - Clear the terminal
+help      - List all commands with descriptions
+halt      - Halt the system
+reboot    - Reboot via PS/2 controller pulse
+datetime  - Show current date/time from CMOS
+echo      - Echo text back to the terminal
+ticks     - Show raw PIT tick count
+heap      - Show heap allocator statistics
+```
+
+### Things to look into later
+
+- **Software timers**: `timer start/stop/check/wait/list/free` commands
+- **Blinking cursor**: VGA hardware cursor enable/position
+- **Scrollback buffer**: Page Up/Down to browse output history
+- **Snake game**: VGA text-mode game
+- **Floating-point support**: SSE/x87 context save/restore ([IEEE-754](https://en.wikipedia.org/wiki/IEEE_754-1985))
+- **Multi-task scheduling**: Round-robin or cooperative
+- **Hard disk driver**: ATA PIO, FAT32/EXT2 filesystem
+- **Mouse driver**: PS/2 mouse
+- **USB drivers**: xHCI or UHCI
 
 ## Prerequisites
 
