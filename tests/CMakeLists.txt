@@ -143,3 +143,17 @@ doors_test_module(test_heap
   heap/oom.cpp
   "${HEAP_SRC}"
 )
+
+# Kernel Kbd/Keymap compiled for host-side testing; io_stubs.cpp provides Io::inb/outb.
+set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cpp")
+set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cpp")
+doors_test_module(test_kbd
+  kbd/scancode_table.cpp
+  kbd/ring_buffer.cpp
+  kbd/readline.cpp
+  kbd/keymap.cpp
+  kbd/modifiers.cpp
+  kbd/io_stubs.cpp
+  "${KBD_SRC}"
+  "${KBD_KEYMAP_SRC}"
+)
