@@ -16,6 +16,7 @@
 #include <kernel/Mem.h>
 #include <kernel/Multiboot.h>
 #include <kernel/Serial.h>
+#include <kernel/Shell.h>
 #include <kernel/Tty.h>
 #include <kernel/Version.h>
 
@@ -70,6 +71,6 @@ extern "C" {
 
     printf("\n<<Doors are open>>\n");
 
-    Arch::start();
+    Shell::run();
   }
 }
