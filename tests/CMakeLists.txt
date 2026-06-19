@@ -133,7 +133,8 @@ doors_test_module(test_algorithm
   libc++/algorithm/swap.cpp
 )
 
-# Kernel heap is compiled from the kernel source tree for host-side testing.
+# The following tests compile kernel code for host-side testing.
+
 set(HEAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Heap.cpp")
 doors_test_module(test_heap
   heap/kmalloc.cpp
@@ -144,7 +145,6 @@ doors_test_module(test_heap
   "${HEAP_SRC}"
 )
 
-# Kernel Kbd/Keymap compiled for host-side testing; io_stubs.cpp provides Io::inb/outb.
 set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cpp")
 set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cpp")
 doors_test_module(test_kbd
@@ -153,7 +153,14 @@ doors_test_module(test_kbd
   kbd/readline.cpp
   kbd/keymap.cpp
   kbd/modifiers.cpp
-  kbd/io_stubs.cpp
+  stubs.cpp
   "${KBD_SRC}"
   "${KBD_KEYMAP_SRC}"
+)
+
+set(PIT_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Pit.cpp")
+doors_test_module(test_pit
+  pit/uptime_math.cpp
+  stubs.cpp
+  "${PIT_SRC}"
 )

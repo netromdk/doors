@@ -1,5 +1,5 @@
+#include <arch/i386/Pic.h>
 #include <kernel/Io.h>
-#include <stdint.h>
 
 uint8_t Io::inb(uint16_t)
 {
@@ -7,5 +7,9 @@ uint8_t Io::inb(uint16_t)
 }
 
 void Io::outb(uint16_t, uint8_t)
+{
+}
+
+void Pic::setMask(uint8_t, bool)
 {
 }
