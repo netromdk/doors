@@ -56,6 +56,7 @@ add_library(
   kernel/Cmos.cpp
   kernel/Keymap.cpp
   kernel/Heap.cpp
+  kernel/Shell.cpp
 )
 
 target_compile_options(kernel_objs PRIVATE
