@@ -47,6 +47,7 @@ add_library(
   ${ARCH_DIR}/ExceptionHandlers.cpp
   ${ARCH_DIR}/InterruptHandlers.cpp
   ${ARCH_DIR}/Kbd.cpp
+  ${ARCH_DIR}/Pit.cpp
   kernel/Kernel.cpp
   kernel/Runtime.cpp
   kernel/Serial.cpp
