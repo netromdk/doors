@@ -18,7 +18,6 @@ void Arch::init(multiboot_info *mbi) {
   if (!Cpu::init()) {
     abort();
   }
-  Cpu::dump();
 
   /*
   bool tsc = Cpu::hasTsc();
@@ -32,7 +31,6 @@ void Arch::init(multiboot_info *mbi) {
   if (!Mem::init(mbi)) {
     abort();
   }
-  Mem::dump();
 
   if (Pic::isIntEnabled()) {
     printf("Disabling interrupts..\n");
