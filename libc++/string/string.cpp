@@ -954,3 +954,24 @@ void swap(string &a, string &b) noexcept
 {
   a.swap(b);
 }
+
+string::size_type erase(string &s, char c) noexcept
+{
+  string::size_type count = 0;
+  string::size_type j = 0;
+  for (string::size_type i = 0; i < s.size(); ++i) {
+    if (s[i] != c) {
+      if (i != j) {
+        s[j] = s[i];
+      }
+      ++j;
+    }
+    else {
+      ++count;
+    }
+  }
+  if (count > 0) {
+    s.resize(j);
+  }
+  return count;
+}

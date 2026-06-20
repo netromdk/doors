@@ -241,4 +241,26 @@ string operator+(const string &a, const char *b) noexcept;
 string operator+(const char *a, const string &b) noexcept;
 void swap(string &a, string &b) noexcept;
 
+string::size_type erase(string &s, char c) noexcept;
+
+template <typename Predicate>
+string::size_type erase_if(string &s, Predicate pred) noexcept
+{
+  string::size_type count = 0;
+  string::size_type j = 0;
+  for (string::size_type i = 0; i < s.size(); ++i) {
+    if (!pred(s[i])) {
+      if (i != j) s[j] = s[i];
+      ++j;
+    }
+    else {
+      ++count;
+    }
+  }
+  if (count > 0) {
+    s.resize(j);
+  }
+  return count;
+}
+
 #endif // STRING_DATA_TYPE_H

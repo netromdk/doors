@@ -1298,6 +1298,46 @@ TEST_CASE("spaceship equal heap")
   CHECK((a <=> b) == 0);
 }
 
+TEST_CASE("erase free removes all occurrences")
+{
+  string s("hello world");
+  size_t n = erase(s, 'l');
+  CHECK(n == 3);
+  CHECK(strcmp(s.c_str(), "heo word") == 0);
+}
+
+TEST_CASE("erase free no match")
+{
+  string s("hello");
+  size_t n = erase(s, 'z');
+  CHECK(n == 0);
+  CHECK(strcmp(s.c_str(), "hello") == 0);
+}
+
+TEST_CASE("erase free all removed")
+{
+  string s("aaaaa");
+  size_t n = erase(s, 'a');
+  CHECK(n == 5);
+  CHECK(s.empty());
+}
+
+TEST_CASE("erase free empty string")
+{
+  string s;
+  size_t n = erase(s, 'a');
+  CHECK(n == 0);
+  CHECK(s.empty());
+}
+
+TEST_CASE("erase_if removes matching chars")
+{
+  string s("a1b2c3");
+  size_t n = erase_if(s, [](char c) { return c >= '0' && c <= '9'; });
+  CHECK(n == 3);
+  CHECK(strcmp(s.c_str(), "abc") == 0);
+}
+
 TEST_CASE("find 3-arg finds counted substring")
 {
   string s("hello world");
