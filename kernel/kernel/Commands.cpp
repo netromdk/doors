@@ -13,7 +13,7 @@
 
 namespace {
 
-void cmdUptime(int, char **)
+void cmdUptime(int, const string *)
 {
   uint64_t total = Pit::uptimeMs();
   uint64_t sec = total / 1000;
@@ -28,29 +28,29 @@ void cmdUptime(int, char **)
   printf("%u seconds\n", ms);
 }
 
-void cmdCpuInfo(int, char **)
+void cmdCpuInfo(int, const string *)
 {
   Cpu::dump();
 }
 
-void cmdMemInfo(int, char **)
+void cmdMemInfo(int, const string *)
 {
   Mem::dump();
   printf("Heap free: %u bytes (largest block: %u bytes)\n", Heap::freeMem(),
          Heap::largestFreeBlock());
 }
 
-void cmdClear(int, char **)
+void cmdClear(int, const string *)
 {
   Tty::cls();
 }
 
-void cmdHelp(int, char **)
+void cmdHelp(int, const string *)
 {
   Shell::printHelp();
 }
 
-void cmdHalt(int, char **)
+void cmdHalt(int, const string *)
 {
   printf("Halting system.\n");
   Pic::disableInt();
@@ -59,7 +59,7 @@ void cmdHalt(int, char **)
   }
 }
 
-void cmdReboot(int, char **)
+void cmdReboot(int, const string *)
 {
   // Wait for the keyboard controller's input buffer to be empty (bit 1 of status register = 0).
   while ((Io::inb(0x64) & 0x02)) {
@@ -70,28 +70,28 @@ void cmdReboot(int, char **)
   Io::outb(0x64, 0xFE);
 }
 
-void cmdDateTime(int, char **)
+void cmdDateTime(int, const string *)
 {
   Cmos::printTime();
 }
 
-void cmdEcho(int argc, char **argv)
+void cmdEcho(int argc, const string *argv)
 {
   for (int i = 1; i < argc; i++) {
     if (i > 1) {
       putchar(' ');
     }
-    printf("%s", argv[i]);
+    printf("%s", argv[i].c_str());
   }
   putchar('\n');
 }
 
-void cmdTicks(int, char **)
+void cmdTicks(int, const string *)
 {
   printf("Ticks: %u\n", Pit::uptimeMs());
 }
 
-void cmdHeap(int, char **)
+void cmdHeap(int, const string *)
 {
   printf("Heap free: %u bytes\n", Heap::freeMem());
   printf("Largest block: %u bytes\n", Heap::largestFreeBlock());

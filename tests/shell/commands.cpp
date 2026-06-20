@@ -1,6 +1,5 @@
 #include <doctest/doctest.h>
 #include <kernel/Shell.h>
-#include <string.h>
 
 #include "TestHelpers.h"
 
@@ -11,7 +10,7 @@ constexpr int MAX_ARGS = 16;
 bool handlerCalled = false;
 int handlerArgc = 0;
 
-void testHandler(int argc, char **)
+void testHandler(int argc, const string *)
 {
   handlerCalled = true;
   handlerArgc = argc;
@@ -25,8 +24,8 @@ TEST_CASE("help_registered")
   Command cmd{"help", "show help", testHandler};
   Shell::registerCmd(cmd);
 
-  char line[] = "help";
-  char *argv[MAX_ARGS];
+  string line = "help";
+  string argv[MAX_ARGS];
   bool result = dispatchLine(line, argv);
 
   CHECK(result == true);
@@ -40,8 +39,8 @@ TEST_CASE("echo_registered")
   Command cmd{"echo", "echo test", testHandler};
   Shell::registerCmd(cmd);
 
-  char line[] = "echo hi";
-  char *argv[MAX_ARGS];
+  string line = "echo hi";
+  string argv[MAX_ARGS];
   bool result = dispatchLine(line, argv);
 
   CHECK(result == true);

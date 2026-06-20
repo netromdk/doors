@@ -24,6 +24,7 @@
 constinit multiboot_info *mbi = nullptr;
 
 extern "C" {
+
 void kmainInit(multiboot_info *mbi_, uint32_t magic)
 {
   Serial::init();
@@ -50,11 +51,9 @@ void kmain()
   printf("Doors v%d.%d.%d [built %s @ %s]\n", MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION,
          BUILD_DATE, BUILD_TIME);
 
-  printf("Serial COM1 ready..");
 #ifdef DEBUG_THROUGH_SERIAL_COM1
-  printf(" (debug log enabled)");
+  printf("Debug log enabled via COM1..\n");
 #endif
-  printf("\n");
 
   Arch::init(mbi);
 
@@ -75,4 +74,5 @@ void kmain()
   initCommands();
   Shell::run();
 }
-}
+
+} // extern "C"

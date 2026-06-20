@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string>
 
 #include <kernel/Io.h>
 #include <kernel/Kbd.h>
@@ -14,13 +15,10 @@ constexpr uint16_t KBD_DATA_PORT = 0x60;
 
 bool extended_ = false;
 
-void deleteAt(char *buf, int &len, int delPos, int oldLen)
+void deleteAt(string &buf, int delPos, int oldLen)
 {
-  for (int i = delPos; i < len - 1; i++) {
-    buf[i] = buf[i + 1];
-  }
-  len--;
-  buf[len] = '\0';
+  buf.erase(delPos, 1);
+  int len = buf.size();
   for (int i = delPos; i < len; i++) {
     printf("%c", buf[i]);
   }
@@ -30,14 +28,10 @@ void deleteAt(char *buf, int &len, int delPos, int oldLen)
   }
 }
 
-void insertAt(char *buf, int &len, int insPos, char ch)
+void insertAt(string &buf, int insPos, char ch)
 {
-  for (int i = len; i > insPos; i--) {
-    buf[i] = buf[i - 1];
-  }
-  buf[insPos] = ch;
-  len++;
-  buf[len] = '\0';
+  buf.insert(insPos, 1, ch);
+  int len = buf.size();
   for (int i = insPos; i < len; i++) {
     printf("%c", buf[i]);
   }
@@ -46,24 +40,13 @@ void insertAt(char *buf, int &len, int insPos, char ch)
   }
 }
 
-void clearRange(char *buf, int &len, int from, int oldLen)
-{
-  len = from;
-  buf[len] = '\0';
-  for (int i = from; i < oldLen; i++) {
-    printf(" ");
-  }
-  for (int i = oldLen; i > from; i--) {
-    printf("\b");
-  }
-}
-
 // Redraw the command line from column 0, clearing any previous content.
 // Cursor is at position `cursor` (0..len).
 // `oldLen` is the previously displayed line length so we can clear trailing characters when the
 // line shrinks.
-void redrawLine(const char *buf, int len, int cursor, int oldLen)
+void redrawLine(const string &buf, int cursor, int oldLen)
 {
+  int len = buf.size();
   printf("\r> ");
   for (int i = 0; i < len; i++) {
     printf("%c", buf[i]);
@@ -77,21 +60,22 @@ void redrawLine(const char *buf, int len, int cursor, int oldLen)
   }
 }
 
-void loadHistory(const char *src, char *dst, int &pos, int &len, int max, int oldLen)
+void clearRange(string &buf, int from, int oldLen)
 {
-  len = 0;
-  while (src[len] != '\0' && len < max - 1) {
-    dst[len] = src[len];
-    len++;
-  }
-  dst[len] = '\0';
-  pos = len;
-  redrawLine(dst, len, pos, oldLen);
+  buf.erase(from);
+  redrawLine(buf, from, oldLen);
 }
 
-void historyUp(HistoryCtx *h, char *line, int &pos, int &len, int max)
+void loadHistory(const string &src, string &dst, int &pos, int oldLen)
 {
-  int oldLen = len;
+  dst = src;
+  pos = dst.size();
+  redrawLine(dst, pos, oldLen);
+}
+
+void historyUp(HistoryCtx *h, string &line, int &pos)
+{
+  int oldLen = line.size();
   if (*h->pos == -1) {
     if (h->count == 0) return;
     *h->pos = (h->head - 1 + h->size) % h->size;
@@ -103,24 +87,17 @@ void historyUp(HistoryCtx *h, char *line, int &pos, int &len, int max)
     }
     *h->pos = prev;
   }
-  loadHistory(h->buf[*h->pos], line, pos, len, max, oldLen);
+  loadHistory(h->buf[*h->pos], line, pos, oldLen);
 }
 
-void historyDown(HistoryCtx *h, char *line, int &pos, int &len, int max)
+void historyDown(HistoryCtx *h, string &line, int &pos)
 {
-  int oldLen = len;
+  int oldLen = line.size();
   if (*h->pos == -1) return;
-  int next = (*h->pos + 1) % h->size;
-  if (next == h->head) {
-    *h->pos = -1;
-    redrawLine("", 0, 0, oldLen);
-    line[0] = '\0';
-    pos = 0;
-    len = 0;
-    return;
-  }
-  *h->pos = next;
-  loadHistory(h->buf[*h->pos], line, pos, len, max, oldLen);
+  *h->pos = -1;
+  redrawLine(string{}, 0, oldLen);
+  line.clear();
+  pos = 0;
 }
 
 } // namespace
@@ -188,10 +165,10 @@ char Kbd::getChar()
   return ch;
 }
 
-void Kbd::readLine(char *buf, int max, HistoryCtx *history)
+void Kbd::readLine(string &line, HistoryCtx *history)
 {
   int pos = 0; // Cursor position (0..len).
-  int len = 0; // Number of valid characters in buf.
+  line.clear();
   for (;;) {
     // Check navigation event counters before checking the char buffer, so that arrow/page keys are
     // handled even when no char is pending. When in scrollback mode, arrow keys scroll line by line
@@ -208,12 +185,12 @@ void Kbd::readLine(char *buf, int max, HistoryCtx *history)
     }
     if (history && pendingUp_ > 0) {
       pendingUp_ = pendingUp_ - 1;
-      historyUp(history, buf, pos, len, max);
+      historyUp(history, line, pos);
       continue;
     }
     if (history && pendingDown_ > 0) {
       pendingDown_ = pendingDown_ - 1;
-      historyDown(history, buf, pos, len, max);
+      historyDown(history, line, pos);
       continue;
     }
     if (pendingLeft_ > 0) {
@@ -226,8 +203,8 @@ void Kbd::readLine(char *buf, int max, HistoryCtx *history)
     }
     if (pendingRight_ > 0) {
       pendingRight_ = pendingRight_ - 1;
-      if (!Tty::scrollbackActive() && pos < len) {
-        printf("%c", buf[pos]);
+      if (!Tty::scrollbackActive() && pos < static_cast<int>(line.size())) {
+        printf("%c", line[pos]);
         pos++;
       }
       continue;
@@ -263,18 +240,18 @@ void Kbd::readLine(char *buf, int max, HistoryCtx *history)
 
     // Ctrl+P and Ctrl+N as alternative to Up/Down arrows.
     if (history && ch == Kbd::KEY_CTRL_P) {
-      historyUp(history, buf, pos, len, max);
+      historyUp(history, line, pos);
       continue;
     }
     if (history && ch == Kbd::KEY_CTRL_N) {
-      historyDown(history, buf, pos, len, max);
+      historyDown(history, line, pos);
       continue;
     }
 
     // Cancel current input with Ctrl+C.
     if (ch == Kbd::KEY_CTRL_C) {
       printf("^C\n");
-      buf[0] = '\0';
+      line.clear();
       return;
     }
 
@@ -289,8 +266,8 @@ void Kbd::readLine(char *buf, int max, HistoryCtx *history)
 
     // Ctrl+E moves cursor to end of line.
     if (ch == Kbd::KEY_CTRL_E) {
-      while (pos < len) {
-        printf("%c", buf[pos]);
+      while (pos < static_cast<int>(line.size())) {
+        printf("%c", line[pos]);
         pos++;
       }
       continue;
@@ -307,8 +284,8 @@ void Kbd::readLine(char *buf, int max, HistoryCtx *history)
 
     // Ctrl+F moves cursor one char right.
     if (ch == Kbd::KEY_CTRL_F) {
-      if (pos < len) {
-        printf("%c", buf[pos]);
+      if (pos < static_cast<int>(line.size())) {
+        printf("%c", line[pos]);
         pos++;
       }
       continue;
@@ -316,23 +293,22 @@ void Kbd::readLine(char *buf, int max, HistoryCtx *history)
 
     // Ctrl+D delete character under cursor.
     if (ch == Kbd::KEY_CTRL_D) {
-      if (pos < len) {
-        deleteAt(buf, len, pos, len);
+      if (pos < static_cast<int>(line.size())) {
+        deleteAt(line, pos, line.size());
       }
       continue;
     }
 
     // Ctrl+K kill from cursor to end of line.
     if (ch == Kbd::KEY_CTRL_K) {
-      if (pos < len) {
-        clearRange(buf, len, pos, len);
+      if (pos < static_cast<int>(line.size())) {
+        clearRange(line, pos, line.size());
       }
       continue;
     }
 
     // Handle newline.
     if (ch == '\n') {
-      buf[len] = '\0';
       printf("\n");
       return;
     }
@@ -340,28 +316,26 @@ void Kbd::readLine(char *buf, int max, HistoryCtx *history)
     // Handle backspace.
     if (ch == '\b') {
       if (pos > 0) {
-        int oldLen = len;
+        int oldLen = line.size();
         pos--;
         printf("\b");
-        deleteAt(buf, len, pos, oldLen);
+        deleteAt(line, pos, oldLen);
       }
       continue;
     }
 
     // Ctrl+U erase entire line.
     if (ch == Kbd::KEY_CTRL_U) {
-      if (len > 0) {
-        clearRange(buf, len, 0, len);
+      if (!line.empty()) {
+        clearRange(line, 0, line.size());
         pos = 0;
       }
       continue;
     }
 
     // Regular character insert at cursor position.
-    if (len < max - 1) {
-      insertAt(buf, len, pos, ch);
-      pos++;
-    }
+    insertAt(line, pos, ch);
+    pos++;
   }
 }
 

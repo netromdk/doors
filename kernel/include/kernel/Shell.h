@@ -2,18 +2,19 @@
 #define KERNEL_SHELL_H
 
 #include <stddef.h>
+#include <string>
 
 struct Command {
-  const char *name;
-  const char *desc;
-  void (*handler)(int argc, char **argv);
+  string name;
+  string desc;
+  void (*handler)(int argc, const string *argv);
 };
 
 class Shell {
 public:
   static void run();
-  static int tokenize(char *line, char **argv, int max);
-  static bool dispatch(int argc, char **argv);
+  static int tokenize(const string &line, string *argv, int max);
+  static bool dispatch(int argc, const string *argv);
   static void registerCmd(const Command &cmd);
   static void printHelp();
 };

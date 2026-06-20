@@ -3,9 +3,10 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string>
 
 struct HistoryCtx {
-  char (*buf)[256];
+  string *buf;
   int size;
   int count;
   int head;
@@ -32,7 +33,7 @@ public:
   static void pushChar(char ch);
   static bool charAvail();
   static char getChar();
-  static void readLine(char *buf, int max, HistoryCtx *history = nullptr);
+  static void readLine(string &line, HistoryCtx *history = nullptr);
 
   static void clearNavigation();
 

@@ -55,6 +55,7 @@ add_library(libc++test STATIC
   ${DOORS_LIBC_SRC_DIR}/string/strncmp.cpp
   ${DOORS_LIBC_SRC_DIR}/string/strchr.cpp
   ${DOORS_LIBC_SRC_DIR}/string/strrchr.cpp
+  ${DOORS_LIBC_SRC_DIR}/string/string.cpp
 )
 target_compile_definitions(libc++test PRIVATE __IS_DOORS_LIBCPP __IS_DOORS_LIBCPPTEST)
 target_compile_options(libc++test PRIVATE -fno-builtin)
@@ -75,7 +76,7 @@ function(doors_test_module name)
   add_test(NAME ${name} COMMAND ${name})
 endfunction()
 
-doors_test_module(test_libcpp_string
+doors_test_module(test_libcpp_string_header
   libc++/string/memcpy.cpp
   libc++/string/memset.cpp
   libc++/string/memcmp.cpp
@@ -90,7 +91,11 @@ doors_test_module(test_libcpp_string
   libc++/string/strrchr.cpp
 )
 
-doors_test_module(test_libcpp_stdlib
+doors_test_module(test_libcpp_string
+  string/test_string.cpp
+)
+
+doors_test_module(test_libcpp_stdlib_header
   libc++/stdlib/itos.cpp
   libc++/stdlib/utos.cpp
   libc++/stdlib/ltos.cpp
@@ -104,13 +109,13 @@ doors_test_module(test_libcpp_stdlib
   libc++/stdlib/div.cpp
 )
 
-doors_test_module(test_libcpp_stdio
+doors_test_module(test_libcpp_stdio_header
   libc++/stdio/putchar.cpp
   libc++/stdio/puts.cpp
   libc++/stdio/printf.cpp
 )
 
-doors_test_module(test_libcpp_ctype
+doors_test_module(test_libcpp_ctype_header
   libc++/ctype/isalnum.cpp
   libc++/ctype/isalpha.cpp
   libc++/ctype/isblank.cpp
@@ -127,7 +132,7 @@ doors_test_module(test_libcpp_ctype
   libc++/ctype/toupper.cpp
 )
 
-doors_test_module(test_libcpp_algorithm
+doors_test_module(test_libcpp_algorithm_header
   libc++/algorithm/min.cpp
   libc++/algorithm/max.cpp
   libc++/algorithm/swap.cpp

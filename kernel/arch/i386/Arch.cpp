@@ -13,7 +13,7 @@
 
 void Arch::init(multiboot_info *mbi)
 {
-  printf("Arch x86 init..\n\n");
+  printf("Arch x86 init:");
 
   // Detect information about the CPU, and write to term.
   if (!Cpu::init()) {
@@ -34,24 +34,25 @@ void Arch::init(multiboot_info *mbi)
   }
 
   if (Pic::isIntEnabled()) {
-    printf("Disabling interrupts..\n");
     Pic::disableInt();
   }
 
-  printf("Init Global Descriptor Table..\n");
+  printf(" GDT");
   Gdt::init();
 
-  printf("Init Interrupt Descriptor Table..\n");
+  printf(" IDT");
   Idt::init();
 
-  printf("Init Programmable Interrupt Interface..\n");
+  printf(" PII");
   Pic::init();
 
-  printf("Init Advanced Configuration and Power Interface..\n");
+  printf(" ACPI");
   Acpi::init();
 
-  printf("Init Programmable Interval Timer..\n");
+  printf(" PIT");
   Pit::init();
+
+  printf("\n");
 }
 
 void Arch::start()

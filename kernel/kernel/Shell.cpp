@@ -1,6 +1,5 @@
 #include <ctype.h>
 #include <stdio.h>
-#include <string.h>
 
 #include <arch/i386/Pic.h>
 #include <kernel/Kbd.h>
@@ -15,7 +14,7 @@ int numCmds = 0;
 
 // Command history ring buffer.
 constexpr int HISTORY_MAX = 100;
-static constinit char historyBuf_[HISTORY_MAX][256]{};
+static string historyBuf_[HISTORY_MAX];
 static constinit int historyCount_ = 0;
 static constinit int historyHead_ = 0;
 
@@ -25,25 +24,24 @@ void Shell::run()
 {
   Pic::enableInt();
   Tty::cursorEnable();
-  char line[256]{};
-  char *argv[16]{};
-  constexpr int MAX_ARGS = sizeof(argv) / sizeof(*argv);
+  string line;
+  string argv[16];
+  constexpr int MAX_ARGS = 16;
   int historyPos = -1;
 
   for (;;) {
     HistoryCtx hctx{historyBuf_, HISTORY_MAX, historyCount_, historyHead_, &historyPos};
 
     printf("> ");
-    Kbd::readLine(line, sizeof(line), &hctx);
+    Kbd::readLine(line, &hctx);
 
     int argc = Shell::tokenize(line, argv, MAX_ARGS);
     Shell::dispatch(argc, argv);
 
     // Save to history but skip empty or duplicate of the most recent entry.
-    if (line[0] != '\0' &&
-        (historyCount_ == 0 ||
-         strcmp(line, historyBuf_[(historyHead_ - 1 + HISTORY_MAX) % HISTORY_MAX]) != 0)) {
-      strcpy(historyBuf_[historyHead_], line);
+    if (!line.empty() && (historyCount_ == 0 ||
+                          line != historyBuf_[(historyHead_ - 1 + HISTORY_MAX) % HISTORY_MAX])) {
+      historyBuf_[historyHead_] = line;
       historyHead_ = (historyHead_ + 1) % HISTORY_MAX;
       if (historyCount_ < HISTORY_MAX) {
         historyCount_++;
@@ -53,46 +51,46 @@ void Shell::run()
   }
 }
 
-int Shell::tokenize(char *line, char **argv, int max)
+int Shell::tokenize(const string &line, string *argv, int max)
 {
   int argc = 0;
-  char *p = line;
-  while (*p) {
-    while (isspace(*p)) {
-      p++;
+  size_t i = 0;
+  string::size_type n = line.size();
+  while (i < n) {
+    while (i < n && isspace(static_cast<unsigned char>(line[i]))) {
+      i++;
     }
-    if (!*p) {
+    if (i >= n) {
       break;
     }
     if (argc >= max - 1) {
       break;
     }
-    argv[argc++] = p;
-    while (*p && !isspace(*p)) {
-      p++;
+    string::size_type start = i;
+    while (i < n && !isspace(static_cast<unsigned char>(line[i]))) {
+      i++;
     }
-    if (*p) {
-      *p++ = '\0';
-    }
+    argv[argc] = line.substr(start, i - start);
+    argc++;
   }
-  argv[argc] = nullptr;
+  argv[argc].clear();
   return argc;
 }
 
-bool Shell::dispatch(int argc, char **argv)
+bool Shell::dispatch(int argc, const string *argv)
 {
   if (argc == 0) {
     return true;
   }
 
   for (int i = 0; i < numCmds; i++) {
-    if (strcmp(argv[0], cmdTable[i].name) == 0) {
+    if (argv[0] == cmdTable[i].name) {
       cmdTable[i].handler(argc, argv);
       return true;
     }
   }
 
-  printf("Unknown command: %s\n", argv[0]);
+  printf("Unknown command: %s\n", argv[0].c_str());
   return false;
 }
 
@@ -100,8 +98,8 @@ void Shell::printHelp()
 {
   printf("Commands:\n");
   for (int i = 0; i < numCmds; i++) {
-    if (cmdTable[i].desc) {
-      printf("  %s - %s\n", cmdTable[i].name, cmdTable[i].desc);
+    if (!cmdTable[i].desc.empty()) {
+      printf("  %s - %s\n", cmdTable[i].name.c_str(), cmdTable[i].desc.c_str());
     }
   }
 }

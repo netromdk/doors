@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 
 #include <kernel/Io.h>
 #include <kernel/Kbd.h>
@@ -192,6 +193,9 @@ void Tty::putc(char ch)
     advRow();
     termCol = 0;
   }
+  else if (ch == '\r') {
+    termCol = 0;
+  }
   else if (ch == '\b') {
     decCol();
   }
@@ -277,41 +281,34 @@ void Tty::scrollbackShow(int offset)
   // Update offset to reflect the actual bottom line of the content area.
   offset = bottom;
 
-  // Write status indicator on row 0.
-  char buf[VGA_WIDTH + 1];
-  size_t pos = 0;
-  for (size_t i = 0; STATUS_PREFIX[i] != '\0' && pos < VGA_WIDTH; i++) {
-    buf[pos++] = STATUS_PREFIX[i];
-  }
+  // Build status indicator on row 0.
+  string buf;
+  buf += STATUS_PREFIX;
 
   // Append offset number.
-  if (offset >= 10000) buf[pos++] = '0' + (offset / 10000) % 10;
-  if (offset >= 1000) buf[pos++] = '0' + (offset / 1000) % 10;
-  if (offset >= 100) buf[pos++] = '0' + (offset / 100) % 10;
-  if (offset >= 10) buf[pos++] = '0' + (offset / 10) % 10;
+  if (offset >= 10000) buf.push_back('0' + (offset / 10000) % 10);
+  if (offset >= 1000) buf.push_back('0' + (offset / 1000) % 10);
+  if (offset >= 100) buf.push_back('0' + (offset / 100) % 10);
+  if (offset >= 10) buf.push_back('0' + (offset / 10) % 10);
+  buf.push_back('0' + offset % 10);
 
-  // Write middle indicator text.
-  buf[pos++] = '0' + offset % 10;
-  for (size_t i = 0; STATUS_MIDDLE[i] != '\0' && pos < VGA_WIDTH; i++) {
-    buf[pos++] = STATUS_MIDDLE[i];
-  }
+  // Append middle indicator text.
+  buf += STATUS_MIDDLE;
 
   // Append scrollbackCount_ number.
   int total = scrollbackCount_;
-  if (total >= 10000) buf[pos++] = '0' + (total / 10000) % 10;
-  if (total >= 1000) buf[pos++] = '0' + (total / 1000) % 10;
-  if (total >= 100) buf[pos++] = '0' + (total / 100) % 10;
-  if (total >= 10) buf[pos++] = '0' + (total / 10) % 10;
+  if (total >= 10000) buf.push_back('0' + (total / 10000) % 10);
+  if (total >= 1000) buf.push_back('0' + (total / 1000) % 10);
+  if (total >= 100) buf.push_back('0' + (total / 100) % 10);
+  if (total >= 10) buf.push_back('0' + (total / 10) % 10);
+  buf.push_back('0' + total % 10);
 
-  // Write suffix indicator text.
-  buf[pos++] = '0' + total % 10;
-  for (size_t i = 0; STATUS_SUFFIX[i] != '\0' && pos < VGA_WIDTH; i++) {
-    buf[pos++] = STATUS_SUFFIX[i];
-  }
+  // Append suffix indicator text.
+  buf += STATUS_SUFFIX;
 
   // Display the indicator on VGA.
   for (size_t col = 0; col < VGA_WIDTH; col++) {
-    char ch = col < pos ? buf[col] : ' ';
+    char ch = col < buf.size() ? buf[col] : ' ';
     VGA_RAM[0 * VGA_WIDTH + col] = vgaEntry(ch, DEFAULT_COLOR);
   }
 

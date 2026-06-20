@@ -1,0 +1,266 @@
+#ifndef STRING_DATA_TYPE_H
+#define STRING_DATA_TYPE_H
+
+#include <compare>
+#include <string.h>
+
+class string {
+public:
+  using size_type = size_t;
+  using value_type = char;
+  using reference = char &;
+  using const_reference = const char &;
+  using pointer = char *;
+  using const_pointer = const char *;
+  using iterator = char *;
+  using const_iterator = const char *;
+  using difference_type = ptrdiff_t;
+
+  static constexpr size_type npos = static_cast<size_type>(-1);
+
+  // 32-bit layout: data_(4) + size_(4) + capacity_(4) + sso_[N] = 12 + N
+  // SSO_CAPACITY=23 -> sso_[24] -> 36 bytes total, zero padding.
+  // Any larger adds padding or exceeds a reasonable struct size.
+  static constexpr size_type SSO_CAPACITY = 23;
+
+  string() noexcept;
+
+  // Does not accept a `nullptr`!
+  string(decltype(nullptr)) noexcept = delete;
+
+  string(const char *s) noexcept;
+  string(const char *s, size_type count) noexcept;
+  string(size_type count, char ch) noexcept;
+  string(const string &other) noexcept;
+  string(string &&other) noexcept;
+
+  ~string() noexcept;
+
+  string &operator=(const string &other) noexcept;
+  string &operator=(string &&other) noexcept;
+  string &operator=(const char *s) noexcept;
+  string &assign(const string &other) noexcept;
+  string &assign(const char *s) noexcept;
+
+  char &operator[](size_type pos) noexcept;
+  constexpr const char &operator[](size_type pos) const noexcept
+  {
+    return data_[pos];
+  }
+
+  [[nodiscard]] char &at(size_type pos) noexcept;
+  [[nodiscard]] const char &at(size_type pos) const noexcept;
+
+  constexpr char &front() noexcept
+  {
+    return data_[0];
+  }
+
+  constexpr const char &front() const noexcept
+  {
+    return data_[0];
+  }
+
+  constexpr char &back() noexcept
+  {
+    return data_[size_ - 1];
+  }
+
+  constexpr const char &back() const noexcept
+  {
+    return data_[size_ - 1];
+  }
+
+  constexpr const char *c_str() const noexcept
+  {
+    return data_;
+  }
+
+  constexpr const char *data() const noexcept
+  {
+    return data_;
+  }
+
+  constexpr char *data() noexcept
+  {
+    return data_;
+  }
+
+  [[nodiscard]] constexpr bool empty() const noexcept
+  {
+    return size_ == 0;
+  }
+
+  [[nodiscard]] constexpr size_type size() const noexcept
+  {
+    return size_;
+  }
+
+  [[nodiscard]] constexpr size_type length() const noexcept
+  {
+    return size_;
+  }
+
+  [[nodiscard]] constexpr size_type capacity() const noexcept
+  {
+    return isSSO() ? SSO_CAPACITY : capacity_;
+  }
+
+  [[nodiscard]] constexpr size_type max_size() const noexcept
+  {
+    // Largest safe capacity for the doubling growth policy.
+    // `static_cast<size_type>(-1)` = `SIZE_MAX` with all bits set.
+    // `SIZE_MAX/2` avoids overflow in `grow()` (`capacity()*2`), and keeps `npos` (`SIZE_MAX`)
+    // usable as an "until end" sentinel.
+    return static_cast<size_type>(-1) / 2;
+  }
+
+  void reserve() noexcept;
+  void reserve(size_type newCap) noexcept;
+  void shrink_to_fit() noexcept;
+  void clear() noexcept;
+  void pop_back() noexcept;
+
+  string &insert(size_type pos, const string &str) noexcept;
+  string &insert(size_type pos, const char *s) noexcept;
+  string &insert(size_type pos, size_type count, char ch) noexcept;
+  string &erase(size_type pos = 0, size_type count = npos) noexcept;
+  void push_back(char ch) noexcept;
+  string &append(const string &str) noexcept;
+  string &append(const char *s) noexcept;
+  string &operator+=(const string &str) noexcept;
+  string &operator+=(char ch) noexcept;
+  void resize(size_type n) noexcept;
+  void resize(size_type n, char ch) noexcept;
+  void swap(string &other) noexcept;
+
+  string &replace(size_type pos, size_type count, const string &str) noexcept;
+  string &replace(size_type pos, size_type count, const char *s) noexcept;
+  string &replace(size_type pos, size_type count, const char *s, size_type count2) noexcept;
+
+  [[nodiscard]] size_type copy(char *s, size_type count, size_type pos = 0) const noexcept;
+  [[nodiscard]] string substr(size_type pos = 0, size_type count = npos) const noexcept;
+
+  iterator begin() noexcept
+  {
+    return data_;
+  }
+  iterator end() noexcept
+  {
+    return data_ + size_;
+  }
+  const_iterator begin() const noexcept
+  {
+    return data_;
+  }
+  const_iterator end() const noexcept
+  {
+    return data_ + size_;
+  }
+  const_iterator cbegin() const noexcept
+  {
+    return data_;
+  }
+  const_iterator cend() const noexcept
+  {
+    return data_ + size_;
+  }
+
+  [[nodiscard]] size_type find(const string &str, size_type pos = 0) const noexcept;
+  [[nodiscard]] size_type find(const char *s, size_type pos = 0) const noexcept;
+  [[nodiscard]] size_type find(const char *s, size_type pos, size_type count) const noexcept;
+  [[nodiscard]] size_type find(char ch, size_type pos = 0) const noexcept;
+  [[nodiscard]] size_type rfind(const string &str, size_type pos = npos) const noexcept;
+  [[nodiscard]] size_type rfind(const char *s, size_type pos = npos) const noexcept;
+  [[nodiscard]] size_type rfind(const char *s, size_type pos, size_type count) const noexcept;
+  [[nodiscard]] size_type rfind(char ch, size_type pos = npos) const noexcept;
+  [[nodiscard]] size_type find_first_of(const string &str, size_type pos = 0) const noexcept;
+  [[nodiscard]] size_type find_first_of(const char *s, size_type pos = 0) const noexcept;
+  [[nodiscard]] size_type find_first_of(const char *s, size_type pos,
+                                        size_type count) const noexcept;
+  [[nodiscard]] size_type find_first_of(char ch, size_type pos = 0) const noexcept;
+  [[nodiscard]] size_type find_last_of(const string &str, size_type pos = npos) const noexcept;
+  [[nodiscard]] size_type find_last_of(const char *s, size_type pos = npos) const noexcept;
+  [[nodiscard]] size_type find_last_of(const char *s, size_type pos,
+                                       size_type count) const noexcept;
+  [[nodiscard]] size_type find_last_of(char ch, size_type pos = npos) const noexcept;
+  [[nodiscard]] size_type find_first_not_of(const string &str, size_type pos = 0) const noexcept;
+  [[nodiscard]] size_type find_first_not_of(const char *s, size_type pos = 0) const noexcept;
+  [[nodiscard]] size_type find_first_not_of(const char *s, size_type pos,
+                                            size_type count) const noexcept;
+  [[nodiscard]] size_type find_first_not_of(char ch, size_type pos = 0) const noexcept;
+  [[nodiscard]] size_type find_last_not_of(const string &str, size_type pos = npos) const noexcept;
+  [[nodiscard]] size_type find_last_not_of(const char *s, size_type pos = npos) const noexcept;
+  [[nodiscard]] size_type find_last_not_of(const char *s, size_type pos,
+                                           size_type count) const noexcept;
+  [[nodiscard]] size_type find_last_not_of(char ch, size_type pos = npos) const noexcept;
+
+  [[nodiscard]] bool contains(const string &str) const noexcept;
+  [[nodiscard]] bool contains(char ch) const noexcept;
+  [[nodiscard]] bool starts_with(const string &str) const noexcept;
+  [[nodiscard]] bool starts_with(char ch) const noexcept;
+  [[nodiscard]] bool ends_with(const string &str) const noexcept;
+  [[nodiscard]] bool ends_with(char ch) const noexcept;
+
+  [[nodiscard]] int compare(const string &str) const noexcept;
+  [[nodiscard]] int compare(const char *s) const noexcept;
+  strong_ordering operator<=>(const string &other) const noexcept;
+
+private:
+  char *data_;
+  size_type size_;
+  size_type capacity_;
+  char sso_[SSO_CAPACITY + 1];
+
+  constexpr bool isSSO() const noexcept
+  {
+    return data_ == sso_;
+  }
+  constexpr bool isHeap() const noexcept
+  {
+    return data_ != sso_;
+  }
+
+  static void checkNotNull(const char *p) noexcept;
+
+  char *heapData() noexcept;
+  const char *heapData() const noexcept;
+
+  void setSSO(const char *s, size_type n) noexcept;
+  void setHeap(char *p, size_type n, size_type cap) noexcept;
+  void grow(size_type minCap) noexcept;
+  void reserveFor(size_type n) noexcept;
+
+  static char *allocate(size_type cap) noexcept;
+  static void deallocate(char *p) noexcept;
+};
+
+[[nodiscard]] bool operator==(const string &a, const string &b) noexcept;
+string operator+(const string &a, const string &b) noexcept;
+string operator+(const string &a, const char *b) noexcept;
+string operator+(const char *a, const string &b) noexcept;
+void swap(string &a, string &b) noexcept;
+
+string::size_type erase(string &s, char c) noexcept;
+
+template <typename Predicate>
+string::size_type erase_if(string &s, Predicate pred) noexcept
+{
+  string::size_type count = 0;
+  string::size_type j = 0;
+  for (string::size_type i = 0; i < s.size(); ++i) {
+    if (!pred(s[i])) {
+      if (i != j) s[j] = s[i];
+      ++j;
+    }
+    else {
+      ++count;
+    }
+  }
+  if (count > 0) {
+    s.resize(j);
+  }
+  return count;
+}
+
+#endif // STRING_DATA_TYPE_H

@@ -1,6 +1,5 @@
 #include <doctest/doctest.h>
 #include <kernel/Shell.h>
-#include <string.h>
 
 #include "TestHelpers.h"
 
@@ -10,10 +9,10 @@ constexpr int MAX_ARGS = 16;
 
 bool handlerCalled = false;
 int handlerArgc = 0;
-const char *handlerArgv0 = nullptr;
-const char *handlerArgv1 = nullptr;
+string handlerArgv0;
+string handlerArgv1;
 
-void testHandler(int argc, char **argv)
+void testHandler(int argc, const string *argv)
 {
   handlerCalled = true;
   handlerArgc = argc;
@@ -29,14 +28,14 @@ TEST_CASE("match")
   Command cmd{"test", "a test command", testHandler};
   Shell::registerCmd(cmd);
 
-  char line[] = "test";
-  char *argv[MAX_ARGS];
+  string line = "test";
+  string argv[MAX_ARGS];
   bool result = dispatchLine(line, argv);
 
   CHECK(result == true);
   CHECK(handlerCalled == true);
   CHECK(handlerArgc == 1);
-  CHECK(strcmp(handlerArgv0, "test") == 0);
+  CHECK(handlerArgv0 == "test");
 }
 
 TEST_CASE("match_with_arg")
@@ -45,15 +44,15 @@ TEST_CASE("match_with_arg")
   Command cmd{"test", "a test command", testHandler};
   Shell::registerCmd(cmd);
 
-  char line[] = "test arg1";
-  char *argv[MAX_ARGS];
+  string line = "test arg1";
+  string argv[MAX_ARGS];
   bool result = dispatchLine(line, argv);
 
   CHECK(result == true);
   CHECK(handlerCalled == true);
   CHECK(handlerArgc == 2);
-  CHECK(strcmp(handlerArgv0, "test") == 0);
-  CHECK(strcmp(handlerArgv1, "arg1") == 0);
+  CHECK(handlerArgv0 == "test");
+  CHECK(handlerArgv1 == "arg1");
 }
 
 TEST_CASE("no_match")
@@ -61,8 +60,8 @@ TEST_CASE("no_match")
   Command cmd{"test", "a test command", testHandler};
   Shell::registerCmd(cmd);
 
-  char line[] = "nonexistent";
-  char *argv[MAX_ARGS];
+  string line = "nonexistent";
+  string argv[MAX_ARGS];
   bool result = dispatchLine(line, argv);
 
   CHECK(result == false);
@@ -79,8 +78,8 @@ TEST_CASE("case_sensitive")
   Command cmd{"uptime", "show uptime", testHandler};
   Shell::registerCmd(cmd);
 
-  char line[] = "UPTIME";
-  char *argv[MAX_ARGS];
+  string line = "UPTIME";
+  string argv[MAX_ARGS];
   bool result = dispatchLine(line, argv);
 
   CHECK(result == false);
