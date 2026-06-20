@@ -1,0 +1,51 @@
+#ifndef COMPARE_H
+#define COMPARE_H
+
+class strong_ordering {
+  int v_;
+
+  constexpr explicit strong_ordering(int v) noexcept : v_(v)
+  {
+  }
+
+public:
+  static const strong_ordering less;
+  static const strong_ordering equal;
+  static const strong_ordering greater;
+
+  friend constexpr bool operator==(strong_ordering o, int) noexcept
+  {
+    return o.v_ == 0;
+  }
+
+  friend constexpr bool operator!=(strong_ordering o, int) noexcept
+  {
+    return o.v_ != 0;
+  }
+
+  friend constexpr bool operator<(strong_ordering o, int) noexcept
+  {
+    return o.v_ < 0;
+  }
+
+  friend constexpr bool operator>(strong_ordering o, int) noexcept
+  {
+    return o.v_ > 0;
+  }
+
+  friend constexpr bool operator<=(strong_ordering o, int) noexcept
+  {
+    return o.v_ <= 0;
+  }
+
+  friend constexpr bool operator>=(strong_ordering o, int) noexcept
+  {
+    return o.v_ >= 0;
+  }
+};
+
+inline constexpr strong_ordering strong_ordering::less{-1};
+inline constexpr strong_ordering strong_ordering::equal{0};
+inline constexpr strong_ordering strong_ordering::greater{1};
+
+#endif // COMPARE_H
