@@ -5,6 +5,8 @@
 
 class Tty {
 public:
+  static constexpr int SCROLLBACK_LINES = 1000;
+
   static void setColor(uint8_t color);
   static void setScrolling(bool enabled = true);
 
@@ -22,6 +24,19 @@ public:
 
   static uint8_t getRow();
   static uint8_t getCol();
+
+  // Scrollback buffer
+  static int scrollbackSize();
+  static const char *scrollbackLine(int n);
+  static void scrollbackShow(int offset);
+  static void scrollbackExit();
+  static bool scrollbackActive();
+  static void scrollbackPageUp();
+  static void scrollbackPageDown();
+  static void scrollbackLineUp();
+  static void scrollbackLineDown();
+  static void scrollbackHome();
+  static int scrollbackOffset();
 };
 
 #endif // KERNEL_TTY_H
