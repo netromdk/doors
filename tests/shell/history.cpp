@@ -103,7 +103,7 @@ TEST_CASE("ctrLP_loads_most_recent")
   HistoryCtx hctx{hbuf, HISTORY_SIZE, count, head, &pos};
 
   char line[LINE_SIZE]{};
-  Kbd::pushChar(KEY_CTRL_P);
+  Kbd::pushChar(Kbd::KEY_CTRL_P);
   Kbd::pushChar('\n');
   Kbd::readLine(line, sizeof(line), &hctx);
 
@@ -123,7 +123,7 @@ TEST_CASE("ctrLN_after_up_goes_forward")
 
   char line[LINE_SIZE]{};
   Kbd::pendingUp_ = 1; // -> cmd2
-  Kbd::pushChar(KEY_CTRL_N);
+  Kbd::pushChar(Kbd::KEY_CTRL_N);
   Kbd::pushChar('\n');
   Kbd::readLine(line, sizeof(line), &hctx);
 

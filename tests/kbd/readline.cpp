@@ -74,7 +74,7 @@ TEST_CASE("ctrl_u")
   Kbd::pushChar('a');
   Kbd::pushChar('b');
   Kbd::pushChar('c');
-  Kbd::pushChar(0x15); // Ctrl+U
+  Kbd::pushChar(Kbd::KEY_CTRL_U);
   Kbd::pushChar('d');
   Kbd::pushChar('e');
   Kbd::pushChar('f');
