@@ -13,20 +13,43 @@ constexpr int MAX_CMDS = 32;
 Command cmdTable[MAX_CMDS];
 int numCmds = 0;
 
+// Command history ring buffer.
+constexpr int HISTORY_MAX = 100;
+static constinit char historyBuf_[HISTORY_MAX][256]{};
+static constinit int historyCount_ = 0;
+static constinit int historyHead_ = 0;
+
 } // namespace
 
 void Shell::run()
 {
   Pic::enableInt();
   Tty::cursorEnable();
-  char line[256];
-  char *argv[16];
+  char line[256]{};
+  char *argv[16]{};
   constexpr int MAX_ARGS = sizeof(argv) / sizeof(*argv);
+  int historyPos = -1;
+
   for (;;) {
+    HistoryCtx hctx{historyBuf_, HISTORY_MAX, historyCount_, historyHead_, &historyPos};
+
     printf("> ");
-    Kbd::readLine(line, sizeof(line));
+    Kbd::readLine(line, sizeof(line), &hctx);
+
     int argc = Shell::tokenize(line, argv, MAX_ARGS);
     Shell::dispatch(argc, argv);
+
+    // Save to history but skip empty or duplicate of the most recent entry.
+    if (line[0] != '\0' &&
+        (historyCount_ == 0 ||
+         strcmp(line, historyBuf_[(historyHead_ - 1 + HISTORY_MAX) % HISTORY_MAX]) != 0)) {
+      strcpy(historyBuf_[historyHead_], line);
+      historyHead_ = (historyHead_ + 1) % HISTORY_MAX;
+      if (historyCount_ < HISTORY_MAX) {
+        historyCount_++;
+      }
+    }
+    historyPos = -1;
   }
 }
 
