@@ -16,7 +16,13 @@ class Kbd {
 public:
   static constexpr size_t BUF_SIZE = 256;
 
+  static constexpr char KEY_CTRL_A = 0x01; // Cursor to start of line.
+  static constexpr char KEY_CTRL_B = 0x02; // Cursor backward one char.
   static constexpr char KEY_CTRL_C = 0x03; // Cancel current input.
+  static constexpr char KEY_CTRL_D = 0x04; // Delete character under cursor.
+  static constexpr char KEY_CTRL_E = 0x05; // Cursor to end of line.
+  static constexpr char KEY_CTRL_F = 0x06; // Cursor forward one char.
+  static constexpr char KEY_CTRL_K = 0x0B; // Kill to end of line.
   static constexpr char KEY_CTRL_N = 0x0E; // History down (alt to Down arrow).
   static constexpr char KEY_CTRL_P = 0x10; // History up (alt to Up arrow).
   static constexpr char KEY_CTRL_U = 0x15; // Erase entire input line.
@@ -41,6 +47,8 @@ public:
   // Counters preserve rapid key presses (not flags).
   static volatile int pendingUp_;
   static volatile int pendingDown_;
+  static volatile int pendingLeft_;
+  static volatile int pendingRight_;
   static volatile int pendingPageUp_;
   static volatile int pendingPageDown_;
   static volatile int pendingHome_;
