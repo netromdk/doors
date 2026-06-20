@@ -15,10 +15,28 @@
 namespace {
   constexpr uint8_t DEFAULT_COLOR = vgaColor(COLOR_LIGHT_GREEN, COLOR_BLACK);
 
+  // Reserve row 0 for status indicator.
+  constexpr int SCROLLBACK_VIEW_HEIGHT = VGA_HEIGHT - 1;
+
+  static constexpr char STATUS_PREFIX[] = "-- SCROLLBACK (offset ";
+  static constexpr char STATUS_MIDDLE[] = " of ";
+  static constexpr char STATUS_SUFFIX[] = ") --";
+
   static constinit uint8_t termRow = 0,
     termCol = 0,
     termColor = DEFAULT_COLOR;
   static constinit bool scrolling = true;
+
+  // Scrollback ring buffer.
+  static constinit char scrollbackBuf_[Tty::SCROLLBACK_LINES][VGA_WIDTH + 1]{};
+  static constinit int scrollbackHead_ = 0;
+  static constinit int scrollbackCount_ = 0;
+
+  static constinit bool scrollbackActive_ = false;
+  static constinit int scrollbackOffset_ = 0;
+
+  // Saved VGA RAM for restoring after scrollback exit.
+  static constinit uint16_t savedScreen_[VGA_HEIGHT][VGA_WIDTH]{};
 
   void clearRow(uint8_t row) {
     termColor = DEFAULT_COLOR;
@@ -36,10 +54,20 @@ namespace {
   }
 
   void advRow() {
-    // When reaching the bottom then scroll one line up instead of
-    // starting at the beginning and overwriting things.
+    // When reaching the bottom then scroll one line up instead of starting at the beginning and
+    // overwriting things.
     if (++termRow == VGA_HEIGHT) {
       if (scrolling) {
+        // Save row 0, that is about to scroll off, into the scrollback buffer.
+        for (size_t c = 0; c < VGA_WIDTH; c++) {
+          scrollbackBuf_[scrollbackHead_][c] = static_cast<char>(VGA_RAM[c] & 0xFF);
+        }
+        scrollbackBuf_[scrollbackHead_][VGA_WIDTH] = '\0';
+        scrollbackHead_ = (scrollbackHead_ + 1) % Tty::SCROLLBACK_LINES;
+        if (scrollbackCount_ < Tty::SCROLLBACK_LINES) {
+          scrollbackCount_++;
+        }
+
         clearRow(0);
         for (uint8_t r = 0; r < VGA_HEIGHT - 1; r++) {
           swapRows(r, r + 1);
@@ -137,6 +165,11 @@ void Tty::cls() {
 }
 
 void Tty::putc(char ch) {
+  // Exit scrollback view on any character input.
+  if (scrollbackActive_) {
+    scrollbackExit();
+  }
+
   // Write all characters through serial COM1 when enabled for debugging purposes.
 #ifdef DEBUG_THROUGH_SERIAL_COM1
   Serial::write(ch);
@@ -183,4 +216,175 @@ uint8_t Tty::getRow()
 uint8_t Tty::getCol()
 {
   return termCol;
+}
+
+int Tty::scrollbackSize()
+{
+  return scrollbackCount_;
+}
+
+const char *Tty::scrollbackLine(int n)
+{
+  if (n < 0 || n >= scrollbackCount_) return nullptr;
+  int idx = (scrollbackHead_ - 1 - n + SCROLLBACK_LINES) % SCROLLBACK_LINES;
+  return scrollbackBuf_[idx];
+}
+
+void Tty::scrollbackShow(int offset)
+{
+  if (offset < 1) return;
+  if (offset > scrollbackCount_) {
+    offset = scrollbackCount_;
+  }
+
+  // Save the current VGA RAM when first entering scrollback mode.
+  if (!scrollbackActive_) {
+    memcpy(savedScreen_, VGA_RAM, sizeof(savedScreen_));
+  }
+
+  cursorDisable();
+
+  // Compute display range:
+  //   `offset` is the newest line to show, which is at the bottom of the content area.
+  //   `top` is the oldest line to show, which is at the top of the content area.
+  //   Row 0 is reserved for the status indicator.
+  int top = offset + SCROLLBACK_VIEW_HEIGHT - 1;
+  if (top > scrollbackCount_) {
+    top = scrollbackCount_;
+  }
+
+  int bottom = top - SCROLLBACK_VIEW_HEIGHT + 1;
+  if (bottom < 1) {
+    bottom = 1;
+  }
+
+  // Update offset to reflect the actual bottom line of the content area.
+  offset = bottom;
+
+  // Write status indicator on row 0.
+  char buf[VGA_WIDTH + 1];
+  size_t pos = 0;
+  for (size_t i = 0; STATUS_PREFIX[i] != '\0' && pos < VGA_WIDTH; i++) {
+    buf[pos++] = STATUS_PREFIX[i];
+  }
+
+  // Append offset number.
+  if (offset >= 10000) buf[pos++] = '0' + (offset / 10000) % 10;
+  if (offset >= 1000) buf[pos++] = '0' + (offset / 1000) % 10;
+  if (offset >= 100) buf[pos++] = '0' + (offset / 100) % 10;
+  if (offset >= 10) buf[pos++] = '0' + (offset / 10) % 10;
+
+  // Write middle indicator text.
+  buf[pos++] = '0' + offset % 10;
+  for (size_t i = 0; STATUS_MIDDLE[i] != '\0' && pos < VGA_WIDTH; i++) {
+    buf[pos++] = STATUS_MIDDLE[i];
+  }
+
+  // Append scrollbackCount_ number.
+  int total = scrollbackCount_;
+  if (total >= 10000) buf[pos++] = '0' + (total / 10000) % 10;
+  if (total >= 1000) buf[pos++] = '0' + (total / 1000) % 10;
+  if (total >= 100) buf[pos++] = '0' + (total / 100) % 10;
+  if (total >= 10) buf[pos++] = '0' + (total / 10) % 10;
+
+  // Write suffix indicator text.
+  buf[pos++] = '0' + total % 10;
+  for (size_t i = 0; STATUS_SUFFIX[i] != '\0' && pos < VGA_WIDTH; i++) {
+    buf[pos++] = STATUS_SUFFIX[i];
+  }
+
+  // Display the indicator on VGA.
+  for (size_t col = 0; col < VGA_WIDTH; col++) {
+    char ch = col < pos ? buf[col] : ' ';
+    VGA_RAM[0 * VGA_WIDTH + col] = vgaEntry(ch, DEFAULT_COLOR);
+  }
+
+  // Display scrollback content on rows 1 to VGA_HEIGHT-1.
+  for (size_t row = 1; row < VGA_HEIGHT; row++) {
+    int lineFromEnd = top - static_cast<int>(row - 1);
+
+    if (lineFromEnd > scrollbackCount_ || lineFromEnd < bottom) {
+      for (size_t col = 0; col < VGA_WIDTH; col++) {
+        VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(' ', DEFAULT_COLOR);
+      }
+    }
+    else {
+      int actualIdx = (scrollbackHead_ - lineFromEnd + SCROLLBACK_LINES) % SCROLLBACK_LINES;
+      const char *line = scrollbackBuf_[actualIdx];
+      for (size_t col = 0; col < VGA_WIDTH; col++) {
+        char ch = line[col] != '\0' ? line[col] : ' ';
+        VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(ch, DEFAULT_COLOR);
+      }
+    }
+  }
+
+  scrollbackActive_ = true;
+  scrollbackOffset_ = offset;
+}
+
+void Tty::scrollbackExit()
+{
+  if (!scrollbackActive_) return;
+  scrollbackActive_ = false;
+  scrollbackOffset_ = 0;
+  memcpy(VGA_RAM, savedScreen_, sizeof(savedScreen_));
+  cursorEnable();
+}
+
+bool Tty::scrollbackActive()
+{
+  return scrollbackActive_;
+}
+
+void Tty::scrollbackPageUp()
+{
+  int offset = scrollbackActive_ ? scrollbackOffset_ : 0;
+  offset += SCROLLBACK_VIEW_HEIGHT;
+  if (offset > scrollbackCount_) {
+    offset = scrollbackCount_;
+  }
+  scrollbackShow(offset);
+}
+
+void Tty::scrollbackHome()
+{
+  if (scrollbackCount_ == 0) return;
+  scrollbackShow(scrollbackCount_);
+}
+
+int Tty::scrollbackOffset()
+{
+  return scrollbackActive_ ? scrollbackOffset_ : 0;
+}
+
+void Tty::scrollbackLineUp()
+{
+  if (!scrollbackActive_) return;
+  int offset = scrollbackOffset_ + 1;
+  if (offset > scrollbackCount_) {
+    return;
+  }
+  scrollbackShow(offset);
+}
+
+void Tty::scrollbackLineDown()
+{
+  if (!scrollbackActive_) return;
+  int offset = scrollbackOffset_ - 1;
+  if (offset <= 0) {
+    scrollbackExit();
+    return;
+  }
+  scrollbackShow(offset);
+}
+
+void Tty::scrollbackPageDown()
+{
+  if (!scrollbackActive_) return;
+  int offset = scrollbackOffset_ - SCROLLBACK_VIEW_HEIGHT;
+  if (offset <= 0) {
+    scrollbackExit();
+    return;
+  }
+  scrollbackShow(offset);
 }
