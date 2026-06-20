@@ -1,6 +1,5 @@
 #include <doctest/doctest.h>
 #include <kernel/Shell.h>
-#include <string.h>
 
 namespace {
 
@@ -10,75 +9,75 @@ constexpr int MAX_ARGS = 16;
 
 TEST_CASE("single_cmd")
 {
-  char line[] = "uptime";
-  char *argv[MAX_ARGS];
+  string line = "uptime";
+  string argv[MAX_ARGS];
   int argc = Shell::tokenize(line, argv, MAX_ARGS);
   CHECK(argc == 1);
-  CHECK(strcmp(argv[0], "uptime") == 0);
-  CHECK(argv[argc] == nullptr);
+  CHECK(argv[0] == "uptime");
+  CHECK(argv[argc].empty());
 }
 
 TEST_CASE("multi_args")
 {
-  char line[] = "echo hello world";
-  char *argv[MAX_ARGS];
+  string line = "echo hello world";
+  string argv[MAX_ARGS];
   int argc = Shell::tokenize(line, argv, MAX_ARGS);
   CHECK(argc == 3);
-  CHECK(strcmp(argv[0], "echo") == 0);
-  CHECK(strcmp(argv[1], "hello") == 0);
-  CHECK(strcmp(argv[2], "world") == 0);
-  CHECK(argv[argc] == nullptr);
+  CHECK(argv[0] == "echo");
+  CHECK(argv[1] == "hello");
+  CHECK(argv[2] == "world");
+  CHECK(argv[argc].empty());
 }
 
 TEST_CASE("leading_spaces")
 {
-  char line[] = "  hello";
-  char *argv[MAX_ARGS];
+  string line = "  hello";
+  string argv[MAX_ARGS];
   int argc = Shell::tokenize(line, argv, MAX_ARGS);
   CHECK(argc == 1);
-  CHECK(strcmp(argv[0], "hello") == 0);
+  CHECK(argv[0] == "hello");
 }
 
 TEST_CASE("multiple_spaces")
 {
-  char line[] = "a    b";
-  char *argv[MAX_ARGS];
+  string line = "a    b";
+  string argv[MAX_ARGS];
   int argc = Shell::tokenize(line, argv, MAX_ARGS);
   CHECK(argc == 2);
-  CHECK(strcmp(argv[0], "a") == 0);
-  CHECK(strcmp(argv[1], "b") == 0);
+  CHECK(argv[0] == "a");
+  CHECK(argv[1] == "b");
 }
 
 TEST_CASE("empty")
 {
-  char line[] = "";
-  char *argv[MAX_ARGS];
+  string line = "";
+  string argv[MAX_ARGS];
   int argc = Shell::tokenize(line, argv, MAX_ARGS);
   CHECK(argc == 0);
 }
 
 TEST_CASE("whitespace_only")
 {
-  char line[] = "   ";
-  char *argv[MAX_ARGS];
+  string line = "   ";
+  string argv[MAX_ARGS];
   int argc = Shell::tokenize(line, argv, MAX_ARGS);
   CHECK(argc == 0);
 }
 
 TEST_CASE("overflow")
 {
-  char line[] = "a b c d e f g h i j k l m n o p q r";
-  char *argv[MAX_ARGS];
+  string line = "a b c d e f g h i j k l m n o p q r";
+  string argv[MAX_ARGS];
   int argc = Shell::tokenize(line, argv, MAX_ARGS);
   CHECK(argc == MAX_ARGS - 1);
-  CHECK(argv[argc] == nullptr);
+  CHECK(argv[argc].empty());
 }
 
 TEST_CASE("trailing_spaces")
 {
-  char line[] = "cmd   ";
-  char *argv[MAX_ARGS];
+  string line = "cmd   ";
+  string argv[MAX_ARGS];
   int argc = Shell::tokenize(line, argv, MAX_ARGS);
   CHECK(argc == 1);
-  CHECK(strcmp(argv[0], "cmd") == 0);
+  CHECK(argv[0] == "cmd");
 }
