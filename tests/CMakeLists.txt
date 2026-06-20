@@ -55,6 +55,7 @@ add_library(libc++test STATIC
   ${DOORS_LIBC_SRC_DIR}/string/strncmp.cpp
   ${DOORS_LIBC_SRC_DIR}/string/strchr.cpp
   ${DOORS_LIBC_SRC_DIR}/string/strrchr.cpp
+  ${DOORS_LIBC_SRC_DIR}/string/string.cpp
 )
 target_compile_definitions(libc++test PRIVATE __IS_DOORS_LIBCPP __IS_DOORS_LIBCPPTEST)
 target_compile_options(libc++test PRIVATE -fno-builtin)
@@ -90,6 +91,10 @@ doors_test_module(test_libcpp_string_header
   libc++/string/strrchr.cpp
 )
 
+
+doors_test_module(test_libcpp_string
+  string/test_string.cpp
+)
 
 doors_test_module(test_libcpp_stdlib_header
   libc++/stdlib/itos.cpp
