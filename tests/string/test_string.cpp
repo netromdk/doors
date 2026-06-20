@@ -1298,3 +1298,107 @@ TEST_CASE("spaceship equal heap")
   CHECK((a <=> b) == 0);
 }
 
+TEST_CASE("find 3-arg finds counted substring")
+{
+  string s("hello world");
+  CHECK(s.find("wo", 0, 2) == 6);
+  CHECK(s.find("wor", 0, 3) == 6);
+  CHECK(s.find("world", 0, 5) == 6);
+}
+
+TEST_CASE("find 3-arg not found")
+{
+  string s("hello world");
+  CHECK(s.find("xyz", 0, 3) == string::npos);
+}
+
+TEST_CASE("find 3-arg with embedded null")
+{
+  char needle[] = "he\0llo";
+  string haystack("he\0llo world", 12);
+  CHECK(haystack.find(needle, 0, 6) == 0);
+}
+
+TEST_CASE("find 3-arg with pos beyond size")
+{
+  string s("hello");
+  CHECK(s.find("lo", 100, 2) == string::npos);
+}
+
+TEST_CASE("find 3-arg zero count")
+{
+  string s("hello");
+  CHECK(s.find("anything", 2, 0) == 2);
+}
+
+TEST_CASE("rfind 3-arg")
+{
+  string s("hello world world");
+  CHECK(s.rfind("world", 17, 5) == 12);
+  CHECK(s.rfind("world", 11, 5) == 6);
+  CHECK(s.rfind("xyz", 17, 3) == string::npos);
+}
+
+TEST_CASE("find_first_of 3-arg")
+{
+  string s("hello world");
+  CHECK(s.find_first_of("xyzwo", 0, 5) == 4);
+  CHECK(s.find_first_of("xyz", 0, 3) == string::npos);
+}
+
+TEST_CASE("find_last_of 3-arg")
+{
+  string s("hello world");
+  CHECK(s.find_last_of("lo", 17, 2) == 9);
+  CHECK(s.find_last_of("xz", 17, 2) == string::npos);
+}
+
+TEST_CASE("find_first_not_of 3-arg")
+{
+  string s("aabbc");
+  CHECK(s.find_first_not_of("ab", 0, 2) == 4);
+  CHECK(s.find_first_not_of("abc", 0, 3) == string::npos);
+}
+
+TEST_CASE("find_last_not_of 3-arg")
+{
+  string s("bcaaa");
+  CHECK(s.find_last_not_of("a", 17, 1) == 1);
+  CHECK(s.find_last_not_of("abc", 17, 3) == string::npos);
+}
+
+TEST_CASE("replace counted overload")
+{
+  string s("heXXXorld");
+  s.replace(2, 3, "llo w", 5);
+  CHECK(strcmp(s.c_str(), "hello world") == 0);
+}
+
+TEST_CASE("replace counted with same length")
+{
+  string s("abc");
+  s.replace(0, 3, "xyz", 3);
+  CHECK(strcmp(s.c_str(), "xyz") == 0);
+}
+
+TEST_CASE("replace counted empty replacement")
+{
+  string s("hello");
+  s.replace(0, 5, "", 0);
+  CHECK(s.empty());
+}
+
+TEST_CASE("replace counted with pos beyond end")
+{
+  string s("hello");
+  s.replace(100, 5, "!!", 2);
+  CHECK(strcmp(s.c_str(), "hello!!") == 0);
+}
+
+TEST_CASE("replace counted with count exceeding size")
+{
+  string s("hello");
+  s.replace(2, 100, "xyz", 3);
+  CHECK(strcmp(s.c_str(), "hexyz") == 0);
+}
+

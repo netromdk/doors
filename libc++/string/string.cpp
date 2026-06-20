@@ -424,6 +424,25 @@ string &string::replace(size_type pos, size_type count, const char *s) noexcept
   return replace(pos, count, string(s));
 }
 
+string &string::replace(size_type pos, size_type count, const char *s, size_type count2) noexcept
+{
+  checkNotNull(s);
+  if (pos > size_) {
+    pos = size_;
+  }
+  if (count == npos || pos + count > size_) {
+    count = size_ - pos;
+  }
+  reserveFor(size_ - count + count2);
+  if (pos + count < size_) {
+    memmove(data_ + pos + count2, data_ + pos + count, size_ - pos - count);
+  }
+  memcpy(data_ + pos, s, count2);
+  size_ = size_ - count + count2;
+  data_[size_] = '\0';
+  return *this;
+}
+
 string::size_type string::copy(char *s, size_type count, size_type pos) const noexcept
 {
   checkNotNull(s);
@@ -472,6 +491,26 @@ string::size_type string::find(const char *s, size_type pos) const noexcept
   return find(string(s), pos);
 }
 
+string::size_type string::find(const char *s, size_type pos, size_type count) const noexcept
+{
+  checkNotNull(s);
+  if (pos > size_) {
+    return npos;
+  }
+  if (count == 0) {
+    return pos;
+  }
+  if (count > size_ - pos) {
+    return npos;
+  }
+  for (size_type i = pos; i <= size_ - count; ++i) {
+    if (memcmp(data_ + i, s, count) == 0) {
+      return i;
+    }
+  }
+  return npos;
+}
+
 string::size_type string::find(char ch, size_type pos) const noexcept
 {
   if (pos >= size_) {
@@ -509,6 +548,28 @@ string::size_type string::rfind(const string &str, size_type pos) const noexcept
 string::size_type string::rfind(const char *s, size_type pos) const noexcept
 {
   return rfind(string(s), pos);
+}
+
+string::size_type string::rfind(const char *s, size_type pos, size_type count) const noexcept
+{
+  checkNotNull(s);
+  if (count == 0) {
+    return npos;
+  }
+  if (count > size_) {
+    return npos;
+  }
+  if (pos > size_ - count) {
+    pos = size_ - count;
+  }
+  size_type i = pos + 1;
+  while (i > 0) {
+    --i;
+    if (memcmp(data_ + i, s, count) == 0) {
+      return i;
+    }
+  }
+  return npos;
 }
 
 string::size_type string::rfind(char ch, size_type pos) const noexcept
@@ -561,6 +622,23 @@ string::size_type string::find_first_of(const char *s, size_type pos) const noex
   return npos;
 }
 
+string::size_type string::find_first_of(const char *s, size_type pos,
+                                        size_type count) const noexcept
+{
+  checkNotNull(s);
+  if (pos >= size_) {
+    return npos;
+  }
+  for (size_type i = pos; i < size_; ++i) {
+    for (size_type j = 0; j < count; ++j) {
+      if (data_[i] == s[j]) {
+        return i;
+      }
+    }
+  }
+  return npos;
+}
+
 string::size_type string::find_first_of(char ch, size_type pos) const noexcept
 {
   return find(ch, pos);
@@ -591,6 +669,27 @@ string::size_type string::find_last_of(const char *s, size_type pos) const noexc
   return find_last_of(string(s), pos);
 }
 
+string::size_type string::find_last_of(const char *s, size_type pos, size_type count) const noexcept
+{
+  checkNotNull(s);
+  if (empty()) {
+    return npos;
+  }
+  if (pos >= size_) {
+    pos = size_ - 1;
+  }
+  size_type i = pos + 1;
+  while (i > 0) {
+    --i;
+    for (size_type j = 0; j < count; ++j) {
+      if (data_[i] == s[j]) {
+        return i;
+      }
+    }
+  }
+  return npos;
+}
+
 string::size_type string::find_last_of(char ch, size_type pos) const noexcept
 {
   return rfind(ch, pos);
@@ -619,6 +718,28 @@ string::size_type string::find_first_not_of(const string &str, size_type pos) co
 string::size_type string::find_first_not_of(const char *s, size_type pos) const noexcept
 {
   return find_first_not_of(string(s), pos);
+}
+
+string::size_type string::find_first_not_of(const char *s, size_type pos,
+                                            size_type count) const noexcept
+{
+  checkNotNull(s);
+  if (pos >= size_) {
+    return npos;
+  }
+  for (size_type i = pos; i < size_; ++i) {
+    bool found = false;
+    for (size_type j = 0; j < count; ++j) {
+      if (data_[i] == s[j]) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      return i;
+    }
+  }
+  return npos;
 }
 
 string::size_type string::find_first_not_of(char ch, size_type pos) const noexcept
@@ -662,6 +783,33 @@ string::size_type string::find_last_not_of(const string &str, size_type pos) con
 string::size_type string::find_last_not_of(const char *s, size_type pos) const noexcept
 {
   return find_last_not_of(string(s), pos);
+}
+
+string::size_type string::find_last_not_of(const char *s, size_type pos,
+                                           size_type count) const noexcept
+{
+  checkNotNull(s);
+  if (empty()) {
+    return npos;
+  }
+  if (pos >= size_) {
+    pos = size_ - 1;
+  }
+  size_type i = pos + 1;
+  while (i > 0) {
+    --i;
+    bool found = false;
+    for (size_type j = 0; j < count; ++j) {
+      if (data_[i] == s[j]) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      return i;
+    }
+  }
+  return npos;
 }
 
 string::size_type string::find_last_not_of(char ch, size_type pos) const noexcept

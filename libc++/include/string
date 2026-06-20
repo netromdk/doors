@@ -136,6 +136,7 @@ public:
 
   string &replace(size_type pos, size_type count, const string &str) noexcept;
   string &replace(size_type pos, size_type count, const char *s) noexcept;
+  string &replace(size_type pos, size_type count, const char *s, size_type count2) noexcept;
 
   [[nodiscard]] size_type copy(char *s, size_type count, size_type pos = 0) const noexcept;
   [[nodiscard]] string substr(size_type pos = 0, size_type count = npos) const noexcept;
@@ -167,21 +168,31 @@ public:
 
   [[nodiscard]] size_type find(const string &str, size_type pos = 0) const noexcept;
   [[nodiscard]] size_type find(const char *s, size_type pos = 0) const noexcept;
+  [[nodiscard]] size_type find(const char *s, size_type pos, size_type count) const noexcept;
   [[nodiscard]] size_type find(char ch, size_type pos = 0) const noexcept;
   [[nodiscard]] size_type rfind(const string &str, size_type pos = npos) const noexcept;
   [[nodiscard]] size_type rfind(const char *s, size_type pos = npos) const noexcept;
+  [[nodiscard]] size_type rfind(const char *s, size_type pos, size_type count) const noexcept;
   [[nodiscard]] size_type rfind(char ch, size_type pos = npos) const noexcept;
   [[nodiscard]] size_type find_first_of(const string &str, size_type pos = 0) const noexcept;
   [[nodiscard]] size_type find_first_of(const char *s, size_type pos = 0) const noexcept;
+  [[nodiscard]] size_type find_first_of(const char *s, size_type pos,
+                                        size_type count) const noexcept;
   [[nodiscard]] size_type find_first_of(char ch, size_type pos = 0) const noexcept;
   [[nodiscard]] size_type find_last_of(const string &str, size_type pos = npos) const noexcept;
   [[nodiscard]] size_type find_last_of(const char *s, size_type pos = npos) const noexcept;
+  [[nodiscard]] size_type find_last_of(const char *s, size_type pos,
+                                       size_type count) const noexcept;
   [[nodiscard]] size_type find_last_of(char ch, size_type pos = npos) const noexcept;
   [[nodiscard]] size_type find_first_not_of(const string &str, size_type pos = 0) const noexcept;
   [[nodiscard]] size_type find_first_not_of(const char *s, size_type pos = 0) const noexcept;
+  [[nodiscard]] size_type find_first_not_of(const char *s, size_type pos,
+                                            size_type count) const noexcept;
   [[nodiscard]] size_type find_first_not_of(char ch, size_type pos = 0) const noexcept;
   [[nodiscard]] size_type find_last_not_of(const string &str, size_type pos = npos) const noexcept;
   [[nodiscard]] size_type find_last_not_of(const char *s, size_type pos = npos) const noexcept;
+  [[nodiscard]] size_type find_last_not_of(const char *s, size_type pos,
+                                           size_type count) const noexcept;
   [[nodiscard]] size_type find_last_not_of(char ch, size_type pos = npos) const noexcept;
 
   [[nodiscard]] bool contains(const string &str) const noexcept;
