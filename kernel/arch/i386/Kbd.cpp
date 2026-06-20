@@ -342,6 +342,7 @@ void Kbd::readLine(char *buf, int max, HistoryCtx *history)
       if (pos > 0) {
         int oldLen = len;
         pos--;
+        printf("\b");
         deleteAt(buf, len, pos, oldLen);
       }
       continue;
