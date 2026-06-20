@@ -1,17 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <kernel/Acpi.h>
+#include <kernel/Arch.h>
 #include <kernel/Cpu.h>
 #include <kernel/Mem.h>
-#include <kernel/Arch.h>
-#include <kernel/Acpi.h>
 #include <kernel/Pit.h>
 
 #include <arch/i386/Gdt.h>
 #include <arch/i386/Idt.h>
 #include <arch/i386/Pic.h>
 
-void Arch::init(multiboot_info *mbi) {
+void Arch::init(multiboot_info *mbi)
+{
   printf("Arch x86 init..\n\n");
 
   // Detect information about the CPU, and write to term.
@@ -53,7 +54,9 @@ void Arch::init(multiboot_info *mbi) {
   Pit::init();
 }
 
-void Arch::start() {
+void Arch::start()
+{
   Pic::enableInt();
-  for (;;);
+  for (;;) {
+  }
 }

@@ -1,7 +1,8 @@
-#include <doctest/doctest.h>
 #include <ctype.h>
+#include <doctest/doctest.h>
 
-TEST_CASE("isblank") {
+TEST_CASE("isblank")
+{
   CHECK(isblank('\t'));
   CHECK(isblank(' '));
   CHECK_FALSE(isblank('a'));

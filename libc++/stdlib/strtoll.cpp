@@ -1,9 +1,10 @@
 #include <ctype.h>
-#include <stdlib.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 
-int64_t strtoll(const char *str, char **endptr, int base) {
+int64_t strtoll(const char *str, char **endptr, int base)
+{
   int64_t res = strtoull(str, endptr, base);
   if (res == 0) return res;
 
@@ -17,7 +18,8 @@ int64_t strtoll(const char *str, char **endptr, int base) {
     else if (ch == '-') {
       return res * -1;
     }
-    else break;
+    else
+      break;
   }
 
   return res;

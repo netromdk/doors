@@ -1,7 +1,8 @@
-#include <doctest/doctest.h>
 #include <ctype.h>
+#include <doctest/doctest.h>
 
-TEST_CASE("islower") {
+TEST_CASE("islower")
+{
   CHECK(islower('a'));
   CHECK(islower('g'));
   CHECK_FALSE(islower('A'));

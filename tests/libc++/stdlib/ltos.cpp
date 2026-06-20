@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-TEST_CASE("ltos") {
+TEST_CASE("ltos")
+{
   char str[64]{};
   uint64_t num = 100000000000ULL;
 

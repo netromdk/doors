@@ -2,10 +2,11 @@
 #include <string.h>
 
 #ifdef __IS_DOORS_KERNEL
-  #include <kernel/Tty.h>
+#include <kernel/Tty.h>
 #endif
 
-int puts(const char *str) {
+int puts(const char *str)
+{
 #ifdef __IS_DOORS_KERNEL
   return Tty::puts(str);
 #else

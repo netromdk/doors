@@ -2,8 +2,9 @@
 #include <stdint.h>
 #include <string.h>
 
-TEST_CASE("memcmp") {
-  const uint8_t buf[3]  = {1, 2, 3};
+TEST_CASE("memcmp")
+{
+  const uint8_t buf[3] = {1, 2, 3};
   const uint8_t buf2[3] = {1, 2, 3};
   CHECK(memcmp(buf, buf2, 3) == 0);
 

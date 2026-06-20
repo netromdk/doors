@@ -1,9 +1,10 @@
-#include <ctype.h>
-#include <stdlib.h>
-#include <stddef.h>
 #include <algorithm.h>
+#include <ctype.h>
+#include <stddef.h>
+#include <stdlib.h>
 
-void ltos(uint64_t num, char *str, uint8_t base, bool upcase) {
+void ltos(uint64_t num, char *str, uint8_t base, bool upcase)
+{
   size_t i = 0;
 
   if (num == 0) {
@@ -14,7 +15,7 @@ void ltos(uint64_t num, char *str, uint8_t base, bool upcase) {
       int64_t rem = num % base;
       str[i++] = (rem < 10 ? rem + '0' : rem + 'a' - 10);
       if (upcase) {
-        str[i-1] = toupper(str[i-1]);
+        str[i - 1] = toupper(str[i - 1]);
       }
       num = num / base;
     }

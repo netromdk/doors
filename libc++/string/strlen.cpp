@@ -1,7 +1,9 @@
 #include <string.h>
 
-size_t strlen(const char *str) {
+size_t strlen(const char *str)
+{
   auto *pos = str;
-  for (; *pos; ++pos);
+  for (; *pos; ++pos) {
+  }
   return pos - str;
 }

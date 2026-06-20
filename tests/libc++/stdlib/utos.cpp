@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-TEST_CASE("utos") {
+TEST_CASE("utos")
+{
   char str[64]{};
   uint32_t num = 1000000;
 

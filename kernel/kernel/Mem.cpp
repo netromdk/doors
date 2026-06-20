@@ -1,8 +1,8 @@
-#include <stdio.h>
 #include <stddef.h>
+#include <stdio.h>
 
-#include <kernel/Mem.h>
 #include <kernel/Cpu.h>
+#include <kernel/Mem.h>
 
 namespace {
 
@@ -17,13 +17,14 @@ static constinit size_t memCnt = 0;
 
 } // namespace
 
-bool Mem::init(multiboot_info *mbi) {
+bool Mem::init(multiboot_info *mbi)
+{
   lowerMem = mbi->mem_lower;
   upperMem = mbi->mem_upper;
 
   // Traverse memory map.
-  multiboot_memory_map_t *mmap = (multiboot_memory_map_t*) mbi->mmap_addr;
-  while (mmap < (multiboot_memory_map_t*) (mbi->mmap_addr + mbi->mmap_length)) {
+  multiboot_memory_map_t *mmap = (multiboot_memory_map_t *) mbi->mmap_addr;
+  while (mmap < (multiboot_memory_map_t *) (mbi->mmap_addr + mbi->mmap_length)) {
     // Only take free chunks in upper memory.
     if (mmap->type == 1 && mmap->addr >= 1048576) {
       /*
@@ -32,8 +33,7 @@ bool Mem::init(multiboot_info *mbi) {
       */
 
       // Only include 4+ GB if PAE is supported by the CPU.
-      if (mmap->addr < 0x100000000 ||
-          (mmap->addr >= 0x100000000 && Cpu::hasPae())) {
+      if (mmap->addr < 0x100000000 || (mmap->addr >= 0x100000000 && Cpu::hasPae())) {
         memMap[memCnt] = mmap;
         memCnt++;
         totalUpperMem += mmap->len / 1024;
@@ -44,8 +44,7 @@ bool Mem::init(multiboot_info *mbi) {
       break;
     }
 
-    mmap = (multiboot_memory_map_t*)
-      ((uint64_t) mmap + mmap->size + sizeof(uint32_t));
+    mmap = (multiboot_memory_map_t *) ((uint64_t) mmap + mmap->size + sizeof(uint32_t));
   }
 
   if (memCnt == 0) {
@@ -75,7 +74,8 @@ size_t Mem::availableAbove(void *addr)
   return 0;
 }
 
-void Mem::dump() {
+void Mem::dump()
+{
   printf("Memory information:\n");
   printf("  Lower: %u KB\n", lowerMem);
   printf("  Upper: %u KB (%u chunks)\n\n", totalUpperMem, memCnt);

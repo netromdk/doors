@@ -22,98 +22,107 @@ static constexpr uint8_t CMOS_REG_SECONDS = 0x00,
   CMOS_REG_STAT_B =  0x0B;
 
 namespace {
-  static constinit uint8_t seconds = 0, minutes = 0, hours = 0;
-  static constinit uint32_t day = 0, month = 0, year = 0;
 
-  uint8_t getRtcReg(uint8_t reg) {
-    Io::outb(CMOS_PORT, reg);
-    return Io::inb(CMOS_DATA);
+static constinit uint8_t seconds = 0, minutes = 0, hours = 0;
+static constinit uint32_t day = 0, month = 0, year = 0;
+
+uint8_t getRtcReg(uint8_t reg)
+{
+  Io::outb(CMOS_PORT, reg);
+  return Io::inb(CMOS_DATA);
+}
+
+bool isUpdating()
+{
+  // 10th register is for whether the values are being updating by
+  // the clock.
+  return getRtcReg(CMOS_REG_STAT_A) & 0x80; // test 8th bit
+}
+
+void getRtcComps(uint8_t comps[7], uint8_t century = CMOS_REG_CENTURY)
+{
+  while (isUpdating())
+    ;
+  comps[0] = getRtcReg(CMOS_REG_SECONDS);
+  comps[1] = getRtcReg(CMOS_REG_MINUTES);
+  comps[2] = getRtcReg(CMOS_REG_HOURS);
+  comps[3] = getRtcReg(CMOS_REG_DAY);
+  comps[4] = getRtcReg(CMOS_REG_MONTH);
+  comps[5] = getRtcReg(CMOS_REG_YEAR);
+  comps[6] = getRtcReg(century);
+}
+
+void readRtcValues()
+{
+  uint8_t centuryReg = CMOS_REG_CENTURY;
+  Fadt *fadt = Acpi::getFadt();
+  if (fadt && fadt->century != 0) {
+    centuryReg = fadt->century;
+    printf("Using century register from FADT = %d\n", centuryReg);
   }
 
-  bool isUpdating() {
-    // 10th register is for whether the values are being updating by
-    // the clock.
-    return getRtcReg(CMOS_REG_STAT_A) & 0x80; // test 8th bit
-  }
+  constexpr size_t size = 7;
+  uint8_t comps[size];
+  getRtcComps(comps);
 
-  void getRtcComps(uint8_t comps[7], uint8_t century = CMOS_REG_CENTURY) {
-    while (isUpdating());
-    comps[0] = getRtcReg(CMOS_REG_SECONDS);
-    comps[1] = getRtcReg(CMOS_REG_MINUTES);
-    comps[2] = getRtcReg(CMOS_REG_HOURS);
-    comps[3] = getRtcReg(CMOS_REG_DAY);
-    comps[4] = getRtcReg(CMOS_REG_MONTH);
-    comps[5] = getRtcReg(CMOS_REG_YEAR);
-    comps[6] = getRtcReg(century);
-  }
-
-  void readRtcValues() {
-    uint8_t centuryReg = CMOS_REG_CENTURY;
-    Fadt *fadt = Acpi::getFadt();
-    if (fadt && fadt->century != 0) {
-      centuryReg = fadt->century;
-      printf("Using century register from FADT = %d\n", centuryReg);
-    }
-
-    constexpr size_t size = 7;
-    uint8_t comps[size];
+  // To make sure that we get valid values we read them again until
+  // they are the same twice in a row. if the clock is updating it
+  // will add to seconds register and see if it overflows, and it
+  // might carry to all of the registers.
+  uint8_t lastComps[size];
+  do {
+    memcpy(lastComps, comps, size);
     getRtcComps(comps);
+  } while (memcmp(comps, lastComps, size) != 0);
 
-    // To make sure that we get valid values we read them again until
-    // they are the same twice in a row. if the clock is updating it
-    // will add to seconds register and see if it overflows, and it
-    // might carry to all of the registers.
-    uint8_t lastComps[size];
-    do {
-      memcpy(lastComps, comps, size);
-      getRtcComps(comps);
-    } while (memcmp(comps, lastComps, size) != 0);
+  // Next we read the B status register to see what format our data
+  // has.
+  uint8_t regB = getRtcReg(CMOS_REG_STAT_B);
 
-    // Next we read the B status register to see what format our data
-    // has.
-    uint8_t regB = getRtcReg(CMOS_REG_STAT_B);
-
-    // Binary Coded Decimal (BCD), e.g. if the time is "20:20:20" then
-    // in BCD it would yield "0x20 0x20 0x20", which actually is the
-    // values "32 32 32".
-    if (!(regB & 0x4)) {
-      for (size_t i = 0; i < size; i++) {
-        comps[i] = (comps[i] & 0x0F) + (comps[i] / 16 * 10);
-      }
+  // Binary Coded Decimal (BCD), e.g. if the time is "20:20:20" then
+  // in BCD it would yield "0x20 0x20 0x20", which actually is the
+  // values "32 32 32".
+  if (!(regB & 0x4)) {
+    for (size_t i = 0; i < size; i++) {
+      comps[i] = (comps[i] & 0x0F) + (comps[i] / 16 * 10);
     }
+  }
 
-    // If 12 hour format and the PM bit is set (0x80) then convert 24
-    // hour format.
-    if (!(regB & 0x02) && (comps[2] & 0x80)) {
-      comps[2] = ((comps[2] & 0x7F) + 12) % 24;
-    }
+  // If 12 hour format and the PM bit is set (0x80) then convert 24
+  // hour format.
+  if (!(regB & 0x02) && (comps[2] & 0x80)) {
+    comps[2] = ((comps[2] & 0x7F) + 12) % 24;
+  }
 
-    seconds = comps[0];
-    minutes = comps[1];
-    hours = comps[2];
-    day = comps[3];
-    month = comps[4];
-    year = comps[5];
+  seconds = comps[0];
+  minutes = comps[1];
+  hours = comps[2];
+  day = comps[3];
+  month = comps[4];
+  year = comps[5];
 
-    // The year has only two digits so we have to find out which
-    // century we are in. Either we use the century register, but not
-    // all CMOS supports it, or we keep track of the year this file
-    // was compiled and use that information.
-    if (fadt && fadt->century != 0) {
-      year += comps[6] * 100;
-    }
-    else {
-      year += THIS_CENTURY;
-    }
+  // The year has only two digits so we have to find out which
+  // century we are in. Either we use the century register, but not
+  // all CMOS supports it, or we keep track of the year this file
+  // was compiled and use that information.
+  if (fadt && fadt->century != 0) {
+    year += comps[6] * 100;
+  }
+  else {
+    year += THIS_CENTURY;
   }
 }
 
-void Cmos::printTime() {
+} // namespace
+
+void Cmos::printTime()
+{
   readRtcValues();
   printf("%d/%d/%d %d:%d:%d\n", day, month, year, hours, minutes, seconds);
 }
 
-uint64_t Cmos::unixTime() {
+uint64_t Cmos::unixTime()
+{
   readRtcValues();
 
   uint64_t res = day;
@@ -125,7 +134,6 @@ uint64_t Cmos::unixTime() {
   static constexpr uint64_t HOUR = 3600, DAY = 86400, YEAR = 31536000;
   res *= DAY; // Days of this year to seconds.
 
-  res += (year - 1970) * YEAR +
-    seconds + (minutes * 60) + (hours * HOUR);
+  res += (year - 1970) * YEAR + seconds + (minutes * 60) + (hours * HOUR);
   return res;
 }

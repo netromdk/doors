@@ -1,7 +1,8 @@
-#include <doctest/doctest.h>
 #include <ctype.h>
+#include <doctest/doctest.h>
 
-TEST_CASE("iscntrl") {
+TEST_CASE("iscntrl")
+{
   CHECK(iscntrl(0));
   CHECK(iscntrl(7));
   CHECK(iscntrl('\t'));

@@ -1,10 +1,10 @@
-#include <kernel/Io.h>
 #include <arch/i386/Pic.h>
+#include <kernel/Io.h>
 
-void Pic::init() {
+void Pic::init()
+{
   // Save masks
-  uint8_t mask1 = Io::inb(PIC1_DATA),
-    mask2 = Io::inb(PIC2_DATA);
+  uint8_t mask1 = Io::inb(PIC1_DATA), mask2 = Io::inb(PIC2_DATA);
 
   // ICW1: Start initialization in cascade mode.
   Io::outb(PIC1_CMD, ICW1_INIT + ICW1_ICW4);
@@ -27,31 +27,36 @@ void Pic::init() {
   Io::outb(PIC2_DATA, mask2);
 }
 
-void Pic::enableInt() {
+void Pic::enableInt()
+{
   // Set interrupt-enable flag to enable interrupts.
   __asm__("sti");
 }
 
-void Pic::disableInt() {
+void Pic::disableInt()
+{
   // Clear interrupt-enable flag to disable interrupts.
   __asm__("cli");
 }
 
-bool Pic::isIntEnabled() {
+bool Pic::isIntEnabled()
+{
   uint32_t flags;
   __asm__("pushf;"
           "pop %0;"
-          : "=g" (flags));
+          : "=g"(flags));
   return flags & (1 << 9);
 }
 
-void Pic::sendEoi() {
+void Pic::sendEoi()
+{
   // Send to both master and slave PIC.
   Io::outb(PIC1, ICW2_EOI);
   Io::outb(PIC2, ICW2_EOI);
 }
 
-void Pic::setMask(uint8_t mask, bool clear) {
+void Pic::setMask(uint8_t mask, bool clear)
+{
   uint16_t port;
   if (mask < 8) {
     port = PIC1_DATA;
@@ -72,15 +77,18 @@ void Pic::setMask(uint8_t mask, bool clear) {
   Io::outb(port, value);
 }
 
-uint16_t Pic::getIsr() {
+uint16_t Pic::getIsr()
+{
   return getReg(OCW3_RIS);
 }
 
-uint16_t Pic::getIrr() {
+uint16_t Pic::getIrr()
+{
   return getReg(OCW3_RIR);
 }
 
-uint16_t Pic::getReg(uint8_t cmd) {
+uint16_t Pic::getReg(uint8_t cmd)
+{
   Io::outb(PIC1_CMD, cmd);
   Io::outb(PIC2_CMD, cmd);
   return (Io::inb(PIC2_CMD) << 8) | Io::inb(PIC1_CMD);

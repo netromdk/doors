@@ -1,82 +1,87 @@
-#include <stdio.h>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
-#include <kernel/Io.h>
-#include <kernel/Bda.h>
 #include <kernel/Acpi.h>
+#include <kernel/Bda.h>
+#include <kernel/Io.h>
 
 namespace {
-  static constinit Rsd *rsdp = nullptr;
-  static constinit Rsdt *rsdt = nullptr;
-  static constinit Fadt *fadt = nullptr;
+static constinit Rsd *rsdp = nullptr;
+static constinit Rsdt *rsdt = nullptr;
+static constinit Fadt *fadt = nullptr;
 
-  Rsd *detectRsdp() {
-    static const char *ID = "RSD PTR ";
-    static const size_t idSize = strlen(ID);
+Rsd *detectRsdp()
+{
+  static const char *ID = "RSD PTR ";
+  static const size_t idSize = strlen(ID);
 
-    uint8_t *ptr = (uint8_t*) BDA_BASE_ADDR;
-    bool found = false;
-    for (size_t i = 0; i < 1024; i++, ptr++) {
+  uint8_t *ptr = (uint8_t *) BDA_BASE_ADDR;
+  bool found = false;
+  for (size_t i = 0; i < 1024; i++, ptr++) {
+    if (memcmp(ptr, ID, idSize) == 0) {
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    uint8_t *endPtr = (uint8_t *) 0x000FFFFF;
+    for (ptr = (uint8_t *) 0x000E0000; ptr != endPtr; ptr++) {
       if (memcmp(ptr, ID, idSize) == 0) {
         found = true;
         break;
       }
     }
-
-    if (!found) {
-      uint8_t *endPtr = (uint8_t*) 0x000FFFFF;
-      for (ptr = (uint8_t*) 0x000E0000; ptr != endPtr; ptr++) {
-        if (memcmp(ptr, ID, idSize) == 0) {
-          found = true;
-          break;
-        }
-      }
-    }
-
-    return (found ? (Rsd*) ptr : nullptr);
   }
 
-  bool checkRsdp(Rsd *rsd) {
-    uint8_t sum = 0;
-    for (size_t i = 0; i < sizeof(Rsd); i++) {
-      sum += ((uint8_t*) rsd)[i];
-    }
-    return sum == 0;
-  }
-
-  bool checkSdt(Sdt *sdt) {
-    uint8_t sum = 0;
-    for (size_t i = 0; i < sdt->length; i++) {
-      sum += ((uint8_t*) sdt)[i];
-    }
-    return sum == 0;
-  }
-
-  /**
-   * Detect the FADT which has the signature "FACP".
-   */
-  Sdt *detectFadt(Rsdt *rsdt) {
-    size_t nelm =
-      (rsdt->header.length - sizeof(rsdt->header)) / sizeof(uint32_t);
-    for (size_t i = 0; i < nelm; i++) {
-      Sdt *sdt = (Sdt*) rsdt->otherSdts[i];
-      if (strncmp(sdt->sig, "FACP", 4) == 0) {
-        return sdt;
-      }
-    }
-    return nullptr;
-  }
-
-  void cleanup() {
-    rsdp = nullptr;
-    rsdt = nullptr;
-    fadt = nullptr;
-  }
+  return (found ? (Rsd *) ptr : nullptr);
 }
 
-bool Acpi::init() {
+bool checkRsdp(Rsd *rsd)
+{
+  uint8_t sum = 0;
+  for (size_t i = 0; i < sizeof(Rsd); i++) {
+    sum += ((uint8_t *) rsd)[i];
+  }
+  return sum == 0;
+}
+
+bool checkSdt(Sdt *sdt)
+{
+  uint8_t sum = 0;
+  for (size_t i = 0; i < sdt->length; i++) {
+    sum += ((uint8_t *) sdt)[i];
+  }
+  return sum == 0;
+}
+
+/**
+ * Detect the FADT which has the signature "FACP".
+ */
+Sdt *detectFadt(Rsdt *rsdt)
+{
+  size_t nelm = (rsdt->header.length - sizeof(rsdt->header)) / sizeof(uint32_t);
+  for (size_t i = 0; i < nelm; i++) {
+    Sdt *sdt = (Sdt *) rsdt->otherSdts[i];
+    if (strncmp(sdt->sig, "FACP", 4) == 0) {
+      return sdt;
+    }
+  }
+  return nullptr;
+}
+
+void cleanup()
+{
+  rsdp = nullptr;
+  rsdt = nullptr;
+  fadt = nullptr;
+}
+} // namespace
+
+bool Acpi::init()
+{
   rsdp = detectRsdp();
   if (!rsdp) {
     printf("RSDP not found.\n");
@@ -91,14 +96,14 @@ bool Acpi::init() {
 
   // TODO: If revision is 1 = v2 then cast into version 2 structure.
 
-  rsdt = (Rsdt*) rsdp->rsdtAddress;
+  rsdt = (Rsdt *) rsdp->rsdtAddress;
   if (!checkSdt(&rsdt->header)) {
     cleanup();
     printf("RSDT checksum invalid.\n");
     return false;
   }
 
-  fadt = (Fadt*) detectFadt(rsdt);
+  fadt = (Fadt *) detectFadt(rsdt);
   if (!fadt) {
     cleanup();
     printf("FADT not found.\n");
@@ -111,8 +116,7 @@ bool Acpi::init() {
     return false;
   }
 
-  if (fadt->smiCommandPort != 0 && fadt->acpiEnable != 0 &&
-      fadt->acpiDisable != 0) {
+  if (fadt->smiCommandPort != 0 && fadt->acpiEnable != 0 && fadt->acpiDisable != 0) {
     printf("Enabling ACPI explicitly.\n");
     Io::outb(fadt->smiCommandPort, fadt->acpiEnable);
   }
@@ -120,10 +124,12 @@ bool Acpi::init() {
   return true;
 }
 
-bool Acpi::isSupported() {
+bool Acpi::isSupported()
+{
   return rsdp && rsdt && fadt;
 }
 
-Fadt *Acpi::getFadt() {
+Fadt *Acpi::getFadt()
+{
   return fadt;
 }
