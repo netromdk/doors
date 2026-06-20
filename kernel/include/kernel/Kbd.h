@@ -16,6 +16,10 @@ class Kbd {
 public:
   static constexpr size_t BUF_SIZE = 256;
 
+  static constexpr char KEY_CTRL_N = 0x0E; // History down (alt to Down arrow).
+  static constexpr char KEY_CTRL_P = 0x10; // History up (alt to Up arrow).
+  static constexpr char KEY_CTRL_U = 0x15; // Erase entire input line.
+
   static void init();
   static void isrHandler();
   static void pushChar(char ch);

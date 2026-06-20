@@ -183,12 +183,12 @@ void Kbd::readLine(char *buf, int max, HistoryCtx *history)
 
     char ch = getChar();
 
-    // Ctrl+P (0x10) and Ctrl+N (0x0E) as alternative to Up/Down arrows.
-    if (history && ch == 0x10) {
+    // Ctrl+P and Ctrl+N as alternative to Up/Down arrows.
+    if (history && ch == Kbd::KEY_CTRL_P) {
       historyUp(history, buf, pos, max);
       continue;
     }
-    if (history && ch == 0x0E) {
+    if (history && ch == Kbd::KEY_CTRL_N) {
       historyDown(history, buf, pos, max);
       continue;
     }
@@ -209,8 +209,7 @@ void Kbd::readLine(char *buf, int max, HistoryCtx *history)
       continue;
     }
 
-    // Handle Ctrl+U.
-    if (ch == 0x15) {
+    if (ch == Kbd::KEY_CTRL_U) {
       while (pos > 0) {
         pos--;
         printf("\b \b");
