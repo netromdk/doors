@@ -1,5 +1,6 @@
 #include <arch/i386/Pic.h>
 #include <kernel/Io.h>
+#include <kernel/Kbd.h>
 #include <kernel/Tty.h>
 
 uint8_t Io::inb(uint16_t)
@@ -78,5 +79,9 @@ __attribute__((weak)) void Tty::scrollbackLineUp()
 }
 
 __attribute__((weak)) void Tty::scrollbackLineDown()
+{
+}
+
+__attribute__((weak)) void Kbd::clearNavigation()
 {
 }
