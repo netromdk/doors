@@ -193,6 +193,13 @@ void Kbd::readLine(char *buf, int max, HistoryCtx *history)
       continue;
     }
 
+    // Cancel current input with Ctrl+C.
+    if (ch == Kbd::KEY_CTRL_C) {
+      printf("^C\n");
+      buf[0] = '\0';
+      return;
+    }
+
     // Handle newline.
     if (ch == '\n') {
       buf[pos] = '\0';
