@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include <kernel/Vga.h>
+
 namespace {
 
 struct type_descriptor {
@@ -78,7 +80,7 @@ void vga_write_at(const char *s, int row)
 {
   volatile uint16_t *vga = reinterpret_cast<volatile uint16_t *>(0xB8000);
   uint8_t attr = 0x1F;
-  int off = row * 80;
+  int off = row * VGA_WIDTH;
   for (int i = 0; s[i]; ++i) {
     vga[off + i] = static_cast<uint16_t>(s[i]) | (static_cast<uint16_t>(attr) << 8);
   }
