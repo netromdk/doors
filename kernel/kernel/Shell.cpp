@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <arch/i386/Pic.h>
 #include <kernel/Kbd.h>
 #include <kernel/Shell.h>
 #include <kernel/Tty.h>
-#include <arch/i386/Pic.h>
 
 namespace {
 

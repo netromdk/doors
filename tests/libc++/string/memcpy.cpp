@@ -2,7 +2,8 @@
 #include <stdint.h>
 #include <string.h>
 
-TEST_CASE("memcpy") {
+TEST_CASE("memcpy")
+{
   const uint8_t buf[3] = {1, 2, 3};
   uint8_t dst[3] = {0};
   auto *res = memcpy(dst, buf, 3);

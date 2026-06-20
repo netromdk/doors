@@ -4,10 +4,10 @@
 #include <kernel/Keymap.h>
 #include <stdint.h>
 
-constexpr uint8_t MOD_NONE  = 0x00;
+constexpr uint8_t MOD_NONE = 0x00;
 constexpr uint8_t MOD_SHIFT = 0x01;
-constexpr uint8_t MOD_CTRL  = 0x02;
-constexpr uint8_t MOD_ALT   = 0x04;
+constexpr uint8_t MOD_CTRL = 0x02;
+constexpr uint8_t MOD_ALT = 0x04;
 
 constexpr uint8_t SCANCODE_A = 0x1E;
 constexpr uint8_t SCANCODE_CAPS_LOCK = 0x3A;
@@ -285,7 +285,7 @@ constinit ScancodeEntry extendedTable[EXTENDED_TABLE_SIZE] = {
   { Key::Unknown, MOD_NONE },
 };
 
-}
+} // namespace
 
 const ScancodeEntry &lookupScancode(uint8_t scancode, bool extended)
 {

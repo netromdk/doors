@@ -1,7 +1,8 @@
-#include <doctest/doctest.h>
 #include <ctype.h>
+#include <doctest/doctest.h>
 
-TEST_CASE("isprint") {
+TEST_CASE("isprint")
+{
   CHECK(isprint(' '));
   CHECK(isprint('a'));
   CHECK(isprint('!'));

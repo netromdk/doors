@@ -1,7 +1,8 @@
 #include <doctest/doctest.h>
 #include <stdio.h>
 
-TEST_CASE("printf") {
+TEST_CASE("printf")
+{
   CHECK(printf("hello world\n") == 12);
 
   // hello = +5

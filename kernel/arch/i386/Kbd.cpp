@@ -467,14 +467,17 @@ bool Kbd::isShiftPressed()
 {
   return shiftPressed_;
 }
+
 bool Kbd::isCtrlPressed()
 {
   return ctrlPressed_;
 }
+
 bool Kbd::isAltPressed()
 {
   return altPressed_;
 }
+
 bool Kbd::isCapsLock()
 {
   return capsLock_;

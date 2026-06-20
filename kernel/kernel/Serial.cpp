@@ -26,7 +26,8 @@
 // COM1 base I/O port.
 static constexpr uint16_t COM1 = 0x3F8;
 
-void Serial::init() {
+void Serial::init()
+{
   Io::outb(COM1 + 1, 0x00); // Disable interrupts.
   Io::outb(COM1 + 3, 0x80); // Enable DLAB to set baud divisor.
   Io::outb(COM1 + 0, 0x03); // Divisor low byte: 3 -> 38400 baud.
@@ -36,8 +37,10 @@ void Serial::init() {
   Io::outb(COM1 + 4, 0x03); // Assert DTR + RTS.
 }
 
-void Serial::write(char c) {
+void Serial::write(char c)
+{
   // Poll until Transmitter Holding Register is empty (0x20 = 0b00100000 = bit 5 of LSR).
-  while (!(Io::inb(COM1 + 5) & 0x20));
+  while (!(Io::inb(COM1 + 5) & 0x20)) {
+  }
   Io::outb(COM1, c);
 }

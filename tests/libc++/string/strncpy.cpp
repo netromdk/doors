@@ -1,7 +1,8 @@
 #include <doctest/doctest.h>
 #include <string.h>
 
-TEST_CASE("strncpy") {
+TEST_CASE("strncpy")
+{
   const char *msg = "hello world";
   char buf[64] = {0};
   size_t num = 6;

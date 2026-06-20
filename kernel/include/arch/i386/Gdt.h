@@ -14,16 +14,16 @@ static constexpr uint16_t GDT_SIZE = 0xFF;
 
 struct GdtDesc {
   // Low
-  uint16_t limit_low  : 16; //  0 -> 15
-  uint16_t base_low   : 16; // 16 -> 31
+  uint16_t limit_low : 16; //  0 -> 15
+  uint16_t base_low : 16;  // 16 -> 31
 
   // High
-  uint8_t  base_mid   :  8; // 32 -> 39 (16 -> 23)
-  uint8_t  access     :  8; // 40 -> 47 (access part of flags)
-  uint8_t  limit_high :  4; // 48 -> 51
-  uint8_t  flags      :  4; // 52 -> 55
-  uint8_t  base_high  :  8; // 56 -> 63 (24 -> 31)
-} __attribute__ ((packed));
+  uint8_t base_mid : 8;   // 32 -> 39 (16 -> 23)
+  uint8_t access : 8;     // 40 -> 47 (access part of flags)
+  uint8_t limit_high : 4; // 48 -> 51
+  uint8_t flags : 4;      // 52 -> 55
+  uint8_t base_high : 8;  // 56 -> 63 (24 -> 31)
+} __attribute__((packed));
 
 // Flags in GdtDesc.flags are defined by the following.
 #define FLAG_TYPE(x) ((x) << 0x04)          // Descriptor type (0 for system, 1 for code/data).
@@ -70,7 +70,7 @@ static constexpr uint16_t GDT_DATA_PL3 = FLAG_TYPE(1) | FLAG_PRES(1) | FLAG_SAVL
 struct GdtReg {
   uint16_t limit;
   uint32_t base;
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 class Gdt {
 public:

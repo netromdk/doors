@@ -1,7 +1,8 @@
-#include <doctest/doctest.h>
 #include <ctype.h>
+#include <doctest/doctest.h>
 
-TEST_CASE("isalpha") {
+TEST_CASE("isalpha")
+{
   CHECK(isalpha('A'));
   CHECK(isalpha('H'));
   CHECK(isalpha('a'));

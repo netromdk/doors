@@ -1,7 +1,8 @@
-#include <doctest/doctest.h>
 #include <ctype.h>
+#include <doctest/doctest.h>
 
-TEST_CASE("isgraph") {
+TEST_CASE("isgraph")
+{
   CHECK(isgraph('!'));
   CHECK(isgraph('='));
   CHECK(isgraph(']'));

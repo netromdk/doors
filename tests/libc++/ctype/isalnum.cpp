@@ -1,7 +1,8 @@
-#include <doctest/doctest.h>
 #include <ctype.h>
+#include <doctest/doctest.h>
 
-TEST_CASE("isalnum") {
+TEST_CASE("isalnum")
+{
   for (int i = 0; i < 9; i++) {
     CHECK(isalnum(i + '1'));
   }

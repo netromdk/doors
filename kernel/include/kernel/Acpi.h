@@ -10,7 +10,7 @@ struct Rsd {
   uint8_t oemId[6];
   uint8_t revision;
   uint32_t rsdtAddress;
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 // System Descriptor Table
 struct Sdt {
@@ -23,13 +23,13 @@ struct Sdt {
   uint32_t oemRevision;
   uint32_t creatorID;
   uint32_t creatorRevision;
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 // Root System Descriptor Table that points to the other SDTs.
 struct Rsdt {
   Sdt header;
   uint32_t otherSdts[4];
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 // Generic Address Structure.
 struct Gas {
@@ -38,7 +38,7 @@ struct Gas {
   uint8_t bitOffset;
   uint8_t accessSize;
   uint64_t address;
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 // Fixed ACPI Description Table.
 struct Fadt {
@@ -101,7 +101,7 @@ struct Fadt {
   Gas xPMTimerBlock;
   Gas xGPE0Block;
   Gas xGPE1Block;
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 class Acpi {
 public:

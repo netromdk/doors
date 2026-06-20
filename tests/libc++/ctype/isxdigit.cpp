@@ -1,7 +1,8 @@
-#include <doctest/doctest.h>
 #include <ctype.h>
+#include <doctest/doctest.h>
 
-TEST_CASE("isxdigit") {
+TEST_CASE("isxdigit")
+{
   for (int i = 0; i < 9; i++) {
     CHECK(isxdigit(i + '1'));
   }

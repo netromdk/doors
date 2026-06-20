@@ -1,7 +1,8 @@
 #include <doctest/doctest.h>
 #include <string.h>
 
-TEST_CASE("strncmp") {
+TEST_CASE("strncmp")
+{
   CHECK(strncmp("hello", "hello", 2) == 0);
 
   // Compares using the minimum length of inputs and 200 = 5.

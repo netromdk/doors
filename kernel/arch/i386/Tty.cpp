@@ -1,125 +1,131 @@
+#include <algorithm.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <algorithm.h>
 
-#include <kernel/Kbd.h>
-#include <kernel/Vga.h>
-#include <kernel/Tty.h>
 #include <kernel/Io.h>
+#include <kernel/Kbd.h>
+#include <kernel/Tty.h>
+#include <kernel/Vga.h>
 
 #ifdef DEBUG_THROUGH_SERIAL_COM1
 #include <kernel/Serial.h>
 #endif
 
 namespace {
-  constexpr uint8_t DEFAULT_COLOR = vgaColor(COLOR_LIGHT_GREEN, COLOR_BLACK);
 
-  // Reserve row 0 for status indicator.
-  constexpr int SCROLLBACK_VIEW_HEIGHT = VGA_HEIGHT - 1;
+constexpr uint8_t DEFAULT_COLOR = vgaColor(COLOR_LIGHT_GREEN, COLOR_BLACK);
 
-  static constexpr char STATUS_PREFIX[] = "-- SCROLLBACK (offset ";
-  static constexpr char STATUS_MIDDLE[] = " of ";
-  static constexpr char STATUS_SUFFIX[] = ") --";
+// Reserve row 0 for status indicator.
+constexpr int SCROLLBACK_VIEW_HEIGHT = VGA_HEIGHT - 1;
 
-  static constinit uint8_t termRow = 0,
-    termCol = 0,
-    termColor = DEFAULT_COLOR;
-  static constinit bool scrolling = true;
+static constexpr char STATUS_PREFIX[] = "-- SCROLLBACK (offset ";
+static constexpr char STATUS_MIDDLE[] = " of ";
+static constexpr char STATUS_SUFFIX[] = ") --";
 
-  // Scrollback ring buffer.
-  static constinit char scrollbackBuf_[Tty::SCROLLBACK_LINES][VGA_WIDTH + 1]{};
-  static constinit int scrollbackHead_ = 0;
-  static constinit int scrollbackCount_ = 0;
+static constinit uint8_t termRow = 0, termCol = 0, termColor = DEFAULT_COLOR;
+static constinit bool scrolling = true;
 
-  static constinit bool scrollbackActive_ = false;
-  static constinit int scrollbackOffset_ = 0;
+// Scrollback ring buffer.
+static constinit char scrollbackBuf_[Tty::SCROLLBACK_LINES][VGA_WIDTH + 1]{};
+static constinit int scrollbackHead_ = 0;
+static constinit int scrollbackCount_ = 0;
 
-  // Saved VGA RAM for restoring after scrollback exit.
-  static constinit uint16_t savedScreen_[VGA_HEIGHT][VGA_WIDTH]{};
+static constinit bool scrollbackActive_ = false;
+static constinit int scrollbackOffset_ = 0;
 
-  void clearRow(uint8_t row) {
-    termColor = DEFAULT_COLOR;
-    for (uint8_t col = 0; col < VGA_WIDTH; col++) {
-      Tty::putc(' ', row, col);
-    }
-  }
+// Saved VGA RAM for restoring after scrollback exit.
+static constinit uint16_t savedScreen_[VGA_HEIGHT][VGA_WIDTH]{};
 
-  void swapRows(uint8_t row1, uint8_t row2) {
-    uint16_t *line1 = &VGA_RAM[row1 * VGA_WIDTH],
-      *line2 = &VGA_RAM[row2 * VGA_WIDTH];
-    for (uint8_t i = 0; i < VGA_WIDTH; i++) {
-      swap(line1[i], line2[i]);
-    }
-  }
-
-  void advRow() {
-    // When reaching the bottom then scroll one line up instead of starting at the beginning and
-    // overwriting things.
-    if (++termRow == VGA_HEIGHT) {
-      if (scrolling) {
-        // Save row 0, that is about to scroll off, into the scrollback buffer.
-        for (size_t c = 0; c < VGA_WIDTH; c++) {
-          scrollbackBuf_[scrollbackHead_][c] = static_cast<char>(VGA_RAM[c] & 0xFF);
-        }
-        scrollbackBuf_[scrollbackHead_][VGA_WIDTH] = '\0';
-        scrollbackHead_ = (scrollbackHead_ + 1) % Tty::SCROLLBACK_LINES;
-        if (scrollbackCount_ < Tty::SCROLLBACK_LINES) {
-          scrollbackCount_++;
-        }
-
-        clearRow(0);
-        for (uint8_t r = 0; r < VGA_HEIGHT - 1; r++) {
-          swapRows(r, r + 1);
-        }
-
-        termRow = VGA_HEIGHT - 1;
-        termCol = 0;
-      }
-      else {
-        termRow = 0;
-      }
-    }
-  }
-
-  void advCol() {
-    if (++termCol == VGA_WIDTH) {
-      termCol = 0;
-      advRow();
-    }
-  }
-
-  void decCol() {
-    if (termCol > 0) {
-      termCol--;
-    }
-    else if (termRow > 0) {
-      termRow--;
-      termCol = VGA_WIDTH - 1;
-    }
-  }
-
-  // There are two VGA CRTC cursor-location registers: 0x3D4 for the index and 0x3D5 for data. The
-  // cursor location is set via the high register (bits 15-8) via 0x0E and the low register (bits
-  // 7-0) via 0x0F. The position is `row * VGA_WIDTH + col` (0..3999 for 80x25).
-  void cursorUpdate() {
-    const uint16_t pos = static_cast<uint16_t>(termRow * VGA_WIDTH + termCol);
-
-    // High bits.
-    Io::outb(0x3D4, 0x0E);
-    Io::outb(0x3D5, static_cast<uint8_t>(pos >> 8));
-
-    // Low bits.
-    Io::outb(0x3D4, 0x0F);
-    Io::outb(0x3D5, static_cast<uint8_t>(pos));
+void clearRow(uint8_t row)
+{
+  termColor = DEFAULT_COLOR;
+  for (uint8_t col = 0; col < VGA_WIDTH; col++) {
+    Tty::putc(' ', row, col);
   }
 }
+
+void swapRows(uint8_t row1, uint8_t row2)
+{
+  uint16_t *line1 = &VGA_RAM[row1 * VGA_WIDTH], *line2 = &VGA_RAM[row2 * VGA_WIDTH];
+  for (uint8_t i = 0; i < VGA_WIDTH; i++) {
+    swap(line1[i], line2[i]);
+  }
+}
+
+void advRow()
+{
+  // When reaching the bottom then scroll one line up instead of starting at the beginning and
+  // overwriting things.
+  if (++termRow == VGA_HEIGHT) {
+    if (scrolling) {
+      // Save row 0, that is about to scroll off, into the scrollback buffer.
+      for (size_t c = 0; c < VGA_WIDTH; c++) {
+        scrollbackBuf_[scrollbackHead_][c] = static_cast<char>(VGA_RAM[c] & 0xFF);
+      }
+      scrollbackBuf_[scrollbackHead_][VGA_WIDTH] = '\0';
+      scrollbackHead_ = (scrollbackHead_ + 1) % Tty::SCROLLBACK_LINES;
+      if (scrollbackCount_ < Tty::SCROLLBACK_LINES) {
+        scrollbackCount_++;
+      }
+
+      clearRow(0);
+      for (uint8_t r = 0; r < VGA_HEIGHT - 1; r++) {
+        swapRows(r, r + 1);
+      }
+
+      termRow = VGA_HEIGHT - 1;
+      termCol = 0;
+    }
+    else {
+      termRow = 0;
+    }
+  }
+}
+
+void advCol()
+{
+  if (++termCol == VGA_WIDTH) {
+    termCol = 0;
+    advRow();
+  }
+}
+
+void decCol()
+{
+  if (termCol > 0) {
+    termCol--;
+  }
+  else if (termRow > 0) {
+    termRow--;
+    termCol = VGA_WIDTH - 1;
+  }
+}
+
+// There are two VGA CRTC cursor-location registers: 0x3D4 for the index and 0x3D5 for data. The
+// cursor location is set via the high register (bits 15-8) via 0x0E and the low register (bits 7-0)
+// via 0x0F. The position is `row * VGA_WIDTH + col` (0..3999 for 80x25).
+void cursorUpdate()
+{
+  const uint16_t pos = static_cast<uint16_t>(termRow * VGA_WIDTH + termCol);
+
+  // High bits.
+  Io::outb(0x3D4, 0x0E);
+  Io::outb(0x3D5, static_cast<uint8_t>(pos >> 8));
+
+  // Low bits.
+  Io::outb(0x3D4, 0x0F);
+  Io::outb(0x3D5, static_cast<uint8_t>(pos));
+}
+
+} // namespace
 
 // The two VGA CRTC cursor-shape registers, start (0x0A) and end (0x0B), define scanlines of the
 // cursor. With a 16-scanline font (numbered 0-15, top to bottom), scanlines 14-15 produce a
 // blinking two-scanline underline.
-void Tty::cursorEnable() {
+void Tty::cursorEnable()
+{
   // Cursor start at scanline 14.
   // 0x0E (0b00001110) meaning 5th bit is 0 (cursor is visible) and bits 4-0 (0b01110 = 14) is the
   // scanline.
@@ -136,26 +142,31 @@ void Tty::cursorEnable() {
 
 // Writing 0x20 (0b100000) to the Cursor Start Register sets bit 5, which hides the cursor without
 // affecting its position.
-void Tty::cursorDisable() {
+void Tty::cursorDisable()
+{
   Io::outb(0x3D4, 0x0A);
   Io::outb(0x3D5, 0x20);
 }
 
-void Tty::cursorSetPos(uint8_t row, uint8_t col) {
+void Tty::cursorSetPos(uint8_t row, uint8_t col)
+{
   termRow = row;
   termCol = col;
   cursorUpdate();
 }
 
-void Tty::setColor(uint8_t color) {
+void Tty::setColor(uint8_t color)
+{
   termColor = color;
 }
 
-void Tty::setScrolling(bool enabled) {
+void Tty::setScrolling(bool enabled)
+{
   scrolling = enabled;
 }
 
-void Tty::cls() {
+void Tty::cls()
+{
   termRow = termCol = 0;
   termColor = DEFAULT_COLOR;
   size_t total = VGA_WIDTH * VGA_HEIGHT;
@@ -165,7 +176,8 @@ void Tty::cls() {
   cursorUpdate();
 }
 
-void Tty::putc(char ch) {
+void Tty::putc(char ch)
+{
   // Exit scrollback view on any character input.
   if (scrollbackActive_) {
     scrollbackExit();
@@ -191,11 +203,13 @@ void Tty::putc(char ch) {
   cursorUpdate();
 }
 
-void Tty::putc(char ch, uint8_t row, uint8_t col) {
+void Tty::putc(char ch, uint8_t row, uint8_t col)
+{
   VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(ch, termColor);
 }
 
-int Tty::puts(const char *str) {
+int Tty::puts(const char *str)
+{
   size_t len = strlen(str);
   for (size_t i = 0; i < len; i++) {
     putc(str[i]);
@@ -203,7 +217,8 @@ int Tty::puts(const char *str) {
   return len;
 }
 
-int Tty::puts(const char *str, uint8_t row, uint8_t col) {
+int Tty::puts(const char *str, uint8_t row, uint8_t col)
+{
   termRow = row;
   termCol = col;
   return puts(str);

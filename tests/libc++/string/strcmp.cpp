@@ -1,7 +1,8 @@
 #include <doctest/doctest.h>
 #include <string.h>
 
-TEST_CASE("strcmp") {
+TEST_CASE("strcmp")
+{
   CHECK(strcmp("hello", "hello") == 0);
 
   // t < y

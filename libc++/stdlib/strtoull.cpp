@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-uint64_t strtoull(const char *str, char **endptr, int base) {
+uint64_t strtoull(const char *str, char **endptr, int base)
+{
   uint64_t res = 0;
 
   size_t len = strlen(str), i;
@@ -20,9 +21,8 @@ uint64_t strtoull(const char *str, char **endptr, int base) {
     }
 
     else if (base == 0 && res == 0) {
-      // Detect base 16 (hexadecimal) if number is preceded by a "0x" or
-      // "0X".
-      if (i+1 != len && ch == '0' && (str[i+1] == 'x' || str[i+1] == 'X')) {
+      // Detect base 16 (hexadecimal) if number is preceded by a "0x" or "0X".
+      if (i + 1 != len && ch == '0' && (str[i + 1] == 'x' || str[i + 1] == 'X')) {
         base = 16;
         i++;
         continue;
@@ -57,7 +57,7 @@ uint64_t strtoull(const char *str, char **endptr, int base) {
   }
 
   if (endptr) {
-    *endptr = const_cast<char*>(str) + i;
+    *endptr = const_cast<char *>(str) + i;
   }
 
   return res;

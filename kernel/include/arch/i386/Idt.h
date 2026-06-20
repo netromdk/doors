@@ -17,19 +17,19 @@ static constexpr uint8_t INTR_GATE = 0x8E;
 
 struct IdtDesc {
   // Low
-  uint16_t offset_low  : 16; //  0 -> 15
-  uint16_t selector    : 16; // 16 -> 31
+  uint16_t offset_low : 16; //  0 -> 15
+  uint16_t selector : 16;   // 16 -> 31
 
   // High
-  uint8_t  zero        :  8; // 32 -> 39 (must be zero)
-  uint8_t  type        :  8; // 40 -> 47
+  uint8_t zero : 8;          // 32 -> 39 (must be zero)
+  uint8_t type : 8;          // 40 -> 47
   uint16_t offset_high : 16; // 48 -> 63 (16 -> 31)
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 struct IdtReg {
   uint16_t limit;
   uint32_t base;
-} __attribute__ ((packed));
+} __attribute__((packed));
 
 class Idt {
 public:

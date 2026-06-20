@@ -1,16 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-__attribute__((__noreturn__))
-void abort() noexcept {
+__attribute__((__noreturn__)) void abort() noexcept
+{
 #ifdef __IS_DOORS_KERNEL
   // TODO: Do an actual kernel panic here?
   printf("Kernel Panic: abort()\n");
-  while (true) { }
+  while (true) {
+  }
 #else
   printf("Program aborted!\n");
   // TODO: Implement exit()
-  //exit(-1);
-  while (true) { }
+  // exit(-1);
+  while (true) {
+  }
 #endif
 }

@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-TEST_CASE("itos") {
+TEST_CASE("itos")
+{
   char str[64]{};
 
   itos(10, str);

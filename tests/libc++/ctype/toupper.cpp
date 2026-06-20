@@ -1,7 +1,8 @@
-#include <doctest/doctest.h>
 #include <ctype.h>
+#include <doctest/doctest.h>
 
-TEST_CASE("toupper") {
+TEST_CASE("toupper")
+{
   CHECK(toupper('a') == 'A');
   CHECK(toupper('g') == 'G');
   CHECK(toupper('A') == 'A');

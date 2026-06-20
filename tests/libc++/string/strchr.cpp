@@ -1,7 +1,8 @@
 #include <doctest/doctest.h>
 #include <string.h>
 
-TEST_CASE("strchr") {
+TEST_CASE("strchr")
+{
   const char *msg = "hello world";
   CHECK(strchr(msg, 'l') == msg + 2);
   CHECK(strchr(msg, 'w') == msg + 6);

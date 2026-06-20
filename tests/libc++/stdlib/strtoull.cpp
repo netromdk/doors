@@ -1,7 +1,8 @@
 #include <doctest/doctest.h>
 #include <stdlib.h>
 
-TEST_CASE("strtoull") {
+TEST_CASE("strtoull")
+{
   CHECK(strtoull("123", nullptr, 10) == 123ULL);
 
   const char *buf = "hello 123 there";
