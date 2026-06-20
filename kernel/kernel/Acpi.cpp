@@ -117,7 +117,7 @@ bool Acpi::init()
   }
 
   if (fadt->smiCommandPort != 0 && fadt->acpiEnable != 0 && fadt->acpiDisable != 0) {
-    printf("Enabling ACPI explicitly.\n");
+    printf("+");
     Io::outb(fadt->smiCommandPort, fadt->acpiEnable);
   }
 

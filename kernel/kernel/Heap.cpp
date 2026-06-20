@@ -52,8 +52,10 @@ void Heap::init(void *start, size_t size)
 
   freeList_ = first;
 
+  /*
   printf("Heap: %u KB at 0x%X\n", static_cast<unsigned>(size / 1024),
          static_cast<unsigned>(heapStart_));
+  */
 }
 
 void Heap::addToFreeList(FreeNode *node)
