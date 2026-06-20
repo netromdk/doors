@@ -158,6 +158,14 @@ doors_test_module(test_kbd
   "${KBD_KEYMAP_SRC}"
 )
 
+doors_test_module(test_kbd_caps_is_ctrl
+  kbd/caps_is_ctrl.cpp
+  stubs.cpp
+  "${KBD_SRC}"
+  "${KBD_KEYMAP_SRC}"
+)
+target_compile_definitions(test_kbd_caps_is_ctrl PRIVATE CAPS_LOCK_IS_CTRL)
+
 set(PIT_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Pit.cpp")
 doors_test_module(test_pit
   pit/uptime_math.cpp

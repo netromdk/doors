@@ -21,3 +21,7 @@ set(SANITIZERS "" CACHE STRING
 option(KERNEL_UBSAN
   "Instrument the kernel with UBSan (freestanding, handlers panic via direct UART I/O)"
   OFF)
+
+option(CAPS_LOCK_IS_CTRL
+  "Remap Caps Lock to Left Control (compile-time)"
+  OFF)

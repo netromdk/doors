@@ -9,6 +9,9 @@ constexpr uint8_t MOD_SHIFT = 0x01;
 constexpr uint8_t MOD_CTRL  = 0x02;
 constexpr uint8_t MOD_ALT   = 0x04;
 
+constexpr uint8_t SCANCODE_A = 0x1E;
+constexpr uint8_t SCANCODE_CAPS_LOCK = 0x3A;
+
 struct ScancodeEntry {
   Key key;
   uint8_t mod;

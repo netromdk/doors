@@ -371,9 +371,13 @@ void Kbd::processScancode(uint8_t scancode, bool extended)
 
   // CapsLock toggles on make only (MOD_NONE in scancode table).
   if (entry.key == Key::CapsLock) {
+#ifdef CAPS_LOCK_IS_CTRL
+    ctrlPressed_ = !release;
+#else
     if (!release) {
       capsLock_ = !capsLock_;
     }
+#endif
     return;
   }
 
