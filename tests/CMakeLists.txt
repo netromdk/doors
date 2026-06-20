@@ -75,7 +75,7 @@ function(doors_test_module name)
   add_test(NAME ${name} COMMAND ${name})
 endfunction()
 
-doors_test_module(test_string
+doors_test_module(test_libcpp_string
   libc++/string/memcpy.cpp
   libc++/string/memset.cpp
   libc++/string/memcmp.cpp
@@ -90,7 +90,7 @@ doors_test_module(test_string
   libc++/string/strrchr.cpp
 )
 
-doors_test_module(test_stdlib
+doors_test_module(test_libcpp_stdlib
   libc++/stdlib/itos.cpp
   libc++/stdlib/utos.cpp
   libc++/stdlib/ltos.cpp
@@ -104,13 +104,13 @@ doors_test_module(test_stdlib
   libc++/stdlib/div.cpp
 )
 
-doors_test_module(test_stdio
+doors_test_module(test_libcpp_stdio
   libc++/stdio/putchar.cpp
   libc++/stdio/puts.cpp
   libc++/stdio/printf.cpp
 )
 
-doors_test_module(test_ctype
+doors_test_module(test_libcpp_ctype
   libc++/ctype/isalnum.cpp
   libc++/ctype/isalpha.cpp
   libc++/ctype/isblank.cpp
@@ -127,7 +127,7 @@ doors_test_module(test_ctype
   libc++/ctype/toupper.cpp
 )
 
-doors_test_module(test_algorithm
+doors_test_module(test_libcpp_algorithm
   libc++/algorithm/min.cpp
   libc++/algorithm/max.cpp
   libc++/algorithm/swap.cpp
@@ -136,7 +136,7 @@ doors_test_module(test_algorithm
 # The following tests compile kernel code for host-side testing.
 
 set(HEAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Heap.cpp")
-doors_test_module(test_heap
+doors_test_module(test_kernel_heap
   heap/kmalloc.cpp
   heap/kfree.cpp
   heap/fragmentation.cpp
@@ -147,7 +147,7 @@ doors_test_module(test_heap
 
 set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cpp")
 set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cpp")
-doors_test_module(test_kbd
+doors_test_module(test_kernel_kbd
   kbd/scancode_table.cpp
   kbd/ring_buffer.cpp
   kbd/readline.cpp
@@ -158,16 +158,16 @@ doors_test_module(test_kbd
   "${KBD_KEYMAP_SRC}"
 )
 
-doors_test_module(test_kbd_caps_is_ctrl
+doors_test_module(test_kernel_kbd_caps_is_ctrl
   kbd/caps_is_ctrl.cpp
   stubs.cpp
   "${KBD_SRC}"
   "${KBD_KEYMAP_SRC}"
 )
-target_compile_definitions(test_kbd_caps_is_ctrl PRIVATE CAPS_LOCK_IS_CTRL)
+target_compile_definitions(test_kernel_kbd_caps_is_ctrl PRIVATE CAPS_LOCK_IS_CTRL)
 
 set(PIT_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Pit.cpp")
-doors_test_module(test_pit
+doors_test_module(test_kernel_pit
   pit/uptime_math.cpp
   stubs.cpp
   "${PIT_SRC}"
@@ -176,7 +176,7 @@ doors_test_module(test_pit
 set(SHELL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Shell.cpp")
 set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cpp")
 set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cpp")
-doors_test_module(test_shell
+doors_test_module(test_kernel_shell
   shell/tokenizer.cpp
   shell/dispatch.cpp
   shell/commands.cpp
@@ -188,7 +188,7 @@ doors_test_module(test_shell
 )
 
 set(TTY_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Tty.cpp")
-doors_test_module(test_tty
+doors_test_module(test_kernel_tty
   tty/backspace.cpp
   tty/cursor.cpp
   tty/scrollback.cpp
