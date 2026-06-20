@@ -23,14 +23,60 @@ void Pic::disableInt()
 {
 }
 
-// Weak stubs so test targets, that also link the real Tty.cpp (test_tty), pick up the real
-// implementations instead. But otherwise they are stubs.
+// Weak stubs so test targets, that also link the real kernel source code (like Tty.cpp and target
+// test_tty), pick up the real implementations instead. But otherwise they are stubs.
+
 __attribute__((weak)) void Tty::cursorEnable()
 {
 }
+
 __attribute__((weak)) void Tty::cursorDisable()
 {
 }
+
 __attribute__((weak)) void Tty::cursorSetPos(uint8_t, uint8_t)
+{
+}
+
+__attribute__((weak)) int Tty::scrollbackSize()
+{
+  return 0;
+}
+
+__attribute__((weak)) const char *Tty::scrollbackLine(int)
+{
+  return nullptr;
+}
+
+__attribute__((weak)) void Tty::scrollbackShow(int)
+{
+}
+
+__attribute__((weak)) void Tty::scrollbackExit()
+{
+}
+
+__attribute__((weak)) bool Tty::scrollbackActive()
+{
+  return false;
+}
+
+__attribute__((weak)) void Tty::scrollbackPageUp()
+{
+}
+
+__attribute__((weak)) void Tty::scrollbackPageDown()
+{
+}
+
+__attribute__((weak)) void Tty::scrollbackHome()
+{
+}
+
+__attribute__((weak)) void Tty::scrollbackLineUp()
+{
+}
+
+__attribute__((weak)) void Tty::scrollbackLineDown()
 {
 }
