@@ -1257,3 +1257,44 @@ TEST_CASE("erase with count exceeding size")
   s.erase(2, 100);
   CHECK(strcmp(s.c_str(), "he") == 0);
 }
+
+TEST_CASE("spaceship equal")
+{
+  string a("hello");
+  string b("hello");
+  CHECK((a <=> b) == 0);
+  CHECK((a <=> b) >= 0);
+  CHECK((a <=> b) <= 0);
+}
+
+TEST_CASE("spaceship less")
+{
+  string a("apple");
+  string b("banana");
+  CHECK((a <=> b) < 0);
+  CHECK(!((a <=> b) > 0));
+}
+
+TEST_CASE("spaceship greater")
+{
+  string a("banana");
+  string b("apple");
+  CHECK((a <=> b) > 0);
+  CHECK(!((a <=> b) < 0));
+}
+
+TEST_CASE("spaceship with prefix")
+{
+  string a("abc");
+  string b("abcdef");
+  CHECK((a <=> b) < 0);
+  CHECK((b <=> a) > 0);
+}
+
+TEST_CASE("spaceship equal heap")
+{
+  string a("a long string that lives on the heap for testing");
+  string b("a long string that lives on the heap for testing");
+  CHECK((a <=> b) == 0);
+}
+

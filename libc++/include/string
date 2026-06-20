@@ -1,6 +1,7 @@
 #ifndef STRING_DATA_TYPE_H
 #define STRING_DATA_TYPE_H
 
+#include <compare>
 #include <string.h>
 
 class string {
@@ -192,6 +193,7 @@ public:
 
   [[nodiscard]] int compare(const string &str) const noexcept;
   [[nodiscard]] int compare(const char *s) const noexcept;
+  strong_ordering operator<=>(const string &other) const noexcept;
 
 private:
   char *data_;
@@ -223,11 +225,6 @@ private:
 };
 
 [[nodiscard]] bool operator==(const string &a, const string &b) noexcept;
-[[nodiscard]] bool operator!=(const string &a, const string &b) noexcept;
-[[nodiscard]] bool operator<(const string &a, const string &b) noexcept;
-[[nodiscard]] bool operator>(const string &a, const string &b) noexcept;
-[[nodiscard]] bool operator<=(const string &a, const string &b) noexcept;
-[[nodiscard]] bool operator>=(const string &a, const string &b) noexcept;
 string operator+(const string &a, const string &b) noexcept;
 string operator+(const string &a, const char *b) noexcept;
 string operator+(const char *a, const string &b) noexcept;

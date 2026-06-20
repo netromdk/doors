@@ -739,6 +739,18 @@ int string::compare(const char *s) const noexcept
   return compare(string(s));
 }
 
+strong_ordering string::operator<=>(const string &other) const noexcept
+{
+  int c = compare(other);
+  if (c < 0) {
+    return strong_ordering::less;
+  }
+  if (c > 0) {
+    return strong_ordering::greater;
+  }
+  return strong_ordering::equal;
+}
+
 void string::grow(size_type minCap) noexcept
 {
   size_type newCap = capacity() * 2;
@@ -767,31 +779,6 @@ void string::reserveFor(size_type n) noexcept
 bool operator==(const string &a, const string &b) noexcept
 {
   return a.size() == b.size() && memcmp(a.data(), b.data(), a.size()) == 0;
-}
-
-bool operator!=(const string &a, const string &b) noexcept
-{
-  return !(a == b);
-}
-
-bool operator<(const string &a, const string &b) noexcept
-{
-  return a.compare(b) < 0;
-}
-
-bool operator>(const string &a, const string &b) noexcept
-{
-  return a.compare(b) > 0;
-}
-
-bool operator<=(const string &a, const string &b) noexcept
-{
-  return a.compare(b) <= 0;
-}
-
-bool operator>=(const string &a, const string &b) noexcept
-{
-  return a.compare(b) >= 0;
 }
 
 string operator+(const string &a, const string &b) noexcept
