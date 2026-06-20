@@ -156,6 +156,7 @@ ninja xz     # build/default/doors.xz
 | `HOST_CXX_COMPILER` | _(auto)_ | Host C++ compiler for tests; auto-detects clang++ then g++ |
 | `SANITIZERS` | _(none)_ | Sanitizers for host-compiled tests (e.g. `address;undefined`) |
 | `KERNEL_UBSAN` | `OFF` | Instrument the kernel with UBSan (handlers panic via direct UART I/O) |
+| `CAPS_LOCK_IS_CTRL` | `OFF` | Remap Caps Lock to Left Control |
 
 Pass options at configure time:
 
