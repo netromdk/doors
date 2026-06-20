@@ -82,6 +82,16 @@ volatile int Kbd::pendingPageDown_ = 0;
 volatile int Kbd::pendingHome_ = 0;
 volatile int Kbd::pendingEnd_ = 0;
 
+void Kbd::clearNavigation()
+{
+  pendingUp_ = 0;
+  pendingDown_ = 0;
+  pendingPageUp_ = 0;
+  pendingPageDown_ = 0;
+  pendingHome_ = 0;
+  pendingEnd_ = 0;
+}
+
 void Kbd::init()
 {
   head_ = 0;
@@ -90,12 +100,7 @@ void Kbd::init()
   ctrlPressed_ = false;
   altPressed_ = false;
   capsLock_ = false;
-  pendingUp_ = 0;
-  pendingDown_ = 0;
-  pendingPageUp_ = 0;
-  pendingPageDown_ = 0;
-  pendingHome_ = 0;
-  pendingEnd_ = 0;
+  clearNavigation();
   extended_ = false;
 }
 

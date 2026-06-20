@@ -23,6 +23,8 @@ public:
   static char getChar();
   static void readLine(char *buf, int max, HistoryCtx *history = nullptr);
 
+  static void clearNavigation();
+
   // Test helpers for modifier simulation
   static void processScancode(uint8_t scancode, bool extended);
   static bool isShiftPressed();

@@ -4,6 +4,7 @@
 #include <string.h>
 #include <algorithm.h>
 
+#include <kernel/Kbd.h>
 #include <kernel/Vga.h>
 #include <kernel/Tty.h>
 #include <kernel/Io.h>
@@ -329,6 +330,7 @@ void Tty::scrollbackExit()
   scrollbackOffset_ = 0;
   memcpy(VGA_RAM, savedScreen_, sizeof(savedScreen_));
   cursorEnable();
+  Kbd::clearNavigation();
 }
 
 bool Tty::scrollbackActive()
