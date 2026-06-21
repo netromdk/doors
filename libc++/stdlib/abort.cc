@@ -1,6 +1,10 @@
 #include <cstdio>
 #include <cstdlib>
 
+#ifndef __IS_DOORS_KERNEL
+extern "C" void _Exit(int status) __attribute__((__noreturn__));
+#endif
+
 __attribute__((__noreturn__)) void abort() noexcept
 {
 #ifdef __IS_DOORS_KERNEL
@@ -10,9 +14,6 @@ __attribute__((__noreturn__)) void abort() noexcept
   }
 #else
   printf("Program aborted!\n");
-  // TODO: Implement exit()
-  // exit(-1);
-  while (true) {
-  }
+  _Exit(EXIT_FAILURE);
 #endif
 }

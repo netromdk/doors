@@ -138,6 +138,13 @@ doors_test_module(test_libcpp_algorithm_header
   libc++/algorithm/swap.cc
 )
 
+# Test that `abort()` actually terminates with a non-zero exit code.
+add_executable(test_libcpp_abort abort/test_abort.cc)
+target_include_directories(test_libcpp_abort PRIVATE "${DOORS_LIBC_INC_DIR}")
+target_link_libraries(test_libcpp_abort PRIVATE libc++test)
+add_test(NAME test_libcpp_abort COMMAND test_libcpp_abort)
+set_tests_properties(test_libcpp_abort PROPERTIES WILL_FAIL TRUE)
+
 # The following tests compile kernel code for host-side testing.
 
 set(HEAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Heap.cc")
