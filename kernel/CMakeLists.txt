@@ -36,29 +36,29 @@ add_library(
   kernel_objs
   OBJECT
   ${ARCH_DIR}/Boot.s
-  ${ARCH_DIR}/Tty.cpp
-  ${ARCH_DIR}/Cpu.cpp
-  ${ARCH_DIR}/Arch.cpp
-  ${ARCH_DIR}/Gdt.cpp
-  ${ARCH_DIR}/Idt.cpp
-  ${ARCH_DIR}/Io.cpp
-  ${ARCH_DIR}/Pic.cpp
+  ${ARCH_DIR}/Tty.cc
+  ${ARCH_DIR}/Cpu.cc
+  ${ARCH_DIR}/Arch.cc
+  ${ARCH_DIR}/Gdt.cc
+  ${ARCH_DIR}/Idt.cc
+  ${ARCH_DIR}/Io.cc
+  ${ARCH_DIR}/Pic.cc
   ${ARCH_DIR}/Isr.s
-  ${ARCH_DIR}/ExceptionHandlers.cpp
-  ${ARCH_DIR}/InterruptHandlers.cpp
-  ${ARCH_DIR}/Kbd.cpp
-  ${ARCH_DIR}/Vga.cpp
-  ${ARCH_DIR}/Pit.cpp
-  kernel/Kernel.cpp
-  kernel/Runtime.cpp
-  kernel/Serial.cpp
-  kernel/Mem.cpp
-  kernel/Acpi.cpp
-  kernel/Cmos.cpp
-  kernel/Keymap.cpp
-  kernel/Heap.cpp
-  kernel/Shell.cpp
-  kernel/Commands.cpp
+  ${ARCH_DIR}/ExceptionHandlers.cc
+  ${ARCH_DIR}/InterruptHandlers.cc
+  ${ARCH_DIR}/Kbd.cc
+  ${ARCH_DIR}/Vga.cc
+  ${ARCH_DIR}/Pit.cc
+  kernel/Kernel.cc
+  kernel/Runtime.cc
+  kernel/Serial.cc
+  kernel/Mem.cc
+  kernel/Acpi.cc
+  kernel/Cmos.cc
+  kernel/Keymap.cc
+  kernel/Heap.cc
+  kernel/Shell.cc
+  kernel/Commands.cc
 )
 
 target_compile_options(kernel_objs PRIVATE
@@ -69,14 +69,14 @@ target_include_directories(kernel_objs PRIVATE
 target_link_libraries(kernel_objs PRIVATE k)
 
 if (KERNEL_UBSAN)
-  target_sources(kernel_objs PRIVATE kernel/Ubsan.cpp)
+  target_sources(kernel_objs PRIVATE kernel/Ubsan.cc)
   target_compile_options(kernel_objs PRIVATE
     -fsanitize=undefined
     -fno-sanitize-recover=all  # Trap immediately. No recovery in a bare-metal kernel.
   )
 
-  # Exclude Ubsan.cpp itself from instrumentation to prevent recursive handler invocations.
-  set_source_files_properties(kernel/Ubsan.cpp PROPERTIES
+  # Exclude Ubsan.cc itself from instrumentation to prevent recursive handler invocations.
+  set_source_files_properties(kernel/Ubsan.cc PROPERTIES
     COMPILE_OPTIONS "-fno-sanitize=all"
   )
 endif()

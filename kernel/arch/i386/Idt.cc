@@ -21,7 +21,7 @@ void fillDesc(uint32_t offset, uint16_t selector, uint8_t type, IdtDesc *desc)
 constinit IdtDesc idt[IDT_SIZE];
 constinit IdtReg idtr;
 
-// Wrappers are defined in isr.s and will call functions in inthndl.cpp and exchndl.cpp.
+// Wrappers are defined in isr.s and will call functions in inthndl.cc and exchndl.cc.
 extern "C" {
 
 void asmExcDivZero();
@@ -43,7 +43,7 @@ void Idt::init()
   //   0x00 -> 0x1F        are for CPU exceptions.
   //   0x20 -> 0x27 (32->) are for master interrupts.
   //   0x28 -> 0x2F (40->) are for slave interrupts.
-  // (Defined pic.cpp)
+  // (Defined pic.cc)
 
   // Initialize IRQ (interrupt requests) with dummy routines because
   // the entries must be defined.

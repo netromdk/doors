@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 // Address of VRAM - color text mode.
-// Defined in Vga.cpp; overridable at link time for host tests.
+// Defined in Vga.cc and is overridable at link time for host tests.
 extern uint16_t *VGA_RAM;
 
 // VGA standard terminal dimensions.

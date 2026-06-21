@@ -4,7 +4,7 @@
 #include <kernel/Tty.h>
 #include <kernel/Vga.h>
 
-// VGA_RAM defined in vga_ram.cpp.
+// VGA_RAM defined in vga_ram.cc.
 
 TEST_CASE("backspace_moves_col_left")
 {

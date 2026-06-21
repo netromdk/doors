@@ -30,38 +30,38 @@ add_library(doctest::doctest ALIAS doctest)
 
 # Host-compiled libc++ for the test binaries.
 add_library(libc++test STATIC
-  ${DOORS_LIBC_SRC_DIR}/stdio/putchar.cpp
-  ${DOORS_LIBC_SRC_DIR}/stdio/puts.cpp
-  ${DOORS_LIBC_SRC_DIR}/assert/assertFail.cpp
-  ${DOORS_LIBC_SRC_DIR}/stdlib/abort.cpp
-  ${DOORS_LIBC_SRC_DIR}/stdlib/itos.cpp
-  ${DOORS_LIBC_SRC_DIR}/stdlib/utos.cpp
-  ${DOORS_LIBC_SRC_DIR}/stdlib/ltos.cpp
-  ${DOORS_LIBC_SRC_DIR}/stdlib/strtol.cpp
-  ${DOORS_LIBC_SRC_DIR}/stdlib/strtoul.cpp
-  ${DOORS_LIBC_SRC_DIR}/stdlib/strtoll.cpp
-  ${DOORS_LIBC_SRC_DIR}/stdlib/strtoull.cpp
-  ${DOORS_LIBC_SRC_DIR}/stdlib/atoi.cpp
-  ${DOORS_LIBC_SRC_DIR}/stdlib/atol.cpp
-  ${DOORS_LIBC_SRC_DIR}/string/memcpy.cpp
-  ${DOORS_LIBC_SRC_DIR}/string/memmove.cpp
-  ${DOORS_LIBC_SRC_DIR}/string/memset.cpp
-  ${DOORS_LIBC_SRC_DIR}/string/memcmp.cpp
-  ${DOORS_LIBC_SRC_DIR}/string/memchr.cpp
-  ${DOORS_LIBC_SRC_DIR}/string/strlen.cpp
-  ${DOORS_LIBC_SRC_DIR}/string/strcpy.cpp
-  ${DOORS_LIBC_SRC_DIR}/string/strncpy.cpp
-  ${DOORS_LIBC_SRC_DIR}/string/strcmp.cpp
-  ${DOORS_LIBC_SRC_DIR}/string/strncmp.cpp
-  ${DOORS_LIBC_SRC_DIR}/string/strchr.cpp
-  ${DOORS_LIBC_SRC_DIR}/string/strrchr.cpp
-  ${DOORS_LIBC_SRC_DIR}/string/string.cpp
+  ${DOORS_LIBC_SRC_DIR}/stdio/putchar.cc
+  ${DOORS_LIBC_SRC_DIR}/stdio/puts.cc
+  ${DOORS_LIBC_SRC_DIR}/assert/assertFail.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/abort.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/itos.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/utos.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/ltos.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/strtol.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/strtoul.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/strtoll.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/strtoull.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/atoi.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/atol.cc
+  ${DOORS_LIBC_SRC_DIR}/string/memcpy.cc
+  ${DOORS_LIBC_SRC_DIR}/string/memmove.cc
+  ${DOORS_LIBC_SRC_DIR}/string/memset.cc
+  ${DOORS_LIBC_SRC_DIR}/string/memcmp.cc
+  ${DOORS_LIBC_SRC_DIR}/string/memchr.cc
+  ${DOORS_LIBC_SRC_DIR}/string/strlen.cc
+  ${DOORS_LIBC_SRC_DIR}/string/strcpy.cc
+  ${DOORS_LIBC_SRC_DIR}/string/strncpy.cc
+  ${DOORS_LIBC_SRC_DIR}/string/strcmp.cc
+  ${DOORS_LIBC_SRC_DIR}/string/strncmp.cc
+  ${DOORS_LIBC_SRC_DIR}/string/strchr.cc
+  ${DOORS_LIBC_SRC_DIR}/string/strrchr.cc
+  ${DOORS_LIBC_SRC_DIR}/string/string.cc
 )
 target_compile_definitions(libc++test PRIVATE __IS_DOORS_LIBCPP __IS_DOORS_LIBCPPTEST)
 target_compile_options(libc++test PRIVATE -fno-builtin)
 target_include_directories(libc++test PRIVATE ${DOORS_LIBC_INC_DIR})
 
-add_library(test_main STATIC main.cpp)
+add_library(test_main STATIC main.cc)
 target_link_libraries(test_main PUBLIC doctest::doctest)
 
 include(CTest)
@@ -77,127 +77,127 @@ function(doors_test_module name)
 endfunction()
 
 doors_test_module(test_libcpp_string_header
-  libc++/string/memcpy.cpp
-  libc++/string/memset.cpp
-  libc++/string/memcmp.cpp
-  libc++/string/memmove.cpp
-  libc++/string/memchr.cpp
-  libc++/string/strlen.cpp
-  libc++/string/strcmp.cpp
-  libc++/string/strncmp.cpp
-  libc++/string/strcpy.cpp
-  libc++/string/strncpy.cpp
-  libc++/string/strchr.cpp
-  libc++/string/strrchr.cpp
+  libc++/string/memcpy.cc
+  libc++/string/memset.cc
+  libc++/string/memcmp.cc
+  libc++/string/memmove.cc
+  libc++/string/memchr.cc
+  libc++/string/strlen.cc
+  libc++/string/strcmp.cc
+  libc++/string/strncmp.cc
+  libc++/string/strcpy.cc
+  libc++/string/strncpy.cc
+  libc++/string/strchr.cc
+  libc++/string/strrchr.cc
 )
 
 doors_test_module(test_libcpp_string
-  string/test_string.cpp
+  string/test_string.cc
 )
 
 doors_test_module(test_libcpp_stdlib_header
-  libc++/stdlib/itos.cpp
-  libc++/stdlib/utos.cpp
-  libc++/stdlib/ltos.cpp
-  libc++/stdlib/strtol.cpp
-  libc++/stdlib/strtoul.cpp
-  libc++/stdlib/strtoll.cpp
-  libc++/stdlib/strtoull.cpp
-  libc++/stdlib/atoi.cpp
-  libc++/stdlib/atol.cpp
-  libc++/stdlib/abs.cpp
-  libc++/stdlib/div.cpp
+  libc++/stdlib/itos.cc
+  libc++/stdlib/utos.cc
+  libc++/stdlib/ltos.cc
+  libc++/stdlib/strtol.cc
+  libc++/stdlib/strtoul.cc
+  libc++/stdlib/strtoll.cc
+  libc++/stdlib/strtoull.cc
+  libc++/stdlib/atoi.cc
+  libc++/stdlib/atol.cc
+  libc++/stdlib/abs.cc
+  libc++/stdlib/div.cc
 )
 
 doors_test_module(test_libcpp_stdio_header
-  libc++/stdio/putchar.cpp
-  libc++/stdio/puts.cpp
-  libc++/stdio/printf.cpp
+  libc++/stdio/putchar.cc
+  libc++/stdio/puts.cc
+  libc++/stdio/printf.cc
 )
 
 doors_test_module(test_libcpp_ctype_header
-  libc++/ctype/isalnum.cpp
-  libc++/ctype/isalpha.cpp
-  libc++/ctype/isblank.cpp
-  libc++/ctype/iscntrl.cpp
-  libc++/ctype/isdigit.cpp
-  libc++/ctype/isxdigit.cpp
-  libc++/ctype/isgraph.cpp
-  libc++/ctype/ispunct.cpp
-  libc++/ctype/isspace.cpp
-  libc++/ctype/islower.cpp
-  libc++/ctype/isupper.cpp
-  libc++/ctype/isprint.cpp
-  libc++/ctype/tolower.cpp
-  libc++/ctype/toupper.cpp
+  libc++/ctype/isalnum.cc
+  libc++/ctype/isalpha.cc
+  libc++/ctype/isblank.cc
+  libc++/ctype/iscntrl.cc
+  libc++/ctype/isdigit.cc
+  libc++/ctype/isxdigit.cc
+  libc++/ctype/isgraph.cc
+  libc++/ctype/ispunct.cc
+  libc++/ctype/isspace.cc
+  libc++/ctype/islower.cc
+  libc++/ctype/isupper.cc
+  libc++/ctype/isprint.cc
+  libc++/ctype/tolower.cc
+  libc++/ctype/toupper.cc
 )
 
 doors_test_module(test_libcpp_algorithm_header
-  libc++/algorithm/min.cpp
-  libc++/algorithm/max.cpp
-  libc++/algorithm/swap.cpp
+  libc++/algorithm/min.cc
+  libc++/algorithm/max.cc
+  libc++/algorithm/swap.cc
 )
 
 # The following tests compile kernel code for host-side testing.
 
-set(HEAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Heap.cpp")
+set(HEAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Heap.cc")
 doors_test_module(test_kernel_heap
-  heap/kmalloc.cpp
-  heap/kfree.cpp
-  heap/fragmentation.cpp
-  heap/alignment.cpp
-  heap/oom.cpp
+  heap/kmalloc.cc
+  heap/kfree.cc
+  heap/fragmentation.cc
+  heap/alignment.cc
+  heap/oom.cc
   "${HEAP_SRC}"
 )
 
-set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cpp")
-set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cpp")
+set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cc")
+set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cc")
 doors_test_module(test_kernel_kbd
-  kbd/scancode_table.cpp
-  kbd/ring_buffer.cpp
-  kbd/readline.cpp
-  kbd/keymap.cpp
-  kbd/modifiers.cpp
-  stubs.cpp
+  kbd/scancode_table.cc
+  kbd/ring_buffer.cc
+  kbd/readline.cc
+  kbd/keymap.cc
+  kbd/modifiers.cc
+  stubs.cc
   "${KBD_SRC}"
   "${KBD_KEYMAP_SRC}"
 )
 
 doors_test_module(test_kernel_kbd_caps_is_ctrl
-  kbd/caps_is_ctrl.cpp
-  stubs.cpp
+  kbd/caps_is_ctrl.cc
+  stubs.cc
   "${KBD_SRC}"
   "${KBD_KEYMAP_SRC}"
 )
 target_compile_definitions(test_kernel_kbd_caps_is_ctrl PRIVATE CAPS_LOCK_IS_CTRL)
 
-set(PIT_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Pit.cpp")
+set(PIT_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Pit.cc")
 doors_test_module(test_kernel_pit
-  pit/uptime_math.cpp
-  stubs.cpp
+  pit/uptime_math.cc
+  stubs.cc
   "${PIT_SRC}"
 )
 
-set(SHELL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Shell.cpp")
-set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cpp")
-set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cpp")
+set(SHELL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Shell.cc")
+set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cc")
+set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cc")
 doors_test_module(test_kernel_shell
-  shell/tokenizer.cpp
-  shell/dispatch.cpp
-  shell/commands.cpp
-  shell/history.cpp
-  stubs.cpp
+  shell/tokenizer.cc
+  shell/dispatch.cc
+  shell/commands.cc
+  shell/history.cc
+  stubs.cc
   "${KBD_SRC}"
   "${KBD_KEYMAP_SRC}"
   "${SHELL_SRC}"
 )
 
-set(TTY_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Tty.cpp")
+set(TTY_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Tty.cc")
 doors_test_module(test_kernel_tty
-  tty/backspace.cpp
-  tty/cursor.cpp
-  tty/scrollback.cpp
-  tty/vga_ram.cpp
-  stubs.cpp
+  tty/backspace.cc
+  tty/cursor.cc
+  tty/scrollback.cc
+  tty/vga_ram.cc
+  stubs.cc
   "${TTY_SRC}"
 )

@@ -24,7 +24,7 @@ void Pic::disableInt()
 {
 }
 
-// Weak stubs so test targets, that also link the real kernel source code (like Tty.cpp and target
+// Weak stubs so test targets, that also link the real kernel source code (like Tty.cc and target
 // test_tty), pick up the real implementations instead. But otherwise they are stubs.
 
 __attribute__((weak)) void Tty::cursorEnable()
