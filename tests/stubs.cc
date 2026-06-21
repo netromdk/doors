@@ -85,3 +85,8 @@ __attribute__((weak)) void Tty::scrollbackLineDown()
 __attribute__((weak)) void Kbd::clearNavigation()
 {
 }
+
+// Empty symbol table for test builds that link kernel/Panic.cc.
+#include <kernel/Symbols.h>
+const SymbolEntry symbol_table[] = {};
+const int symbol_table_count = 0;

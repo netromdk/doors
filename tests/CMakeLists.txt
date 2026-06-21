@@ -208,3 +208,10 @@ doors_test_module(test_kernel_tty
   stubs.cc
   "${TTY_SRC}"
 )
+
+set(SYMBOLS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Symbols.cc")
+doors_test_module(test_kernel_symbols
+  symbols/test_symbols.cc
+  symbols/mock_table.cc
+  "${SYMBOLS_SRC}"
+)
