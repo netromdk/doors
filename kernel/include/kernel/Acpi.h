@@ -1,7 +1,7 @@
 #ifndef KERNEL_ACPI_H
 #define KERNEL_ACPI_H
 
-#include <stdint.h>
+#include <cstdint>
 
 // Root System Descriptor, version 1.
 struct Rsd {

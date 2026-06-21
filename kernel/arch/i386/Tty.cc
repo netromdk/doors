@@ -1,8 +1,8 @@
-#include <algorithm.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
 #include <string>
 
 #include <kernel/Io.h>

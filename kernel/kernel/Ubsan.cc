@@ -1,7 +1,7 @@
 // NOTE: The functions in this file must be isolated here since other functionality, elsewhere in
 // the kernel that also implements the same behavior, is NOT compiled with `no_sanitize()`.
 
-#include <stdint.h>
+#include <cstdint>
 
 #include <kernel/Vga.h>
 

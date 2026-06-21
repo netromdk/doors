@@ -6,7 +6,7 @@
  * memory segments.
  */
 
-#include <stdint.h>
+#include <cstdint>
 
 // 0x0500 to 0x7BFF is guaranteed to be free for use.
 static constexpr uint32_t GDT_BASE = 0x0000500;

@@ -1,7 +1,7 @@
-#include <algorithm.h>
-#include <ctype.h>
-#include <stddef.h>
-#include <stdlib.h>
+#include <algorithm>
+#include <cctype>
+#include <cstddef>
+#include <cstdlib>
 
 void ltos(uint64_t num, char *str, uint8_t base, bool upcase)
 {

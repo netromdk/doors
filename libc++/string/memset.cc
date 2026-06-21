@@ -1,6 +1,6 @@
-#include <stdint.h>
-#include <string.h>
-#include <stdio.h>
+#include <cstdint>
+#include <cstring>
+#include <cstdio>
 
 void *memset(void *ptr, int value, size_t num)
 {

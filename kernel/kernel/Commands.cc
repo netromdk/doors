@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 
 #include <arch/i386/Pic.h>
 #include <kernel/Cmos.h>

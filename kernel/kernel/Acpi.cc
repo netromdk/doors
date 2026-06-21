@@ -1,7 +1,7 @@
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
 
 #include <kernel/Acpi.h>
 #include <kernel/Bda.h>

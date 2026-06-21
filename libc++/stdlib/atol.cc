@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <cstdlib>
 
 int64_t atol(const char *str)
 {

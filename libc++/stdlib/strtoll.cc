@@ -1,7 +1,7 @@
-#include <ctype.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
 
 int64_t strtoll(const char *str, char **endptr, int base)
 {

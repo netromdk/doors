@@ -1,5 +1,5 @@
-#include <assert.h>
-#include <stddef.h>
+#include <cassert>
+#include <cstddef>
 #include <string>
 
 #ifdef __IS_DOORS_KERNEL

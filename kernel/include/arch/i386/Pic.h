@@ -7,7 +7,7 @@
  * - http://wiki.osdev.org/PIC#Programming_with_the_8259_PIC
  */
 
-#include <stdint.h>
+#include <cstdint>
 
 // Ports.
 static constexpr uint16_t PIC1 = 0x20, // Master PIC.

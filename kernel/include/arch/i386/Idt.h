@@ -1,7 +1,7 @@
 #ifndef ARCH_I386_IDT_H
 #define ARCH_I386_IDT_H
 
-#include <stdint.h>
+#include <cstdint>
 
 /**
  * The Interrupt Descriptor Table (IDT) tells the CPU information

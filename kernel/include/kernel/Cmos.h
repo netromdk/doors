@@ -1,7 +1,7 @@
 #ifndef KERNEL_CMOS_H
 #define KERNEL_CMOS_H
 
-#include <stdint.h>
+#include <cstdint>
 
 class Cmos {
 public:

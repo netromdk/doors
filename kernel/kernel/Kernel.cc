@@ -6,10 +6,10 @@
 #error "This must be compiled as x86"
 #endif
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
 
 #include <kernel/Arch.h>
 #include <kernel/Commands.h>

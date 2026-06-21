@@ -1,7 +1,7 @@
 #ifndef KERNEL_PIT_H
 #define KERNEL_PIT_H
 
-#include <stdint.h>
+#include <cstdint>
 
 // PIT hardware constants.
 static constexpr uint16_t PIT_CMD = 0x43;

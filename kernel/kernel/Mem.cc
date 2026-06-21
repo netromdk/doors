@@ -1,5 +1,5 @@
-#include <stddef.h>
-#include <stdio.h>
+#include <cstddef>
+#include <cstdio>
 
 #include <kernel/Cpu.h>
 #include <kernel/Mem.h>

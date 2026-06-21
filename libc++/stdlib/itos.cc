@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <cstdlib>
 
 void itos(int32_t num, char *str, uint8_t base, bool upcase)
 {

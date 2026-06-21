@@ -1,7 +1,7 @@
 #ifndef ALGORITHM_H
 #define ALGORITHM_H
 
-#include <stddef.h>
+#include <cstddef>
 #include <sys/cdefs.h>
 
 template <typename T>

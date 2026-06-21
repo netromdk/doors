@@ -5,8 +5,8 @@
 #ifndef KERNEL_I386_EXCEPTION_HANDLERS_H
 #define KERNEL_I386_EXCEPTION_HANDLERS_H
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 extern "C" {
 

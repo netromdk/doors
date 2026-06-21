@@ -1,7 +1,7 @@
 #ifndef KERNEL_BDA_H
 #define KERNEL_BDA_H
 
-#include <stdint.h>
+#include <cstdint>
 
 // (Extended) BIOS Data Area.
 

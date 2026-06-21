@@ -2,7 +2,7 @@
 #define KERNEL_SCANCODES_H
 
 #include <kernel/Keymap.h>
-#include <stdint.h>
+#include <cstdint>
 
 constexpr uint8_t MOD_NONE = 0x00;
 constexpr uint8_t MOD_SHIFT = 0x01;

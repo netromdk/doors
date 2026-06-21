@@ -1,7 +1,7 @@
 #ifndef STDLIB_H
 #define STDLIB_H
 
-#include <stdint.h>
+#include <cstdint>
 #include <sys/cdefs.h>
 
 __attribute__((__noreturn__)) void abort() noexcept;

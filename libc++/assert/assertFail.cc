@@ -1,6 +1,6 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
 
 void __assertFail(const char *exp, const char *file, int line)
 {

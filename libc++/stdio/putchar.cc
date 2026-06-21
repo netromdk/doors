@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 
 #ifdef __IS_DOORS_KERNEL
 #include <kernel/Tty.h>

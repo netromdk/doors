@@ -1,7 +1,7 @@
 #ifndef KERNEL_CPU_H
 #define KERNEL_CPU_H
 
-#include <stdint.h>
+#include <cstdint>
 
 static constexpr auto CPUID_VENDOR_OLDAMD = "AMDisbetter!",
   CPUID_VENDOR_AMD = "AuthenticAMD",

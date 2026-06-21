@@ -1,7 +1,7 @@
 #ifndef ASSERT_H
 #define ASSERT_H
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #ifdef NDEBUG
 #define assert(exp) ((void) 0);

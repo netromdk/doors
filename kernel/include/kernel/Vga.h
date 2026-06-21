@@ -1,8 +1,8 @@
 #ifndef KERNEL_VGA_H
 #define KERNEL_VGA_H
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 // Address of VRAM - color text mode.
 // Defined in Vga.cc and is overridable at link time for host tests.

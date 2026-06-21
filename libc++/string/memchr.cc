@@ -1,5 +1,5 @@
-#include <stdint.h>
-#include <string.h>
+#include <cstdint>
+#include <cstring>
 
 const void *memchr(const void *ptr, int value, size_t num)
 {

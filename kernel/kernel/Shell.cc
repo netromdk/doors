@@ -1,5 +1,5 @@
-#include <ctype.h>
-#include <stdio.h>
+#include <cctype>
+#include <cstdio>
 
 #include <arch/i386/Pic.h>
 #include <kernel/Kbd.h>

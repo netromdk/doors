@@ -5,7 +5,7 @@
 #ifndef KERNEL_I386_INTERRUPT_HANDLERS_H
 #define KERNEL_I386_INTERRUPT_HANDLERS_H
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <arch/i386/Pic.h>
 #include <kernel/Kbd.h>

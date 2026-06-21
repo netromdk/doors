@@ -1,7 +1,7 @@
 #ifndef KERNEL_SHELL_H
 #define KERNEL_SHELL_H
 
-#include <stddef.h>
+#include <cstddef>
 #include <string>
 
 struct Command {

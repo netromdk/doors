@@ -1,5 +1,5 @@
-#include <algorithm.h>
-#include <string.h>
+#include <algorithm>
+#include <cstring>
 
 int strcmp(const char *str1, const char *str2)
 {

@@ -1,7 +1,7 @@
 #ifndef KERNEL_IO_H
 #define KERNEL_IO_H
 
-#include <stdint.h>
+#include <cstdint>
 
 class Io {
 public:

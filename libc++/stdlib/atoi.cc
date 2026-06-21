@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <cstdlib>
 
 int32_t atoi(const char *str)
 {

@@ -2,7 +2,7 @@
 #define KERNEL_MEMORY_H
 
 #include <kernel/Multiboot.h>
-#include <stddef.h>
+#include <cstddef>
 
 class Mem {
 public:

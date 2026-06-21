@@ -1,7 +1,7 @@
 #ifndef KERNEL_TTY_H
 #define KERNEL_TTY_H
 
-#include <stdint.h>
+#include <cstdint>
 
 class Tty {
 public:

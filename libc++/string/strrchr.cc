@@ -1,4 +1,4 @@
-#include <string.h>
+#include <cstring>
 
 /**
  * Searches for the last position of the char in the string. Note that \0 is considered part of the

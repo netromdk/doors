@@ -1,4 +1,4 @@
-#include <string.h>
+#include <cstring>
 
 /**
  * Searches for the char in the string. Note that \0 is considered part of the string and can also

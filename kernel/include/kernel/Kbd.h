@@ -1,8 +1,8 @@
 #ifndef KERNEL_KBD_H
 #define KERNEL_KBD_H
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 #include <string>
 
 struct HistoryCtx {

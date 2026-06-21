@@ -1,5 +1,5 @@
-#include <stdint.h>
-#include <string.h>
+#include <cstdint>
+#include <cstring>
 
 #include <arch/i386/Gdt.h>
 

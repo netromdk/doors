@@ -1,7 +1,7 @@
 #ifndef KERNEL_KEYMAP_H
 #define KERNEL_KEYMAP_H
 
-#include <stdint.h>
+#include <cstdint>
 
 enum class Key : uint32_t {
   // ASCII control codes

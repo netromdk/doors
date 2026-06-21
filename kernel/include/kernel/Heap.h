@@ -1,8 +1,8 @@
 #ifndef KERNEL_HEAP_H
 #define KERNEL_HEAP_H
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 class Heap {
 public:

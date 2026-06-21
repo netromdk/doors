@@ -1,5 +1,5 @@
-#include <stdint.h>
-#include <string.h>
+#include <cstdint>
+#include <cstring>
 
 void *memmove(void *dst, const void *src, size_t num)
 {

@@ -1,6 +1,6 @@
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cstdlib>
+#include <cstring>
 
 uint64_t strtoull(const char *str, char **endptr, int base)
 {

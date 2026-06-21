@@ -1,7 +1,7 @@
 #ifndef KERNEL_VERSION_H
 #define KERNEL_VERSION_H
 
-#include <stdint.h>
+#include <cstdint>
 
 static constexpr uint16_t MAJOR_VERSION = 0,
   MINOR_VERSION = 1,

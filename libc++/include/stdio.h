@@ -3,9 +3,9 @@
 
 #include <sys/cdefs.h>
 
-#include <assert.h>
-#include <ctype.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cctype>
+#include <cstdlib>
 
 int putchar(int ic);
 int puts(const char *str);
