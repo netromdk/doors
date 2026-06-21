@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <sys/cdefs.h>
 
+static constexpr int EXIT_SUCCESS = 0;
+static constexpr int EXIT_FAILURE = 1;
+
 __attribute__((__noreturn__)) void abort() noexcept;
 
 void itos(int32_t num, char *str, uint8_t base = 10, bool upcase = false);
