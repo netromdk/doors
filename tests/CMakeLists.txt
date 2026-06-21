@@ -215,3 +215,11 @@ doors_test_module(test_kernel_symbols
   symbols/mock_table.cc
   "${SYMBOLS_SRC}"
 )
+
+set(PANIC_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Panic.cc")
+doors_test_module(test_kernel_panic
+  panic/test_panic.cc
+  stubs.cc
+  "${PANIC_SRC}"
+  "${SYMBOLS_SRC}"
+)
