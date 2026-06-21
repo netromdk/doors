@@ -47,3 +47,33 @@ TEST_CASE("echo_registered")
   CHECK(handlerCalled == true);
   CHECK(handlerArgc == 2);
 }
+
+TEST_CASE("panic_registered")
+{
+  handlerCalled = false;
+  Command cmd{"panic", "trigger panic", testHandler};
+  Shell::registerCmd(cmd);
+
+  string line = "panic";
+  string argv[MAX_ARGS];
+  bool result = dispatchLine(line, argv);
+
+  CHECK(result == true);
+  CHECK(handlerCalled == true);
+  CHECK(handlerArgc == 1);
+}
+
+TEST_CASE("panic_with_args")
+{
+  handlerCalled = false;
+  Command cmd{"panic", "trigger panic", testHandler};
+  Shell::registerCmd(cmd);
+
+  string line = "panic now";
+  string argv[MAX_ARGS];
+  bool result = dispatchLine(line, argv);
+
+  CHECK(result == true);
+  CHECK(handlerCalled == true);
+  CHECK(handlerArgc == 2);
+}

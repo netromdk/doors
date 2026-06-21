@@ -7,6 +7,7 @@
 #include <kernel/Heap.h>
 #include <kernel/Io.h>
 #include <kernel/Mem.h>
+#include <kernel/Panic.h>
 #include <kernel/Pit.h>
 #include <kernel/Shell.h>
 #include <kernel/Tty.h>
@@ -97,6 +98,11 @@ void cmdHeap(int, const string *)
   printf("Largest block: %u bytes\n", Heap::largestFreeBlock());
 }
 
+void cmdPanic(int, const string *)
+{
+  panic("triggered from shell");
+}
+
 } // namespace
 
 void initCommands()
@@ -119,6 +125,7 @@ void initCommands()
     {.name = "echo", .desc = "Echo text back to the terminal", .handler = cmdEcho},
     {.name = "ticks", .desc = "Show raw PIT tick count", .handler = cmdTicks},
     {.name = "heap", .desc = "Show heap allocator statistics", .handler = cmdHeap},
+    {.name = "panic", .desc = "Trigger a kernel panic", .handler = cmdPanic},
   };
 
   for (auto &cmd : cmds) {
