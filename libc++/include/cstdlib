@@ -1,0 +1,6 @@
+#ifndef CSTDLIB_H
+#define CSTDLIB_H
+
+#include <stdlib.h>
+
+#endif // CSTDLIB_H

@@ -1,0 +1,6 @@
+#ifndef CALGORITHM_H
+#define CALGORITHM_H
+
+#include <algorithm.h>
+
+#endif // CALGORITHM_H
