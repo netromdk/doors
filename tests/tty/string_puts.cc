@@ -68,3 +68,47 @@ TEST_CASE("puts_string_empty_does_nothing")
   CHECK(Tty::getRow() == 7);
   CHECK(Tty::getCol() == 3);
 }
+
+TEST_CASE("putLine_fills_entire_row")
+{
+  Tty::cls();
+  Tty::setColor(vgaColor(COLOR_WHITE, COLOR_RED));
+  Tty::putLine(string("ab"), 2);
+
+  uint8_t attr = vgaColor(COLOR_WHITE, COLOR_RED);
+  CHECK(VGA_RAM[2 * VGA_WIDTH + 0] == vgaEntry('a', attr));
+  CHECK(VGA_RAM[2 * VGA_WIDTH + 1] == vgaEntry('b', attr));
+  for (int col = 2; col < VGA_WIDTH; ++col) {
+    CHECK(VGA_RAM[2 * VGA_WIDTH + col] == vgaEntry(' ', attr));
+  }
+}
+
+TEST_CASE("putLine_sets_cursor_to_end")
+{
+  Tty::cls();
+  Tty::putLine(string("hello"), 5);
+
+  CHECK(Tty::getRow() == 5);
+  CHECK(Tty::getCol() == 5);
+}
+
+TEST_CASE("putLine_empty_row_clears_row")
+{
+  Tty::cls();
+  Tty::setColor(vgaColor(COLOR_LIGHT_GREEN, COLOR_BLACK));
+  Tty::putLine(string(""), 0);
+
+  for (int col = 0; col < VGA_WIDTH; ++col) {
+    CHECK(VGA_RAM[0 * VGA_WIDTH + col] == vgaEntry(' ', vgaColor(COLOR_LIGHT_GREEN, COLOR_BLACK)));
+  }
+}
+
+TEST_CASE("putLine_uses_termColor")
+{
+  Tty::cls();
+  Tty::setColor(vgaColor(COLOR_RED, COLOR_BLUE));
+  Tty::putLine(string("X"), 3);
+
+  CHECK(VGA_RAM[3 * VGA_WIDTH + 0] == vgaEntry('X', vgaColor(COLOR_RED, COLOR_BLUE)));
+  CHECK(VGA_RAM[3 * VGA_WIDTH + 1] == vgaEntry(' ', vgaColor(COLOR_RED, COLOR_BLUE)));
+}

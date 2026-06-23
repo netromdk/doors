@@ -22,6 +22,9 @@ public:
   static int puts(const string &str);
   static int puts(const string &str, uint8_t row, uint8_t col);
 
+  static void putLine(const char *str, uint8_t row);
+  static void putLine(const string &str, uint8_t row);
+
   static void cursorEnable();
   static void cursorDisable();
   static void cursorSetPos(uint8_t row, uint8_t col);

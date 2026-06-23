@@ -238,6 +238,29 @@ int Tty::puts(const string &str, uint8_t row, uint8_t col)
   return puts(str.c_str(), row, col);
 }
 
+void Tty::putLine(const char *str, uint8_t row)
+{
+  termRow = row;
+
+  size_t i = 0;
+  for (; str[i] && i < VGA_WIDTH; ++i) {
+    VGA_RAM[row * VGA_WIDTH + i] = vgaEntry(str[i], termColor);
+  }
+  termCol = static_cast<uint8_t>(i);
+
+  // Fill the rest of the line.
+  for (; i < VGA_WIDTH; ++i) {
+    VGA_RAM[row * VGA_WIDTH + i] = vgaEntry(' ', termColor);
+  }
+
+  cursorUpdate();
+}
+
+void Tty::putLine(const string &str, uint8_t row)
+{
+  putLine(str.c_str(), row);
+}
+
 uint8_t Tty::getRow()
 {
   return termRow;

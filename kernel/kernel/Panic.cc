@@ -6,6 +6,7 @@
 #include <kernel/Symbols.h>
 #include <string>
 #ifdef __IS_DOORS_KERNEL
+#include <kernel/Tty.h>
 #include <kernel/Vga.h>
 #endif
 
@@ -143,11 +144,8 @@ void dumpCpuState(const CpuState *state)
   dumpBacktrace();
 
 #ifdef __IS_DOORS_KERNEL
-  // Show a red line at the top.
-  string banner = " KERNEL PANIC!";
-  for (size_t i = 0; i < VGA_WIDTH; ++i) {
-    VGA_RAM[i] = vgaEntry(i < banner.size() ? banner[i] : ' ', vgaColor(COLOR_WHITE, COLOR_RED));
-  }
+  Tty::setColor(vgaColor(COLOR_WHITE, COLOR_RED));
+  Tty::putLine(" KERNEL PANIC!", 0);
 #endif
 
   for (;;) {

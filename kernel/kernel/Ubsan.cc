@@ -42,18 +42,17 @@ static void ubsan_panic(const char *check, uintptr_t ptr, const char *type_name)
 
   dumpBacktrace();
 
-  // Write the top VGA line last such that `printf()` cannot scroll it away.
   Tty::setColor(vgaColor(COLOR_WHITE, COLOR_RED));
   if (type_name) {
-    Tty::puts("UBSan: ", 0, 0);
-    Tty::puts(check, 1, 0);
-    Tty::puts(hex_str(ptr), 2, 0);
-    Tty::puts(type_name, 3, 0);
+    Tty::putLine("UBSan: ", 0);
+    Tty::putLine(check, 1);
+    Tty::putLine(hex_str(ptr), 2);
+    Tty::putLine(type_name, 3);
   }
   else {
     string line = "UBSan: ";
     line += check;
-    Tty::puts(line, 0, 0);
+    Tty::putLine(line, 0);
   }
 
   asm volatile("cli; hlt");
