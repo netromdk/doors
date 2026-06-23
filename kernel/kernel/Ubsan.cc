@@ -3,6 +3,7 @@
 #include <string>
 
 #include <kernel/Backtrace.h>
+#include <kernel/Tty.h>
 #include <kernel/Vga.h>
 
 namespace {
@@ -27,33 +28,6 @@ string hex_str(uintptr_t addr)
   return s;
 }
 
-void vga_write(const char *s)
-{
-  volatile uint16_t *vga = reinterpret_cast<volatile uint16_t *>(0xB8000);
-  uint8_t attr = 0x4F;
-  size_t i = 0;
-  for (; s[i]; ++i) {
-    vga[i] = static_cast<uint16_t>(s[i]) | (static_cast<uint16_t>(attr) << 8);
-  }
-  for (; i < VGA_WIDTH; ++i) {
-    vga[i] = static_cast<uint16_t>(' ') | (static_cast<uint16_t>(attr) << 8);
-  }
-}
-
-void vga_write_at(const char *s, int row)
-{
-  volatile uint16_t *vga = reinterpret_cast<volatile uint16_t *>(0xB8000);
-  uint8_t attr = 0x4F;
-  int off = row * VGA_WIDTH;
-  size_t i = 0;
-  for (; s[i]; ++i) {
-    vga[off + i] = static_cast<uint16_t>(s[i]) | (static_cast<uint16_t>(attr) << 8);
-  }
-  for (; i < VGA_WIDTH; ++i) {
-    vga[off + i] = static_cast<uint16_t>(' ') | (static_cast<uint16_t>(attr) << 8);
-  }
-}
-
 } // namespace
 
 [[noreturn, gnu::no_sanitize("undefined")]]
@@ -69,16 +43,17 @@ static void ubsan_panic(const char *check, uintptr_t ptr, const char *type_name)
   dumpBacktrace();
 
   // Write the top VGA line last such that `printf()` cannot scroll it away.
+  Tty::setColor(vgaColor(COLOR_WHITE, COLOR_RED));
   if (type_name) {
-    vga_write_at("UBSan: ", 0);
-    vga_write_at(check, 1);
-    vga_write_at(hex_str(ptr).c_str(), 2);
-    vga_write_at(type_name, 3);
+    Tty::puts("UBSan: ", 0, 0);
+    Tty::puts(check, 1, 0);
+    Tty::puts(hex_str(ptr).c_str(), 2, 0);
+    Tty::puts(type_name, 3, 0);
   }
   else {
     string line = "UBSan: ";
     line += check;
-    vga_write(line.c_str());
+    Tty::puts(line.c_str(), 0, 0);
   }
 
   asm volatile("cli; hlt");
