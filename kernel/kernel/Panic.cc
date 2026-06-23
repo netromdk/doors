@@ -1,10 +1,10 @@
 #include <arch/i386/Pic.h>
 #include <cstdint>
 #include <cstdio>
-#include <cstring>
 #include <kernel/Backtrace.h>
 #include <kernel/Panic.h>
 #include <kernel/Symbols.h>
+#include <string>
 #ifdef __IS_DOORS_KERNEL
 #include <kernel/Vga.h>
 #endif
@@ -144,14 +144,9 @@ void dumpCpuState(const CpuState *state)
 
 #ifdef __IS_DOORS_KERNEL
   // Show a red line at the top.
-  uint8_t red = vgaColor(COLOR_WHITE, COLOR_RED);
-  const char *banner = " KERNEL PANIC!";
-  size_t len = strlen(banner);
-  for (size_t i = 0; i < len; ++i) {
-    VGA_RAM[i] = vgaEntry(banner[i], red);
-  }
-  for (size_t i = len; i < VGA_WIDTH; ++i) {
-    VGA_RAM[i] = vgaEntry(' ', red);
+  string banner = " KERNEL PANIC!";
+  for (size_t i = 0; i < VGA_WIDTH; ++i) {
+    VGA_RAM[i] = vgaEntry(i < banner.size() ? banner[i] : ' ', vgaColor(COLOR_WHITE, COLOR_RED));
   }
 #endif
 
