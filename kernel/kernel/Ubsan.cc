@@ -61,21 +61,25 @@ static void ubsan_panic(const char *check, uintptr_t ptr, const char *type_name)
 {
   if (type_name) {
     printf("UBSan: %s ptr=0x%x type=%s\n", check, (uint32_t) ptr, type_name);
+  }
+  else {
+    printf("UBSan: %s\n", check);
+  }
 
+  dumpBacktrace();
+
+  // Write the top VGA line last such that `printf()` cannot scroll it away.
+  if (type_name) {
     vga_write_at("UBSan: ", 0);
     vga_write_at(check, 1);
     vga_write_at(hex_str(ptr).c_str(), 2);
     vga_write_at(type_name, 3);
   }
   else {
-    printf("UBSan: %s\n", check);
-
     string line = "UBSan: ";
     line += check;
     vga_write(line.c_str());
   }
-
-  dumpBacktrace();
 
   asm volatile("cli; hlt");
   __builtin_unreachable();
