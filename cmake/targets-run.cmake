@@ -1,7 +1,7 @@
 find_program(QEMU_EXECUTABLE qemu-system-i386)
 
 set(QEMU_FLAGS "")
-if (SERIAL_DEBUG)
+if (SERIAL_DEBUG OR KERNEL_UBSAN)
   list(APPEND QEMU_FLAGS -serial file:${CMAKE_BINARY_DIR}/doors.log)
 endif()
 

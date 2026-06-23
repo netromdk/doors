@@ -11,7 +11,7 @@ else()
   message(STATUS "Verbose build: OFF")
 endif()
 
-if (SERIAL_DEBUG)
+if (SERIAL_DEBUG OR KERNEL_UBSAN)
   add_compile_definitions(DEBUG_THROUGH_SERIAL_COM1)
   message(STATUS "Serial debug: ON (printf mirrored to COM1 -> doors.log)")
 else()
@@ -41,14 +41,6 @@ if (SANITIZERS)
   message(STATUS "Sanitizers: ${SANITIZERS}")
 else()
   message(STATUS "Sanitizers: none")
-endif()
-
-if (KERNEL_UBSAN AND SERIAL_DEBUG)
-  message(FATAL_ERROR
-    "KERNEL_UBSAN and SERIAL_DEBUG cannot be enabled simultaneously.\n"
-    "UBSan handlers write directly to UART I/O, which conflicts with the serial debug hook.\n"
-    "Disable one of them and reconfigure.\n"
-  )
 endif()
 
 if (KERNEL_UBSAN)
