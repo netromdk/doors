@@ -212,6 +212,9 @@ void Tty::putc(char ch, uint8_t row, uint8_t col)
   VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(ch, termColor);
 }
 
+// NOTE: Both `const char*` and `string` overloads have their own loops rather than delegating one
+// to the other, because `string(const char*)` calls `Heap::alloc()` when the string exceeds
+// SSO. The panic/UBSan paths must never risk heap allocation!
 int Tty::puts(const char *str)
 {
   size_t len = strlen(str);
@@ -230,16 +233,23 @@ int Tty::puts(const char *str, uint8_t row, uint8_t col)
 
 int Tty::puts(const string &str)
 {
-  return puts(str.c_str());
+  for (size_t i = 0; i < str.size(); i++) {
+    putc(str[i]);
+  }
+  return str.size();
 }
 
 int Tty::puts(const string &str, uint8_t row, uint8_t col)
 {
-  return puts(str.c_str(), row, col);
+  termRow = row;
+  termCol = col;
+  return puts(str);
 }
 
 void Tty::putLine(const char *str, uint8_t row)
 {
+  // NOTE: Must use its own loop (not construct a string from str) because `string(const char*)` may
+  // heap-allocate when SSO is exceeded.
   termRow = row;
 
   size_t i = 0;
@@ -258,7 +268,19 @@ void Tty::putLine(const char *str, uint8_t row)
 
 void Tty::putLine(const string &str, uint8_t row)
 {
-  putLine(str.c_str(), row);
+  termRow = row;
+
+  size_t i = 0;
+  for (; i < str.size() && i < VGA_WIDTH; ++i) {
+    VGA_RAM[row * VGA_WIDTH + i] = vgaEntry(str[i], termColor);
+  }
+  termCol = static_cast<uint8_t>(i);
+
+  for (; i < VGA_WIDTH; ++i) {
+    VGA_RAM[row * VGA_WIDTH + i] = vgaEntry(' ', termColor);
+  }
+
+  cursorUpdate();
 }
 
 uint8_t Tty::getRow()
