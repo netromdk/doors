@@ -204,6 +204,7 @@ doors_test_module(test_kernel_tty
   tty/backspace.cc
   tty/cursor.cc
   tty/scrollback.cc
+  tty/string_puts.cc
   tty/vga_ram.cc
   stubs.cc
   "${TTY_SRC}"

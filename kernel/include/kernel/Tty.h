@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+class string;
+
 class Tty {
 public:
   static constexpr int SCROLLBACK_LINES = 1000;
@@ -17,6 +19,8 @@ public:
 
   static int puts(const char *str);
   static int puts(const char *str, uint8_t row, uint8_t col);
+  static int puts(const string &str);
+  static int puts(const string &str, uint8_t row, uint8_t col);
 
   static void cursorEnable();
   static void cursorDisable();

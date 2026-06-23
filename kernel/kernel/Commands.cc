@@ -1,5 +1,7 @@
 #include <cstdio>
 
+#include <kernel/Tty.h>
+
 #include <arch/i386/Pic.h>
 #include <kernel/Cmos.h>
 #include <kernel/Commands.h>
@@ -82,7 +84,7 @@ void cmdEcho(int argc, const string *argv)
     if (i > 1) {
       putchar(' ');
     }
-    printf("%s", argv[i].c_str());
+    Tty::puts(argv[i]);
   }
   putchar('\n');
 }

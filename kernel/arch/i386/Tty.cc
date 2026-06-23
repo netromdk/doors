@@ -228,6 +228,16 @@ int Tty::puts(const char *str, uint8_t row, uint8_t col)
   return puts(str);
 }
 
+int Tty::puts(const string &str)
+{
+  return puts(str.c_str());
+}
+
+int Tty::puts(const string &str, uint8_t row, uint8_t col)
+{
+  return puts(str.c_str(), row, col);
+}
+
 uint8_t Tty::getRow()
 {
   return termRow;

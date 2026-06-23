@@ -47,13 +47,13 @@ static void ubsan_panic(const char *check, uintptr_t ptr, const char *type_name)
   if (type_name) {
     Tty::puts("UBSan: ", 0, 0);
     Tty::puts(check, 1, 0);
-    Tty::puts(hex_str(ptr).c_str(), 2, 0);
+    Tty::puts(hex_str(ptr), 2, 0);
     Tty::puts(type_name, 3, 0);
   }
   else {
     string line = "UBSan: ";
     line += check;
-    Tty::puts(line.c_str(), 0, 0);
+    Tty::puts(line, 0, 0);
   }
 
   asm volatile("cli; hlt");
