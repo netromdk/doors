@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <cstdio>
+#include <string>
 
 #include <kernel/Backtrace.h>
 #include <kernel/Vga.h>
@@ -17,17 +18,13 @@ static char hex_nibble(uint8_t v)
   return v < 10 ? '0' + v : 'a' + v - 10;
 }
 
-const char *hex_str(uintptr_t addr)
+string hex_str(uintptr_t addr)
 {
-  static char buf[16]{};
-  buf[0] = '0';
-  buf[1] = 'x';
-  for (int i = 0; i < 8; ++i) {
-    uint8_t nib = static_cast<uint8_t>(addr >> (28 - i * 4)) & 0xF;
-    buf[2 + i] = hex_nibble(nib);
+  string s = "0x";
+  for (int i = 28; i >= 0; i -= 4) {
+    s += hex_nibble(static_cast<uint8_t>(addr >> i) & 0xF);
   }
-  buf[10] = '\0';
-  return buf;
+  return s;
 }
 
 void vga_write(const char *s)
@@ -65,22 +62,15 @@ static void ubsan_panic(const char *check, uintptr_t ptr, const char *type_name)
   if (type_name) {
     vga_write_at("UBSan: ", 0);
     vga_write_at(check, 1);
-    vga_write_at(hex_str(ptr), 2);
+    vga_write_at(hex_str(ptr).c_str(), 2);
     vga_write_at(type_name, 3);
 
     printf("UBSan: %s ptr=0x%x type=%s\n", check, (uint32_t) ptr, type_name);
   }
   else {
-    char line[VGA_WIDTH + 1]{};
-    size_t p = 0;
-    const char *prefix = "UBSan: ";
-    for (size_t i = 0; prefix[i] && p < VGA_WIDTH; ++i) {
-      line[p++] = prefix[i];
-    }
-    for (size_t i = 0; check[i] && p < VGA_WIDTH; ++i) {
-      line[p++] = check[i];
-    }
-    vga_write(line);
+    string line = "UBSan: ";
+    line += check;
+    vga_write(line.c_str());
 
     printf("UBSan: %s\n", check);
   }
