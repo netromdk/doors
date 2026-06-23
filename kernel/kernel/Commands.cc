@@ -103,6 +103,15 @@ void cmdPanic(int, const string *)
   panic("triggered from shell");
 }
 
+#ifdef __IS_DOORS_UBSAN
+void cmdUbsan(int argc, const string *)
+{
+  // Trigger signed overflow.
+  int x = __INT_MAX__ + argc;
+  (void) x;
+}
+#endif
+
 } // namespace
 
 void initCommands()
@@ -126,6 +135,9 @@ void initCommands()
     {.name = "ticks", .desc = "Show raw PIT tick count", .handler = cmdTicks},
     {.name = "heap", .desc = "Show heap allocator statistics", .handler = cmdHeap},
     {.name = "panic", .desc = "Trigger a kernel panic", .handler = cmdPanic},
+#ifdef __IS_DOORS_UBSAN
+    {.name = "ubsan", .desc = "Trigger a UBSan violation", .handler = cmdUbsan},
+#endif
   };
 
   for (auto &cmd : cmds) {

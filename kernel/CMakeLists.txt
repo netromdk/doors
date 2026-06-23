@@ -79,6 +79,7 @@ if (KERNEL_UBSAN)
     -fsanitize=undefined
     -fno-sanitize-recover=all  # Trap immediately. No recovery in a bare-metal kernel.
   )
+  target_compile_definitions(kernel_objs PRIVATE __IS_DOORS_UBSAN)
 
   # Exclude Ubsan.cc itself from instrumentation to prevent recursive handler invocations.
   set_source_files_properties(kernel/Ubsan.cc PROPERTIES

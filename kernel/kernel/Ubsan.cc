@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <cstdio>
 
+#include <kernel/Backtrace.h>
 #include <kernel/Vga.h>
 
 namespace {
@@ -84,6 +85,7 @@ static void ubsan_panic(const char *check, uintptr_t ptr, const char *type_name)
     printf("UBSan: %s\n", check);
   }
 
+  dumpBacktrace();
 
   asm volatile("cli; hlt");
   __builtin_unreachable();
