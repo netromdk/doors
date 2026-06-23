@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <doctest/doctest.h>
+#include <kernel/Backtrace.h>
 #include <kernel/Panic.h>
 
 TEST_CASE("readCpuState fills all fields")

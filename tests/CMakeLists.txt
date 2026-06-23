@@ -216,10 +216,12 @@ doors_test_module(test_kernel_symbols
   "${SYMBOLS_SRC}"
 )
 
+set(BACKTRACE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Backtrace.cc")
 set(PANIC_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Panic.cc")
 doors_test_module(test_kernel_panic
   panic/test_panic.cc
   stubs.cc
+  "${BACKTRACE_SRC}"
   "${PANIC_SRC}"
   "${SYMBOLS_SRC}"
 )

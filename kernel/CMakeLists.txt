@@ -59,6 +59,7 @@ add_library(
   kernel/Heap.cc
   kernel/Shell.cc
   kernel/Commands.cc
+  kernel/Backtrace.cc
   kernel/Panic.cc
   kernel/Symbols.cc
 )

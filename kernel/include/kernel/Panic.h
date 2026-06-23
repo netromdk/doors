@@ -27,7 +27,6 @@ struct CpuState {
 
 void readCpuState(CpuState *state);
 void dumpCpuState(const CpuState *state);
-void dumpBacktrace();
 [[noreturn]] void panic(const char *msg);
 
 #endif // KERNEL_PANIC_H
