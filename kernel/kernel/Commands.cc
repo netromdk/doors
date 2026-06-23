@@ -110,6 +110,13 @@ void cmdUbsan(int argc, const string *)
   int x = __INT_MAX__ + argc;
   (void) x;
 }
+
+void cmdUbsanPtr(int, const string *)
+{
+  // Trigger type_mismatch_v1.
+  int *p = nullptr;
+  *p = 0;
+}
 #endif
 
 } // namespace
@@ -136,7 +143,8 @@ void initCommands()
     {.name = "heap", .desc = "Show heap allocator statistics", .handler = cmdHeap},
     {.name = "panic", .desc = "Trigger a kernel panic", .handler = cmdPanic},
 #ifdef __IS_DOORS_UBSAN
-    {.name = "ubsan", .desc = "Trigger a UBSan violation", .handler = cmdUbsan},
+    {.name = "ubsan", .desc = "Trigger UBSan overflow", .handler = cmdUbsan},
+    {.name = "ubsanp", .desc = "Trigger UBSan type mismatch", .handler = cmdUbsanPtr},
 #endif
   };
 
