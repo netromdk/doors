@@ -1,3 +1,5 @@
+find_package(Python3 REQUIRED)
+
 set(ARCH_DIR "${CMAKE_CURRENT_SOURCE_DIR}/arch/i386")
 set(LINKER_SCRIPT "${ARCH_DIR}/Linker.ld")
 
@@ -128,7 +130,7 @@ set_target_properties(doors_firstpass PROPERTIES OUTPUT_NAME "doors_firstpass")
 set(GENERATED_SYMBOL_TABLE "${CMAKE_CURRENT_BINARY_DIR}/symbol_table.cc")
 add_custom_command(
   OUTPUT ${GENERATED_SYMBOL_TABLE}
-  COMMAND "${CMAKE_SOURCE_DIR}/scripts/gen-symbols.sh"
+  COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/scripts/gen-symbols.py"
     "${CMAKE_CURRENT_BINARY_DIR}/doors_firstpass.kernel"
     "${GENERATED_SYMBOL_TABLE}"
   DEPENDS doors_firstpass

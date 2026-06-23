@@ -5,12 +5,12 @@ extern const int symbol_table_count;
 
 // Do binary search with range matching.
 //
-// The symbol table is sorted by ascending address (from `nm -n` via "gen-symbol.sh"), and each
+// The symbol table is sorted by ascending address (from `nm -n` via "gen-symbols.py"), and each
 // function occupies addresses [symbol_table[i].address, symbol_table[i+1].address). From the first
 // address to the next but not including. Instead of exact matching, it is enough to find which
 // function's range contains the address (the input `addr`).
 //
-// "gen-symbols.sh" appends a sentinel entry with `name=nullptr` and `address=_kernel_end` to bound
+// "gen-symbols.py" appends a sentinel entry with `name=nullptr` and `address=_kernel_end` to bound
 // the last real symbol. When the search lands on the sentinel, `nextAddr = 0xFFFFFFFF` and
 // `addr < 0xFFFFFFFF` is always true, nullptr is returned.
 //
