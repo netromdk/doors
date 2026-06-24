@@ -9,7 +9,7 @@ exceptions/interrupts support, and a keyboard driver. Then dropping into a simpl
 processing simple commands like querying CPU information, uptime, memory available/used,
 start/stop/monitor timers etc. Maybe being able to play a simple "Snake" game or similar.
 
-![Doors shell running in QEMU](misc/doors.png)
+![Doors shell running in QEMU](misc/doors_panic.png)
 
 ## What it does
 
