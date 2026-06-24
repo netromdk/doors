@@ -148,6 +148,11 @@ set_tests_properties(test_libcpp_abort PROPERTIES WILL_FAIL TRUE)
 # The following tests compile kernel code for host-side testing.
 
 set(HEAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Heap.cc")
+doors_test_module(test_kernel_heap_initstate
+  heap/is_initialized.cc
+  "${HEAP_SRC}"
+)
+
 doors_test_module(test_kernel_heap
   heap/kmalloc.cc
   heap/kfree.cc

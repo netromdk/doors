@@ -10,6 +10,7 @@ public:
   static constexpr size_t MIN_BLOCK = 32;
 
   static void init(void *start, size_t size);
+  static bool isInitialized();
   static void *alloc(size_t size);
   static void free(void *ptr);
 

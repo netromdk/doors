@@ -36,6 +36,8 @@ struct Heap::FreeNode {
   FreeNode *next;
 };
 
+static bool ready = false;
+
 Heap::FreeNode *Heap::freeList_ = nullptr;
 size_t Heap::heapStart_ = 0;
 size_t Heap::heapEnd_ = 0;
@@ -51,11 +53,12 @@ void Heap::init(void *start, size_t size)
   first->next = nullptr;
 
   freeList_ = first;
+  ready = true;
+}
 
-  /*
-  printf("Heap: %u KB at 0x%X\n", static_cast<unsigned>(size / 1024),
-         static_cast<unsigned>(heapStart_));
-  */
+bool Heap::isInitialized()
+{
+  return ready;
 }
 
 void Heap::addToFreeList(FreeNode *node)
