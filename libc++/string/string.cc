@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <string>
 
 #ifdef __IS_DOORS_KERNEL
@@ -21,6 +22,17 @@ void string::checkNotNull(const char *p) noexcept
 char *string::allocate(size_type cap) noexcept
 {
 #ifdef __IS_DOORS_KERNEL
+  if (!Heap::isInitialized()) {
+    const char *msg = "string alloc before Heap::init()";
+    auto *vga = reinterpret_cast<uint16_t *>(0xB8000);
+    for (int i = 0; msg[i]; i++) {
+      vga[i] = static_cast<uint16_t>(msg[i]) | 0x0C00;
+    }
+    for (;;) {
+      __asm__("hlt");
+    }
+  }
+
   char *p = static_cast<char *>(Heap::alloc(cap + 1));
 #else
   char *p = static_cast<char *>(malloc(cap + 1));
