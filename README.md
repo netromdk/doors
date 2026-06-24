@@ -16,7 +16,7 @@ start/stop/monitor timers etc. Maybe being able to play a simple "Snake" game or
 | Subsystem | Status | Details |
 |---|---|---|
 | **Boot** | Working | Multiboot-compliant, GRUB-loaded, 32-bit protected mode |
-| **VGA TTY** | Working | 80×25 text mode |
+| **VGA TTY** | Working | 80x25 text mode |
 | **printf** | Working | Variadic template with `%d %u %x %s %c %b` support |
 | **Keyboard** | Working | Set 1 scancodes, shift/ctrl/alt/caps, 256-byte ring buffer, line editing (backspace, Ctrl+U) |
 | **PIT timer** | Working | 1000 Hz, uptime ms/s queries |
@@ -27,8 +27,8 @@ start/stop/monitor timers etc. Maybe being able to play a simple "Snake" game or
 | **CMOS/RTC** | Working | Time-of-day read at boot |
 | **CPU detection** | Working | Vendor, brand string, feature flags |
 | **Memory map** | Working | Multiboot memory map, upper/lower KB detection |
-| **Serial debug** | Optional | COM1 mirror for `printf` (conflicts with `KERNEL_UBSAN`) |
-| **UBSan (kernel)** | Optional | Instrument kernel with `-fsanitize=undefined`, panics via COM1 + VGA |
+| **Serial debug** | Optional | COM1 mirror for `printf` |
+| **UBSan (kernel)** | Optional | Instrument kernel with `-fsanitize=undefined`, panics via `printf` to COM1 + VGA |
 | **Test suite** | Working | ~200+ host-compiled doctest cases, ASan/UBSan enabled |
 
 ### Shell commands
@@ -155,7 +155,7 @@ ninja xz     # build/default/doors.xz
 | `VERBOSE_BUILD` | `OFF` | Show raw compiler/linker commands during build |
 | `HOST_CXX_COMPILER` | _(auto)_ | Host C++ compiler for tests; auto-detects clang++ then g++ |
 | `SANITIZERS` | _(none)_ | Sanitizers for host-compiled tests (e.g. `address;undefined`) |
-| `KERNEL_UBSAN` | `OFF` | Instrument the kernel with UBSan (handlers panic via direct UART I/O) |
+| `KERNEL_UBSAN` | `OFF` | Instrument the kernel with UBSan (also captured in `doors.log`) |
 | `CAPS_LOCK_IS_CTRL` | `OFF` | Remap Caps Lock to Left Control |
 
 Pass options at configure time:
