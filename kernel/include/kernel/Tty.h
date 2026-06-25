@@ -2,11 +2,13 @@
 #define KERNEL_TTY_H
 
 #include <cstdint>
+#include <kernel/Vga.h>
 
 class string;
 
 class Tty {
 public:
+  static constexpr uint8_t DEFAULT_COLOR = vgaColor(COLOR_LIGHT_GREEN, COLOR_BLACK);
   static constexpr int SCROLLBACK_LINES = 1000;
 
   static void setColor(uint8_t color);

@@ -16,8 +16,6 @@
 
 namespace {
 
-constexpr uint8_t DEFAULT_COLOR = vgaColor(COLOR_LIGHT_GREEN, COLOR_BLACK);
-
 // Reserve row 0 for status indicator.
 constexpr int SCROLLBACK_VIEW_HEIGHT = VGA_HEIGHT - 1;
 
@@ -25,7 +23,7 @@ static constexpr char STATUS_PREFIX[] = "-- SCROLLBACK (offset ";
 static constexpr char STATUS_MIDDLE[] = " of ";
 static constexpr char STATUS_SUFFIX[] = ") --";
 
-static constinit uint8_t termRow = 0, termCol = 0, termColor = DEFAULT_COLOR;
+static constinit uint8_t termRow = 0, termCol = 0, termColor = Tty::DEFAULT_COLOR;
 static constinit bool scrolling = true;
 
 // Scrollback ring buffer.
@@ -41,7 +39,7 @@ static constinit uint16_t savedScreen_[VGA_HEIGHT][VGA_WIDTH]{};
 
 void clearRow(uint8_t row)
 {
-  termColor = DEFAULT_COLOR;
+  termColor = Tty::DEFAULT_COLOR;
   for (uint8_t col = 0; col < VGA_WIDTH; col++) {
     Tty::putc(' ', row, col);
   }
@@ -169,7 +167,7 @@ void Tty::setScrolling(bool enabled)
 void Tty::cls()
 {
   termRow = termCol = 0;
-  termColor = DEFAULT_COLOR;
+  termColor = Tty::DEFAULT_COLOR;
   size_t total = VGA_WIDTH * VGA_HEIGHT;
   for (size_t i = 0; i < total; i++) {
     VGA_RAM[i] = vgaEntry(' ', termColor);
@@ -364,7 +362,7 @@ void Tty::scrollbackShow(int offset)
   // Display the indicator on VGA.
   for (size_t col = 0; col < VGA_WIDTH; col++) {
     char ch = col < buf.size() ? buf[col] : ' ';
-    VGA_RAM[0 * VGA_WIDTH + col] = vgaEntry(ch, DEFAULT_COLOR);
+    VGA_RAM[0 * VGA_WIDTH + col] = vgaEntry(ch, Tty::DEFAULT_COLOR);
   }
 
   // Display scrollback content on rows 1 to VGA_HEIGHT-1.
@@ -373,7 +371,7 @@ void Tty::scrollbackShow(int offset)
 
     if (lineFromEnd > scrollbackCount_ || lineFromEnd < bottom) {
       for (size_t col = 0; col < VGA_WIDTH; col++) {
-        VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(' ', DEFAULT_COLOR);
+        VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(' ', Tty::DEFAULT_COLOR);
       }
     }
     else {
@@ -381,7 +379,7 @@ void Tty::scrollbackShow(int offset)
       const char *line = scrollbackBuf_[actualIdx];
       for (size_t col = 0; col < VGA_WIDTH; col++) {
         char ch = line[col] != '\0' ? line[col] : ' ';
-        VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(ch, DEFAULT_COLOR);
+        VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(ch, Tty::DEFAULT_COLOR);
       }
     }
   }
