@@ -131,8 +131,14 @@ void dumpCpuState(const CpuState *state)
 {
   Pic::disableInt();
 
+#ifdef __IS_DOORS_KERNEL
+  Tty::setColor(vgaColor(COLOR_RED, COLOR_BLACK));
+#endif
   printf("\n\nKernel: I'm sorry Dave, I'm afraid I can't do that\n");
   printf("Reason: %s\n\n", msg);
+#ifdef __IS_DOORS_KERNEL
+  Tty::setColor(Tty::DEFAULT_COLOR);
+#endif
 
   CpuState state{};
   readCpuState(&state);
@@ -144,8 +150,39 @@ void dumpCpuState(const CpuState *state)
   dumpBacktrace();
 
 #ifdef __IS_DOORS_KERNEL
-  Tty::setColor(vgaColor(COLOR_WHITE, COLOR_RED));
-  Tty::putLine(" KERNEL PANIC!", 0);
+  // Show HAL's eye at the top-right corner.
+  static const char *hal[] = {
+    "     .---.",
+    "   /       \\",
+    "  |  .---.  |",
+    "  | |     | |",
+    "  | |  O  | |",
+    "  | |     | |",
+    "  |  '---'  |",
+    "   \\       /",
+    "     '---'",
+  };
+  uint8_t grey = vgaColor(COLOR_DARK_GREY, COLOR_BLACK);
+  for (int i = 0; i < 9; i++) {
+    for (int j = 0; hal[i][j]; j++) {
+      VGA_RAM[(1 + i) * VGA_WIDTH + 67 + j] = vgaEntry(hal[i][j], grey);
+    }
+  }
+
+  // Make the eye red.
+  uint8_t red = vgaColor(COLOR_RED, COLOR_BLACK);
+  VGA_RAM[5 * VGA_WIDTH + 74] = vgaEntry('O', red);
+
+  // KERNEL PANIC banner on top row.
+  uint8_t whiteOnRed = vgaColor(COLOR_WHITE, COLOR_RED);
+  size_t j = 0;
+  const char *banner = " KERNEL PANIC!";
+  for (; banner[j]; j++) {
+    VGA_RAM[j] = vgaEntry(banner[j], whiteOnRed);
+  }
+  for (; j < VGA_WIDTH; j++) {
+    VGA_RAM[j] = vgaEntry(' ', whiteOnRed);
+  }
 #endif
 
   for (;;) {
