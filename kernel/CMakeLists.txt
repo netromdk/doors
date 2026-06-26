@@ -63,6 +63,7 @@ add_library(
   kernel/Commands.cc
   kernel/Backtrace.cc
   kernel/Panic.cc
+  kernel/Scheduler.cc
   kernel/Symbols.cc
 )
 
