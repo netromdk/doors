@@ -234,6 +234,22 @@ doors_test_module(test_kernel_panic
   "${SYMBOLS_SRC}"
 )
 
+set(HEAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Heap.cc")
+set(SCHED_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Scheduler.cc")
+set(PANIC_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Panic.cc")
+set(BTRACE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Backtrace.cc")
+set(SYMBOLS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Symbols.cc")
+doors_test_module(test_kernel_scheduler
+  scheduler/Init.cc
+  scheduler/StackFrame.cc
+  stubs.cc
+  "${HEAP_SRC}"
+  "${SCHED_SRC}"
+  "${PANIC_SRC}"
+  "${BTRACE_SRC}"
+  "${SYMBOLS_SRC}"
+)
+
 set(SNAKE_GAME_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/programs/snake/SnakeGame.cc")
 doors_test_module(test_kernel_snake
   snake/Direction.cc

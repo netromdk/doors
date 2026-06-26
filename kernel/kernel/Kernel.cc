@@ -16,6 +16,7 @@
 #include <kernel/Heap.h>
 #include <kernel/Mem.h>
 #include <kernel/Multiboot.h>
+#include <kernel/Scheduler.h>
 #include <kernel/Serial.h>
 #include <kernel/Shell.h>
 #include <kernel/Tty.h>
@@ -68,6 +69,8 @@ void kmain()
   else {
     printf("Warning: no memory available for heap\n");
   }
+
+  Scheduler::init();
 
   printf("\n<<Doors are open>>\n");
 

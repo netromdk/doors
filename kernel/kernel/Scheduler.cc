@@ -1,0 +1,203 @@
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+
+#include <kernel/Heap.h>
+#include <kernel/Panic.h>
+#include <kernel/Scheduler.h>
+
+Task Scheduler::tasks_[MAX_TASKS]{};
+int Scheduler::taskCount_{0};
+int Scheduler::currentIdx_{0};
+int Scheduler::quantumRemaining_{0};
+bool Scheduler::initialized_{false};
+
+void Scheduler::init()
+{
+  for (int i = 0; i < MAX_TASKS; ++i) {
+    tasks_[i] = {};
+  }
+  tasks_[0].state = TaskState::RUNNING;
+  tasks_[0].id = 0;
+  tasks_[0].entry = nullptr;
+  tasks_[0].stackBuf = nullptr;
+  tasks_[0].stackSize = 0;
+  strncpy(tasks_[0].name, "shell", sizeof(tasks_[0].name) - 1);
+  tasks_[0].name[sizeof(tasks_[0].name) - 1] = '\0';
+  taskCount_ = 1;
+  currentIdx_ = 0;
+  quantumRemaining_ = QUANTUM_TICKS;
+  initialized_ = true;
+}
+
+int Scheduler::addTask(const char *name, void (*entry)())
+{
+  // Disable interrupts while modifying the shared task table so the timer ISR, which calls
+  // `tick()`, does not see a partially-initialized slot.
+#ifdef __IS_DOORS_KERNEL
+  __asm__("cli");
+#endif
+
+  const int id = addTaskImpl(name, entry);
+
+  // Re-enable interrupts after the new task slot is fully set up.
+#ifdef __IS_DOORS_KERNEL
+  __asm__("sti");
+#endif
+
+  return id;
+}
+
+int Scheduler::findSlot()
+{
+  for (int i = 0; i < taskCount_; ++i) {
+    if (tasks_[i].state == TaskState::DEAD) {
+      return i;
+    }
+  }
+  if (taskCount_ >= MAX_TASKS) {
+    return -1;
+  }
+  return taskCount_++;
+}
+
+uint32_t Scheduler::initStackFrame(uint8_t *stack, void (*entry)())
+{
+  // Canary at the base of the buffer to detect overflow.
+  reinterpret_cast<uint32_t *>(stack)[0] = Task::STACK_CANARY;
+
+  // Build the register frame that `popal; iret` will pop when the task first runs. Frame layout
+  // matches what the timer ISR pushed: the top 12 bytes are consumed by `iret` (EIP -> CS ->
+  // EFLAGS, popped high-to-low), and the preceding 32 bytes are consumed by `popal` (EDI -> ESI ->
+  // EBP -> ESP_dummy -> EBX -> EDX -> ECX -> EAX).
+  //
+  // The frame sits at the TOP of the stack buffer so the task's normal stack growth (downward)
+  // extends away from it, not into it.
+  //
+  // Offsets are negative from `stackTop` (the byte just past the allocated region):
+  const auto stackTop = reinterpret_cast<uint32_t *>(stack + TASK_STACK_SIZE);
+
+  // iret frame (12 bytes)
+  stackTop[-1] = 0x00000202; // EFLAGS: IF=1 so interrupts are enabled the first time the task runs.
+  stackTop[-2] = 0x08;       // CS: i386 kernel Code Segment selector.
+  stackTop[-3] = static_cast<uint32_t>(reinterpret_cast<unsigned long long>(entry)); // EIP
+
+  // popal frame (32 bytes)
+  stackTop[-4] = 0;  // EAX
+  stackTop[-5] = 0;  // ECX
+  stackTop[-6] = 0;  // EDX
+  stackTop[-7] = 0;  // EBX
+  stackTop[-8] = 0;  // ESP_dummy written by `pushal` but ignored by `popal`
+  stackTop[-9] = 0;  // EBP
+  stackTop[-10] = 0; // ESI
+  stackTop[-11] = 0; // EDI
+
+  return static_cast<uint32_t>(reinterpret_cast<unsigned long long>(stackTop - 11));
+}
+
+int Scheduler::addTaskImpl(const char *name, void (*entry)())
+{
+  const int slot = findSlot();
+  if (slot < 0) {
+    return -1;
+  }
+
+  Task &t = tasks_[slot];
+  if (t.stackBuf != nullptr) {
+    Heap::free(t.stackBuf);
+    t.stackBuf = nullptr;
+  }
+
+  auto *stack = static_cast<uint8_t *>(Heap::alloc(TASK_STACK_SIZE));
+  if (stack == nullptr) {
+    return -1;
+  }
+
+  t.esp = initStackFrame(stack, &Scheduler::taskWrapper);
+  t.entry = entry;
+  t.state = TaskState::READY;
+  t.id = static_cast<uint8_t>(slot);
+  t.stackBuf = stack;
+  t.stackSize = TASK_STACK_SIZE;
+  strncpy(t.name, name, sizeof(t.name) - 1);
+  t.name[sizeof(t.name) - 1] = '\0';
+
+  return slot;
+}
+
+void Scheduler::taskWrapper()
+{
+  if (tasks_[currentIdx_].entry) {
+    tasks_[currentIdx_].entry();
+  }
+  exitCurrentTask();
+}
+
+uint32_t Scheduler::tick(uint32_t currentEsp)
+{
+  if (!initialized_) {
+    return 0;
+  }
+  tasks_[currentIdx_].esp = currentEsp;
+  checkCanary(tasks_[currentIdx_]);
+  // TODO: need to do switching here later..
+  return 0;
+}
+
+int Scheduler::addTaskAndBlock(const char *, void (*)())
+{
+  // TODO
+  return -1;
+}
+
+[[noreturn]] void Scheduler::exitCurrentTask()
+{
+#ifdef __IS_DOORS_KERNEL
+  __asm__("cli");
+#endif
+  tasks_[currentIdx_].state = TaskState::DEAD;
+  for (;;) {
+#ifdef __IS_DOORS_KERNEL
+    __asm__("sti\n\thlt");
+#else
+    // This is unreachable in tests. Spin forever.
+#endif
+  }
+}
+
+void Scheduler::unblockTask(int)
+{
+  // TODO
+}
+
+int Scheduler::currentTaskId()
+{
+  return currentIdx_;
+}
+
+int Scheduler::findNext()
+{
+  if (taskCount_ <= 1) {
+    return -1;
+  }
+  for (int i = 0; i < taskCount_ - 1; ++i) {
+    const int idx = (currentIdx_ + 1 + i) % taskCount_;
+    if (tasks_[idx].state == TaskState::READY) {
+      return idx;
+    }
+  }
+  return -1;
+}
+
+void Scheduler::checkCanary(const Task &t)
+{
+  if (t.stackBuf == nullptr) {
+    return;
+  }
+  if (t.state == TaskState::DEAD) {
+    return;
+  }
+  if (reinterpret_cast<const uint32_t *>(t.stackBuf)[0] != Task::STACK_CANARY) {
+    panic("stack overflow");
+  }
+}
