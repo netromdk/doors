@@ -138,10 +138,39 @@ uint32_t Scheduler::tick(uint32_t currentEsp)
   if (!initialized_) {
     return 0;
   }
+
+  // Save the interrupted task's register frame pointer (`esp`).
   tasks_[currentIdx_].esp = currentEsp;
+
+  // Detect stack overflow before it corrupts the saved frame.
   checkCanary(tasks_[currentIdx_]);
-  // TODO: need to do switching here later..
-  return 0;
+
+  // Charge one tick against the current task's quantum. If quantum remains, stay.
+  if (--quantumRemaining_ > 0) {
+    return 0;
+  }
+
+  // Quantum expired. Find the next READY task by round-robin approach.
+  const int next = findNext();
+  if (next < 0) {
+    // No other runnable task exists. Keep running with a fresh quantum.
+    quantumRemaining_ = QUANTUM_TICKS;
+    return 0;
+  }
+
+  // Switch to the chosen task and return its saved `esp`.
+  return switchTo(next);
+}
+
+uint32_t Scheduler::switchTo(int next)
+{
+  if (tasks_[currentIdx_].state == TaskState::RUNNING) {
+    tasks_[currentIdx_].state = TaskState::READY;
+  }
+  currentIdx_ = next;
+  tasks_[currentIdx_].state = TaskState::RUNNING;
+  quantumRemaining_ = QUANTUM_TICKS;
+  return tasks_[currentIdx_].esp;
 }
 
 int Scheduler::addTaskAndBlock(const char *, void (*)())

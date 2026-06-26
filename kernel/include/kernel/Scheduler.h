@@ -38,6 +38,7 @@ private:
   static uint32_t initStackFrame(uint8_t *stack, void (*entry)());
   static int addTaskImpl(const char *name, void (*entry)());
   static int findNext();
+  static uint32_t switchTo(int next);
   static void checkCanary(const Task &t);
   static void taskWrapper();
 };
