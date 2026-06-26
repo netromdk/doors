@@ -173,10 +173,37 @@ uint32_t Scheduler::switchTo(int next)
   return tasks_[currentIdx_].esp;
 }
 
-int Scheduler::addTaskAndBlock(const char *, void (*)())
+int Scheduler::addTaskAndBlock(const char *name, void (*entry)())
 {
-  // TODO
-  return -1;
+#ifdef __IS_DOORS_KERNEL
+  __asm__("cli");
+#endif
+
+  const int id = addTaskImpl(name, entry);
+  if (id < 0) {
+#ifdef __IS_DOORS_KERNEL
+    __asm__("sti");
+#endif
+    return -1;
+  }
+
+  tasks_[currentIdx_].state = TaskState::BLOCKED;
+  while (tasks_[currentIdx_].state == TaskState::BLOCKED) {
+#ifdef __IS_DOORS_KERNEL
+    // The three statements must run sequentially without a race window (if separated into three ASM
+    // statements), where the compiler could schedule other instructions in between.
+    __asm__("sti\n\thlt\n\tcli");
+#else
+    // The calling task is now BLOCKED but the scheduler is still executing on its stack.
+    // This path is test-only: the loop exits so the test can continue.
+    break;
+#endif
+  }
+
+#ifdef __IS_DOORS_KERNEL
+  __asm__("sti");
+#endif
+  return id;
 }
 
 [[noreturn]] void Scheduler::exitCurrentTask()
@@ -194,9 +221,11 @@ int Scheduler::addTaskAndBlock(const char *, void (*)())
   }
 }
 
-void Scheduler::unblockTask(int)
+void Scheduler::unblockTask(int id)
 {
-  // TODO
+  if (id >= 0 && id < taskCount_ && tasks_[id].state == TaskState::BLOCKED) {
+    tasks_[id].state = TaskState::READY;
+  }
 }
 
 int Scheduler::currentTaskId()
