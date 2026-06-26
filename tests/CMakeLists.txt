@@ -71,6 +71,7 @@ function(doors_test_module name)
   target_include_directories(${name} PRIVATE
     "${DOORS_LIBC_INC_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../kernel"
   )
   target_link_libraries(${name} PRIVATE test_main libc++test)
   add_test(NAME ${name} COMMAND ${name})
@@ -231,4 +232,18 @@ doors_test_module(test_kernel_panic
   "${BACKTRACE_SRC}"
   "${PANIC_SRC}"
   "${SYMBOLS_SRC}"
+)
+
+set(SNAKE_GAME_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/programs/snake/SnakeGame.cc")
+doors_test_module(test_kernel_snake
+  snake/Direction.cc
+  snake/Body.cc
+  snake/Collision.cc
+  snake/Food.cc
+  snake/Prng.cc
+  snake/stubs.cc
+  "${SNAKE_GAME_SRC}"
+)
+target_include_directories(test_kernel_snake PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/../kernel"
 )
