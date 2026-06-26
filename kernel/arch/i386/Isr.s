@@ -30,5 +30,18 @@ asmInt\name:
 .endm
 
 INTHANDLER Dummy
-INTHANDLER Tick
+.globl asmIntTick
+.align 4
+asmIntTick:
+        pushal                  // Save 8 GP regs (32 bytes).
+        cld
+        pushl %esp              // Pass post-pushal esp as argument.
+        call  intTick           // `uint32_t intTick(uint32_t currentEsp)`.
+        addl  $4, %esp          // Pop argument.
+        testl %eax, %eax        // 0 = no switch, non-zero = new esp.
+        jz    .Lno_switch_tick
+        movl  %eax, %esp        // Load new task's saved frame.
+.Lno_switch_tick:
+        popal
+        iret
 INTHANDLER Kbd
