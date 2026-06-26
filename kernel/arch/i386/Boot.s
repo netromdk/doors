@@ -18,6 +18,12 @@
 # room for a small temporary stack by creating a symbol at the bottom of it,
 # then allocating 16384 bytes for it, and finally creating a symbol at the top.
 .section .bootstrap_stack, "aw", @nobits
+
+# Align stack to 16 bytes so all stack-allocated objects satisfy at least
+# 4-byte alignment. Without this, `stack_top` lands at 0x...1 when BSS size is
+# not a multiple of 4, causing UBSan `type_mismatch` false-positives.
+.align 16
+
 stack_bottom:
 .skip 16384 # 16 KiB
 stack_top:
