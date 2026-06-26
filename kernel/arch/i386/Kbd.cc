@@ -165,6 +165,49 @@ char Kbd::getChar()
   return ch;
 }
 
+Kbd::KeyEvent Kbd::tryReadKey()
+{
+  if (pendingUp_ > 0) {
+    pendingUp_ = pendingUp_ - 1;
+    return {Key::Up};
+  }
+  if (pendingDown_ > 0) {
+    pendingDown_ = pendingDown_ - 1;
+    return {Key::Down};
+  }
+  if (pendingLeft_ > 0) {
+    pendingLeft_ = pendingLeft_ - 1;
+    return {Key::Left};
+  }
+  if (pendingRight_ > 0) {
+    pendingRight_ = pendingRight_ - 1;
+    return {Key::Right};
+  }
+  if (pendingPageUp_ > 0) {
+    pendingPageUp_ = pendingPageUp_ - 1;
+    return {Key::PageUp};
+  }
+  if (pendingPageDown_ > 0) {
+    pendingPageDown_ = pendingPageDown_ - 1;
+    return {Key::PageDown};
+  }
+  if (pendingHome_ > 0) {
+    pendingHome_ = pendingHome_ - 1;
+    return {Key::Home};
+  }
+  if (pendingEnd_ > 0) {
+    pendingEnd_ = pendingEnd_ - 1;
+    return {Key::End};
+  }
+  if (head_ != tail_) {
+    size_t t = tail_;
+    char ch = buffer_[t % BUF_SIZE];
+    tail_ = t + 1;
+    return {Key::Char, ch};
+  }
+  return {Key::Unknown};
+}
+
 void Kbd::readLine(string &line, HistoryCtx *history)
 {
   int pos = 0; // Cursor position (0..len).
@@ -345,7 +388,7 @@ void Kbd::processScancode(uint8_t scancode, bool extended)
   bool release = scancode & 0x80;
 
   // CapsLock toggles on make only (MOD_NONE in scancode table).
-  if (entry.key == Key::CapsLock) {
+  if (entry.key == ::Key::CapsLock) {
 #ifdef CAPS_LOCK_IS_CTRL
     ctrlPressed_ = !release;
 #else
@@ -373,30 +416,30 @@ void Kbd::processScancode(uint8_t scancode, bool extended)
   }
 
   // Navigation keys bypass the character ring buffer.
-  if (entry.key == Key::Up || entry.key == Key::Down || entry.key == Key::Left ||
-      entry.key == Key::Right || entry.key == Key::PageUp || entry.key == Key::PageDown ||
-      entry.key == Key::Home || entry.key == Key::End) {
+  if (entry.key == ::Key::Up || entry.key == ::Key::Down || entry.key == ::Key::Left ||
+      entry.key == ::Key::Right || entry.key == ::Key::PageUp || entry.key == ::Key::PageDown ||
+      entry.key == ::Key::Home || entry.key == ::Key::End) {
     if (!release) {
       switch (entry.key) {
-      case Key::Up:
+      case ::Key::Up:
         pendingUp_ = pendingUp_ + 1;
         return;
-      case Key::Down:
+      case ::Key::Down:
         pendingDown_ = pendingDown_ + 1;
         return;
-      case Key::Left:
+      case ::Key::Left:
         pendingLeft_ = pendingLeft_ + 1;
         return;
-      case Key::Right:
+      case ::Key::Right:
         pendingRight_ = pendingRight_ + 1;
         return;
-      case Key::PageUp:
+      case ::Key::PageUp:
         pendingPageUp_ = pendingPageUp_ + 1;
         return;
-      case Key::PageDown:
+      case ::Key::PageDown:
         pendingPageDown_ = pendingPageDown_ + 1;
         return;
-      case Key::Home:
+      case ::Key::Home:
         // Shift+Home is End key (on keyboards without that physical key).
         if (shiftPressed_) {
           pendingEnd_ = pendingEnd_ + 1;
@@ -405,7 +448,7 @@ void Kbd::processScancode(uint8_t scancode, bool extended)
           pendingHome_ = pendingHome_ + 1;
         }
         return;
-      case Key::End:
+      case ::Key::End:
         pendingEnd_ = pendingEnd_ + 1;
         return;
       default:

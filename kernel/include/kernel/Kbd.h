@@ -37,6 +37,27 @@ public:
 
   static void clearNavigation();
 
+  // Non-blocking input API.
+  enum class Key : uint8_t {
+    Unknown = 0,
+    Up,
+    Down,
+    Left,
+    Right,
+    PageUp,
+    PageDown,
+    Home,
+    End,
+    Char
+  };
+
+  struct KeyEvent {
+    Key key;
+    char ch{0}; // Set when `key == Key::Char`.
+  };
+
+  static KeyEvent tryReadKey();
+
   // Test helpers for modifier simulation
   static void processScancode(uint8_t scancode, bool extended);
   static bool isShiftPressed();

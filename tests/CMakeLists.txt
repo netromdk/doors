@@ -170,6 +170,7 @@ doors_test_module(test_kernel_kbd
   kbd/readline.cc
   kbd/keymap.cc
   kbd/modifiers.cc
+  kbd/TryReadKey.cc
   stubs.cc
   "${KBD_SRC}"
   "${KBD_KEYMAP_SRC}"
