@@ -33,7 +33,9 @@ public:
   void setDir(Dir d);
   bool step();
   void drawBoard() const;
+  void drawPause() const;
   void drawGameOver() const;
+  void clearOverlay() const;
   int score() const;
 
   static bool isOpposite(Dir cur, Dir next);

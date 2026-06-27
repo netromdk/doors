@@ -47,15 +47,31 @@ void snakeMain()
 
   uint64_t lastMove = Pit::uptimeMs();
   bool quit = false;
+  bool paused = false;
 
   while (true) {
     const auto ke = Input::poll();
+    if (ke.key == Input::Key::Char && (ke.ch == 'p' || ke.ch == 'P' || ke.ch == ' ')) {
+      paused = !paused;
+      if (paused) {
+        game.drawPause();
+      }
+      else {
+        game.clearOverlay();
+      }
+    }
+
     if (ke.key == Input::Key::Char && ke.ch == 'q') {
       quit = true;
       break;
     }
 
-    if (ke.key != Input::Key::Unknown) {
+    if (paused) {
+      __asm__("hlt");
+      continue;
+    }
+
+    if (ke.key >= Input::Key::Up && ke.key <= Input::Key::Right) {
       game.setDir(keyToDir(ke.key));
     }
 

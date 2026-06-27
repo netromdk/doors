@@ -135,6 +135,24 @@ void SnakeGame::drawBoard() const
   drawStatus();
 }
 
+void SnakeGame::drawPause() const
+{
+  constexpr const char msg[] = " PAUSED ";
+  constexpr uint8_t COLOR_PAUSE = 0x0E; // yellow on black
+  const int msgLen = strlen(msg);
+  const int col = (TOTAL_COLS - msgLen) / 2;
+  for (int i = 0; i < msgLen; ++i) {
+    drawAt({CENTER_ROW, col + i}, msg[i], COLOR_PAUSE);
+  }
+}
+
+void SnakeGame::clearOverlay() const
+{
+  for (int c = 1; c < RIGHT_WALL; ++c) {
+    eraseAt({CENTER_ROW, c});
+  }
+}
+
 void SnakeGame::drawGameOver() const
 {
   constexpr const char msg[] = " GAME OVER ";
