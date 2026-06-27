@@ -5,21 +5,134 @@
 
 namespace {
 
-// Pool for heap allocations during tests.
 alignas(16) uint8_t testPool[65536];
+
+// Exhaust the current task's quantum so a switch occurs. After `QUANTUM_TICKS` calls, `tick()`
+// returns the switched-to task's saved esp. Returns that esp, or 0 if no switch occurred (only one
+// task exists).
+uint32_t exhaustAndSwitch()
+{
+  uint32_t lastResult = 0;
+  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+    if (const auto r = Scheduler::tick(0x1000); r != 0) {
+      lastResult = r;
+    }
+  }
+  return lastResult;
+}
 
 } // namespace
 
-TEST_CASE("addTask: creates a task that tick() can save/check without panicking")
+TEST_CASE("addTask: stack canary written at stackBuf[0]")
 {
   Heap::init(testPool, sizeof(testPool));
   Scheduler::init();
+  REQUIRE(Scheduler::addTask("test", nullptr) >= 0);
 
-  const int id = Scheduler::addTask("test", nullptr);
-  REQUIRE(id >= 0);
+  // Exhaust quantum to trigger a switch to task 1.
+  const uint32_t esp = exhaustAndSwitch();
+  REQUIRE(esp != 0);
+  CHECK(Scheduler::currentTaskId() == 1);
 
-  // tick() saves current esp and checks the stack canary. Must not crash.
-  CHECK(Scheduler::tick(0) == 0);
+  const Task *t = Scheduler::testGetTask(1);
+  REQUIRE(t != nullptr);
+  REQUIRE(t->stackBuf != nullptr);
+  CHECK(reinterpret_cast<const uint32_t *>(t->stackBuf)[0] == Task::STACK_CANARY);
+}
+
+TEST_CASE("addTask: initial EFLAGS has IF set (0x202)")
+{
+  Heap::init(testPool, sizeof(testPool));
+  Scheduler::init();
+  REQUIRE(Scheduler::addTask("test", nullptr) >= 0);
+
+  const uint32_t esp = exhaustAndSwitch();
+  REQUIRE(esp != 0);
+
+  const Task *t = Scheduler::testGetTask(1);
+  REQUIRE(t != nullptr);
+  REQUIRE(t->stackBuf != nullptr);
+
+  const auto *frame = reinterpret_cast<const uint32_t *>(t->stackBuf + Scheduler::TASK_STACK_SIZE -
+                                                         Scheduler::FRAME_SIZE);
+  CHECK(frame[10] == 0x00000202);
+}
+
+TEST_CASE("addTask: initial CS is 0x08")
+{
+  Heap::init(testPool, sizeof(testPool));
+  Scheduler::init();
+  REQUIRE(Scheduler::addTask("test", nullptr) >= 0);
+
+  const uint32_t esp = exhaustAndSwitch();
+  REQUIRE(esp != 0);
+
+  const Task *t = Scheduler::testGetTask(1);
+  REQUIRE(t != nullptr);
+  REQUIRE(t->stackBuf != nullptr);
+
+  const auto *frame = reinterpret_cast<const uint32_t *>(t->stackBuf + Scheduler::TASK_STACK_SIZE -
+                                                         Scheduler::FRAME_SIZE);
+  CHECK(frame[9] == 0x08);
+}
+
+TEST_CASE("addTask: initial EIP is non-zero (taskWrapper)")
+{
+  Heap::init(testPool, sizeof(testPool));
+  Scheduler::init();
+  REQUIRE(Scheduler::addTask("test", nullptr) >= 0);
+
+  const uint32_t esp = exhaustAndSwitch();
+  REQUIRE(esp != 0);
+
+  const Task *t = Scheduler::testGetTask(1);
+  REQUIRE(t != nullptr);
+  REQUIRE(t->stackBuf != nullptr);
+
+  const auto *frame = reinterpret_cast<const uint32_t *>(t->stackBuf + Scheduler::TASK_STACK_SIZE -
+                                                         Scheduler::FRAME_SIZE);
+  CHECK(frame[8] != 0);
+}
+
+TEST_CASE("addTask: GP registers in frame are zeroed")
+{
+  Heap::init(testPool, sizeof(testPool));
+  Scheduler::init();
+  REQUIRE(Scheduler::addTask("test", nullptr) >= 0);
+
+  const uint32_t esp = exhaustAndSwitch();
+  REQUIRE(esp != 0);
+
+  const Task *t = Scheduler::testGetTask(1);
+  REQUIRE(t != nullptr);
+  REQUIRE(t->stackBuf != nullptr);
+
+  const auto *frame = reinterpret_cast<const uint32_t *>(t->stackBuf + Scheduler::TASK_STACK_SIZE -
+                                                         Scheduler::FRAME_SIZE);
+  for (int i = 0; i < 8; ++i) {
+    CHECK(frame[i] == 0);
+  }
+}
+
+TEST_CASE("addTask: task.esp points to correct offset within stackBuf")
+{
+  Heap::init(testPool, sizeof(testPool));
+  Scheduler::init();
+  REQUIRE(Scheduler::addTask("test", nullptr) >= 0);
+
+  const uint32_t esp = exhaustAndSwitch();
+  REQUIRE(esp != 0);
+
+  const Task *t = Scheduler::testGetTask(1);
+  REQUIRE(t != nullptr);
+  REQUIRE(t->stackBuf != nullptr);
+
+  // esp must equal `stackBuf + TASK_STACK_SIZE - FRAME_SIZE`. On a host build the full pointer is
+  // wider than uint32_t, so compare the truncated-to-32-bit values.
+  const uint32_t expected =
+    static_cast<uint32_t>(reinterpret_cast<unsigned long long>(t->stackBuf) +
+                          Scheduler::TASK_STACK_SIZE - Scheduler::FRAME_SIZE);
+  CHECK(t->esp == expected);
 }
 
 TEST_CASE("addTask: returns -1 when all MAX_TASKS slots are occupied")
@@ -43,9 +156,20 @@ TEST_CASE("addTask: reuses a DEAD slot")
 
   const int first = Scheduler::addTask("a", nullptr);
   REQUIRE(first >= 0);
-  const int second = Scheduler::addTask("b", nullptr);
-  REQUIRE(second >= 0);
+  REQUIRE(first == 1);
 
-  Scheduler::tick(0);
-  CHECK(second > first);
+  // Exhaust quantum to switch to task 1, then set it DEAD.
+  const uint32_t esp = exhaustAndSwitch();
+  REQUIRE(esp != 0);
+  REQUIRE(Scheduler::currentTaskId() == 1);
+  Scheduler::testSetTaskState(1, TaskState::DEAD);
+
+  // Switch back to task 0 and verify the DEAD task 1 slot is reused.
+  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+    Scheduler::tick(0x2000);
+  }
+  REQUIRE(Scheduler::currentTaskId() == 0);
+
+  const int reused = Scheduler::addTask("b", nullptr);
+  CHECK(reused == 1);
 }

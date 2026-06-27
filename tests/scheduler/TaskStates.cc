@@ -1,6 +1,7 @@
 #include <doctest/doctest.h>
 #include <kernel/Heap.h>
 #include <kernel/Scheduler.h>
+#include <kernel/Task.h>
 
 namespace {
 
@@ -14,7 +15,6 @@ TEST_CASE("unblockTask: BLOCKED task becomes READY and is found by round-robin")
   Scheduler::init();
 
   // `addTaskAndBlock()` adds task 1 and sets task 0 (the current task) to BLOCKED.
-  // In test mode the while loop breaks immediately, but task 0 stays BLOCKED.
   const int id = Scheduler::addTaskAndBlock("task1", nullptr);
   REQUIRE(id == 1);
 
@@ -73,6 +73,34 @@ TEST_CASE("unblockTask: no-op if RUNNING")
   for (int i = 0; i < Scheduler::QUANTUM_TICKS * 3; ++i) {
     CHECK(Scheduler::tick(0x1000) == 0);
   }
+  CHECK(Scheduler::currentTaskId() == 0);
+}
+
+TEST_CASE("unblockTask: no-op if DEAD")
+{
+  Heap::init(testPool, sizeof(testPool));
+  Scheduler::init();
+
+  Scheduler::addTask("alive", nullptr);   // task 1 = READY
+  Scheduler::addTask("willDie", nullptr); // task 2 = READY
+
+  // Set task 2 DEAD.
+  Scheduler::testSetTaskState(2, TaskState::DEAD);
+
+  // unblockTask on a DEAD task must be a no-op.
+  Scheduler::unblockTask(2);
+
+  // Round-robin must skip DEAD task 2 and still schedule task 0 and task 1.
+  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+    Scheduler::tick(0x1000);
+  }
+  CHECK(Scheduler::currentTaskId() == 1);
+  Scheduler::unblockTask(2); // still no-op, no crash
+
+  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+    Scheduler::tick(0x2000);
+  }
+  // Must skip DEAD task 2 and switch back to task 0.
   CHECK(Scheduler::currentTaskId() == 0);
 }
 
