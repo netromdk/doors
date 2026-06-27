@@ -74,7 +74,9 @@ void snakeMain()
 {
   Scheduler::suppressTaskbar();
   SnakeGame game{};
-  game.init(static_cast<uint32_t>(Pit::uptimeMs()));
+  const bool withObstacles{true};
+  game.init(static_cast<uint32_t>(Pit::uptimeMs()), withObstacles);
+
   Screen::save();
   Screen::cls(0);
   Screen::cursorHide();

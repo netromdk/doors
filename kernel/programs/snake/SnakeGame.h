@@ -26,6 +26,7 @@ public:
   static constexpr char CHAR_BODY = 'o';
   static constexpr char CHAR_FOOD = '*';
   static constexpr char CHAR_BONUS = '$';
+  static constexpr char CHAR_OBSTACLE = '#';
   static constexpr char CHAR_HWALL = '-';
   static constexpr char CHAR_VWALL = '|';
   static constexpr char CHAR_CORNER = '+';
@@ -36,7 +37,12 @@ public:
   static constexpr uint64_t BONUS_DURATION_MIN_MS = 4000;
   static constexpr uint64_t BONUS_HIGHLIGHT_MS = 2000;
 
-  void init(uint32_t prngSeed);
+  // Obstacle constants.
+  static constexpr int MAX_OBSTACLES = 20;
+  static constexpr int OBSTACLE_INIT_COUNT = 10;
+  static constexpr int OBSTACLE_STEP_INTERVAL = 3;
+
+  void init(uint32_t prngSeed, bool withObstacles = false);
   void setDir(Dir d);
   void setWrapMode(bool on);
   bool step(uint64_t dtMs = 0);
@@ -47,8 +53,10 @@ public:
   void clearOverlay() const;
   int score() const;
   int moveIntervalMs() const;
-  bool bonusActive() const { return bonusActive_; }
-  Pos bonusPos() const { return bonusFood_; }
+  bool bonusActive() const;
+  Pos bonusPos() const;
+  int obstacleCount() const;
+  Pos obstaclePos(int i) const;
 
   static bool isOpposite(Dir cur, Dir next);
   static int highScore();
@@ -60,6 +68,9 @@ private:
   Dir dir_{Dir::Right};
   Pos food_{};
   Pos bonusFood_{};
+  Pos obstacles_[MAX_OBSTACLES]{};
+  int obstacleCount_{0};
+  int eatsSinceObstacle_{0};
   uint32_t lcg_{0};
   int score_{0};
   uint64_t bonusElapsedMs_{0};
@@ -71,8 +82,11 @@ private:
 
   bool wallCollision(Pos p) const;
   bool selfCollision(Pos p) const;
+  bool obstacleCollision(Pos p) const;
   void placeFood();
   void placeBonusFood();
+  void placeObstacles();
+  void spawnObstacle();
   uint64_t bonusDurationMs() const;
   uint32_t lcgNext();
 

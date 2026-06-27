@@ -1,15 +1,7 @@
 #include <doctest/doctest.h>
 #include <programs/snake/SnakeGame.h>
 
-namespace {
-
-// Replicate the LCG formula used by SnakeGame to independently verify the math.
-uint32_t lcgStep(uint32_t state)
-{
-  return state * 1664525u + 1013904223u;
-}
-
-} // namespace
+#include "TestLcg.h"
 
 TEST_CASE("lcg: known seed produces known first value")
 {
