@@ -88,6 +88,7 @@ private:
   void placeObstacles();
   void spawnObstacle();
   uint64_t bonusDurationMs() const;
+  int baseIntervalMs() const;
   uint32_t lcgNext();
 
   void eraseAt(Pos p) const;

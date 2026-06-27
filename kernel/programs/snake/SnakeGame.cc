@@ -359,18 +359,21 @@ SnakeGame::Pos SnakeGame::obstaclePos(int i) const
   return obstacles_[i];
 }
 
-int SnakeGame::moveIntervalMs() const
+int SnakeGame::baseIntervalMs() const
 {
   const int ms = 200 - length_ * 8;
-  const int clamped = ms < 60 ? 60 : ms;
+  return ms < 60 ? 60 : ms;
+}
 
+int SnakeGame::moveIntervalMs() const
+{
   // Make vertical movement slightly slower than horizontal. This is needed because there are fewer
   // vertical spaces.
+  const int ms = baseIntervalMs();
   if (dir_ == Dir::Up || dir_ == Dir::Down) {
-    return (clamped * 3 + 1) / 2;
+    return (ms * 3 + 1) / 2;
   }
-
-  return clamped;
+  return ms;
 }
 
 uint64_t SnakeGame::bonusDurationMs() const
@@ -605,5 +608,17 @@ void SnakeGame::drawStatus() const
       Screen::put(STATUS_ROW, pos++, '0' + (s / div) % 10, scoreColor);
       div /= 10;
     }
+  }
+
+  // Speed indicator: base interval (before diagonal adjustment).
+  drawStr(STATUS_ROW, pos, "  Speed: ", COLOR_STATUS);
+  drawIntR(STATUS_ROW, pos, baseIntervalMs(), COLOR_STATUS);
+  drawStr(STATUS_ROW, pos, "ms", COLOR_STATUS);
+
+  // Obstacle spawn countdown.
+  if (obstacleCount_ < MAX_OBSTACLES) {
+    const int foodsLeft = OBSTACLE_STEP_INTERVAL - eatsSinceObstacle_;
+    drawStr(STATUS_ROW, pos, "  Next wall: ", COLOR_STATUS);
+    drawIntR(STATUS_ROW, pos, foodsLeft, COLOR_STATUS);
   }
 }
