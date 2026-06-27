@@ -26,9 +26,6 @@ constexpr int CENTER_COL = 1 + SG::BOARD_COLS / 2;
 
 // Status bar layout constants.
 constexpr int STATUS_ROW = TOP_WALL;
-constexpr int STATUS_LABEL_COLS = 7; // "Score: " takes up 7 chars.
-constexpr int STATUS_LABEL_START = 1;
-constexpr int SCORE_START_COL = RIGHT_WALL - STATUS_LABEL_COLS;
 
 int highScore_ = 0;
 
@@ -91,6 +88,7 @@ void SnakeGame::setWrapMode(bool on)
 
 bool SnakeGame::step()
 {
+  started_ = true;
   const Pos curHead = body_[head_];
   Pos next{};
   switch (dir_) {
@@ -329,6 +327,18 @@ void SnakeGame::drawAt(Pos p, char ch, uint8_t color) const
 
 void SnakeGame::drawStatus() const
 {
+  constexpr uint8_t COLOR_MODE = 0x0E; // yellow on black
+
+  if (started_) {
+    const char *modeStr = wrapMode_ ? "Wrap" : "Classic";
+    int modeLen = strlen(modeStr);
+    int modeCol = RIGHT_WALL - modeLen;
+    for (int i = 0; i < modeLen; ++i) {
+      Screen::put(STATUS_ROW, modeCol + i, modeStr[i], COLOR_MODE);
+    }
+  }
+
+  // "Score: " at cols 1-7.
   Screen::put(STATUS_ROW, 1, 'S', COLOR_STATUS);
   Screen::put(STATUS_ROW, 2, 'c', COLOR_STATUS);
   Screen::put(STATUS_ROW, 3, 'o', COLOR_STATUS);
@@ -337,16 +347,20 @@ void SnakeGame::drawStatus() const
   Screen::put(STATUS_ROW, 6, ':', COLOR_STATUS);
   Screen::put(STATUS_ROW, 7, ' ', COLOR_STATUS);
 
+  // Score digits immediately after, left-to-right.
   int s = score_;
-  int pos = SCORE_START_COL;
+  int pos = 8;
   if (s == 0) {
     Screen::put(STATUS_ROW, pos, '0', COLOR_STATUS);
   }
   else {
-    while (s > 0 && pos > STATUS_LABEL_START + STATUS_LABEL_COLS - 1) {
-      Screen::put(STATUS_ROW, pos, static_cast<char>('0' + (s % 10)), COLOR_STATUS);
-      s /= 10;
-      pos--;
+    int div = 1;
+    while (div * 10 <= s) {
+      div *= 10;
+    }
+    while (div > 0) {
+      Screen::put(STATUS_ROW, pos++, '0' + (s / div) % 10, COLOR_STATUS);
+      div /= 10;
     }
   }
 }
