@@ -41,6 +41,8 @@ public:
   int moveIntervalMs() const;
 
   static bool isOpposite(Dir cur, Dir next);
+  static int highScore();
+  static void setHighScore(int s);
 
 private:
   Pos body_[SNAKE_MAX]{};

@@ -95,6 +95,9 @@ void snakeMain()
   }
 
   if (!quit) {
+    if (game.score() > SnakeGame::highScore()) {
+      SnakeGame::setHighScore(game.score());
+    }
     game.drawGameOver();
     const auto endTime = Pit::uptimeMs();
     while (Pit::msSince(endTime) < 2000) {
