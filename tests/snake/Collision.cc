@@ -145,3 +145,57 @@ TEST_CASE("wallCollision: col 0 is wall")
   // Next step tries col 0 and hits the wall.
   CHECK_FALSE(g.step());
 }
+
+TEST_CASE("wrap: right wall wraps to col 1")
+{
+  SnakeGame g;
+  g.init(0);
+  g.setWrapMode(true);
+
+  // Classic mode dies at step 38 (col 79). Wrap mode survives.
+  for (int i = 0; i < 50; ++i) {
+    CHECK(g.step());
+  }
+}
+
+TEST_CASE("wrap: left wall wraps to col 78")
+{
+  SnakeGame g;
+  g.init(0);
+  g.setWrapMode(true);
+
+  // Move right 1, then left past col 1.
+  g.setDir(SnakeGame::Dir::Down);
+  REQUIRE(g.step());
+
+  g.setDir(SnakeGame::Dir::Left);
+  for (int i = 0; i < 50; ++i) {
+    CHECK(g.step());
+  }
+}
+
+TEST_CASE("wrap: top wall wraps to row 23")
+{
+  SnakeGame g;
+  g.init(0);
+  g.setWrapMode(true);
+
+  // Move up past row 1.
+  g.setDir(SnakeGame::Dir::Up);
+  for (int i = 0; i < 20; ++i) {
+    CHECK(g.step());
+  }
+}
+
+TEST_CASE("wrap: bottom wall wraps to row 1")
+{
+  SnakeGame g;
+  g.init(0);
+  g.setWrapMode(true);
+
+  // Move down past row 23.
+  g.setDir(SnakeGame::Dir::Down);
+  for (int i = 0; i < 20; ++i) {
+    CHECK(g.step());
+  }
+}

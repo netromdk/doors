@@ -31,6 +31,7 @@ public:
 
   void init(uint32_t prngSeed);
   void setDir(Dir d);
+  void setWrapMode(bool on);
   bool step();
   void drawBoard() const;
   void drawPause() const;
@@ -51,6 +52,7 @@ private:
   Pos food_{};
   uint32_t lcg_{0};
   int score_{0};
+  bool wrapMode_{false};
 
   bool wallCollision(Pos p) const;
   bool selfCollision(Pos p) const;

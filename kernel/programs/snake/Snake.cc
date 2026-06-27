@@ -23,6 +23,29 @@ SnakeGame::Dir keyToDir(Input::Key k)
   }
 }
 
+void chooseMode(SnakeGame &game)
+{
+  constexpr int PROMPT_ROW = SnakeGame::BOARD_ROWS;
+  constexpr const char prompt[] = "Classic (C) or Wrap (W)?";
+  const int promptCol = (SnakeGame::BOARD_COLS + 2 - static_cast<int>(sizeof(prompt) - 1)) / 2;
+  for (int i = 0; prompt[i]; ++i) {
+    Screen::put(PROMPT_ROW, promptCol + i, prompt[i], 0x0F);
+  }
+  while (true) {
+    if (const auto pk = Input::poll(); pk.key == Input::Key::Char) {
+      if (pk.ch == 'c' || pk.ch == 'C') break;
+      if (pk.ch == 'w' || pk.ch == 'W') {
+        game.setWrapMode(true);
+        break;
+      }
+    }
+    __asm__("hlt");
+  }
+  for (int c = 1; c < SnakeGame::BOARD_COLS + 1; ++c) {
+    Screen::put(PROMPT_ROW, c, ' ', 0);
+  }
+}
+
 } // namespace
 
 namespace Snake {
@@ -42,6 +65,8 @@ void snakeMain()
   Screen::cls(0);
   Screen::cursorHide();
   game.drawBoard();
+
+  chooseMode(game);
 
   // Count down 3, 2, 1..
   for (int i = 3; i >= 1; --i) {

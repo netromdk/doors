@@ -83,6 +83,11 @@ void SnakeGame::setDir(Dir d)
   }
 }
 
+void SnakeGame::setWrapMode(bool on)
+{
+  wrapMode_ = on;
+}
+
 bool SnakeGame::step()
 {
   const Pos curHead = body_[head_];
@@ -102,7 +107,21 @@ bool SnakeGame::step()
     break;
   }
 
-  if (wallCollision(next)) {
+  if (wrapMode_) {
+    if (next.row < 1) {
+      next.row = BOARD_ROWS;
+    }
+    else if (next.row > BOARD_ROWS) {
+      next.row = 1;
+    }
+    if (next.col < 1) {
+      next.col = BOARD_COLS;
+    }
+    else if (next.col > BOARD_COLS) {
+      next.col = 1;
+    }
+  }
+  else if (wallCollision(next)) {
     return false;
   }
   if (selfCollision(next)) {
