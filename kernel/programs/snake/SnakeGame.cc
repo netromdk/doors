@@ -11,6 +11,7 @@ constexpr uint8_t COLOR_SNAKE_ALT = 0x02; // dark green on black
 constexpr uint8_t COLOR_FOOD = 0x0C;      // red on black
 constexpr uint8_t COLOR_BONUS = 0x0E;     // yellow on black
 constexpr uint8_t COLOR_WALL = 0x07;      // gray on black
+constexpr uint8_t COLOR_OBSTACLE = 0x08;  // dark grey on black
 constexpr uint8_t COLOR_STATUS = 0x0F;    // white on black
 constexpr uint8_t COLOR_GAMEOVER = 0x04;  // red on black
 
@@ -64,7 +65,7 @@ bool SnakeGame::isOpposite(Dir cur, Dir next)
          (cur == Dir::Left && next == Dir::Right) || (cur == Dir::Right && next == Dir::Left);
 }
 
-void SnakeGame::init(uint32_t prngSeed)
+void SnakeGame::init(uint32_t prngSeed, bool withObstacles)
 {
   lcg_ = prngSeed;
   head_ = 0;
@@ -76,7 +77,12 @@ void SnakeGame::init(uint32_t prngSeed)
   bonusElapsedMs_ = 0;
   bonusRemainingMs_ = 0;
   scoreHighlightRemainingMs_ = 0;
+  obstacleCount_ = 0;
+  eatsSinceObstacle_ = 0;
   placeFood();
+  if (withObstacles) {
+    placeObstacles();
+  }
 }
 
 void SnakeGame::setDir(Dir d)
@@ -131,6 +137,9 @@ bool SnakeGame::step(uint64_t dtMs)
   if (selfCollision(next)) {
     return false;
   }
+  if (obstacleCollision(next)) {
+    return false;
+  }
 
   const int oldHeadIdx = head_;
   const int oldTailIdx = (head_ - length_ + 1 + SNAKE_MAX) % SNAKE_MAX;
@@ -145,6 +154,13 @@ bool SnakeGame::step(uint64_t dtMs)
   if (ate) {
     length_++;
     score_++;
+    if (obstacleCount_ < MAX_OBSTACLES) {
+      eatsSinceObstacle_++;
+      if (eatsSinceObstacle_ >= OBSTACLE_STEP_INTERVAL) {
+        eatsSinceObstacle_ = 0;
+        spawnObstacle();
+      }
+    }
   }
   else {
     eraseAt(oldTailPos);
@@ -244,6 +260,9 @@ void SnakeGame::drawBoard() const
   if (bonusActive_) {
     drawAt(bonusFood_, CHAR_BONUS, COLOR_BONUS);
   }
+  for (int i = 0; i < obstacleCount_; ++i) {
+    drawAt(obstacles_[i], CHAR_OBSTACLE, COLOR_OBSTACLE);
+  }
   drawStatus();
 }
 
@@ -317,6 +336,29 @@ int SnakeGame::score() const
   return score_;
 }
 
+bool SnakeGame::bonusActive() const
+{
+  return bonusActive_;
+}
+
+SnakeGame::Pos SnakeGame::bonusPos() const
+{
+  return bonusFood_;
+}
+
+int SnakeGame::obstacleCount() const
+{
+  return obstacleCount_;
+}
+
+SnakeGame::Pos SnakeGame::obstaclePos(int i) const
+{
+  if (i >= obstacleCount_) {
+    __builtin_trap();
+  }
+  return obstacles_[i];
+}
+
 int SnakeGame::moveIntervalMs() const
 {
   const int ms = 200 - length_ * 8;
@@ -363,6 +405,89 @@ bool SnakeGame::selfCollision(Pos p) const
   return false;
 }
 
+bool SnakeGame::obstacleCollision(Pos p) const
+{
+  for (int i = 0; i < obstacleCount_; ++i) {
+    if (obstacles_[i].row == p.row && obstacles_[i].col == p.col) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void SnakeGame::placeObstacles()
+{
+  const int maxCells = BOARD_ROWS * BOARD_COLS;
+  obstacleCount_ = 0;
+  for (int attempt = 0; attempt < maxCells * 3 && obstacleCount_ < OBSTACLE_INIT_COUNT; ++attempt) {
+    const int r = static_cast<int>(lcgNext() % BOARD_ROWS) + 1;
+    const int c = static_cast<int>(lcgNext() % BOARD_COLS) + 1;
+    const Pos p{r, c};
+
+    // Skip snake head.
+    if (p.row == body_[head_].row && p.col == body_[head_].col) {
+      continue;
+    }
+
+    // Skip existing obstacles.
+    bool dup = false;
+    for (int i = 0; i < obstacleCount_; ++i) {
+      if (obstacles_[i].row == p.row && obstacles_[i].col == p.col) {
+        dup = true;
+        break;
+      }
+    }
+    if (dup) {
+      continue;
+    }
+
+    obstacles_[obstacleCount_++] = p;
+  }
+}
+
+void SnakeGame::spawnObstacle()
+{
+  const int maxCells = BOARD_ROWS * BOARD_COLS;
+  for (int attempt = 0; attempt < maxCells * 2; ++attempt) {
+    const int r = static_cast<int>(lcgNext() % BOARD_ROWS) + 1;
+    const int c = static_cast<int>(lcgNext() % BOARD_COLS) + 1;
+    const Pos p{r, c};
+
+    bool occupied = false;
+
+    // Check snake body.
+    for (int i = 0; !occupied && i < length_; ++i) {
+      const int idx = (head_ - i + SNAKE_MAX) % SNAKE_MAX;
+      if (body_[idx].row == p.row && body_[idx].col == p.col) {
+        occupied = true;
+      }
+    }
+
+    // Check food.
+    if (!occupied && p.row == food_.row && p.col == food_.col) {
+      occupied = true;
+    }
+
+    // Check bonus food.
+    if (!occupied && bonusActive_ && p.row == bonusFood_.row && p.col == bonusFood_.col) {
+      occupied = true;
+    }
+
+    // Check existing obstacles.
+    for (int i = 0; !occupied && i < obstacleCount_; ++i) {
+      if (obstacles_[i].row == p.row && obstacles_[i].col == p.col) {
+        occupied = true;
+      }
+    }
+
+    if (!occupied) {
+      obstacles_[obstacleCount_++] = p;
+      drawAt(p, CHAR_OBSTACLE, COLOR_OBSTACLE);
+      return;
+    }
+  }
+}
+
 void SnakeGame::placeFood()
 {
   const int maxCells = BOARD_ROWS * BOARD_COLS;
@@ -379,7 +504,14 @@ void SnakeGame::placeFood()
         break;
       }
     }
-    if (!onSnake) {
+    bool onObstacle = false;
+    for (int i = 0; !onSnake && i < obstacleCount_; ++i) {
+      if (obstacles_[i].row == p.row && obstacles_[i].col == p.col) {
+        onObstacle = true;
+        break;
+      }
+    }
+    if (!onSnake && !onObstacle) {
       food_ = p;
       return;
     }
@@ -398,6 +530,12 @@ void SnakeGame::placeBonusFood()
     for (int i = 0; !occupied && i < length_; ++i) {
       const int idx = (head_ - i + SNAKE_MAX) % SNAKE_MAX;
       if (body_[idx].row == p.row && body_[idx].col == p.col) {
+        occupied = true;
+        break;
+      }
+    }
+    for (int i = 0; !occupied && i < obstacleCount_; ++i) {
+      if (obstacles_[i].row == p.row && obstacles_[i].col == p.col) {
         occupied = true;
         break;
       }
