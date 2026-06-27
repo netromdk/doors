@@ -269,7 +269,15 @@ int SnakeGame::score() const
 int SnakeGame::moveIntervalMs() const
 {
   const int ms = 200 - length_ * 8;
-  return ms < 60 ? 60 : ms;
+  const int clamped = ms < 60 ? 60 : ms;
+
+  // Make vertical movement slightly slower than horizontal. This is needed because there are fewer
+  // vertical spaces.
+  if (dir_ == Dir::Up || dir_ == Dir::Down) {
+    return (clamped * 3 + 1) / 2;
+  }
+
+  return clamped;
 }
 
 int SnakeGame::highScore()
