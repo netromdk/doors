@@ -25,6 +25,9 @@ public:
   [[noreturn]] static void exitCurrentTask();
   static void unblockTask(int id);
   static int currentTaskId();
+  static int aliveTaskCount();
+  static void suppressTaskbar();
+  static bool isTaskbarSuppressed();
 
 #ifndef __IS_DOORS_KERNEL
   // Test helpers. These expose state that kernel builds reach only through internal transitions.
