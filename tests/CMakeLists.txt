@@ -261,6 +261,7 @@ doors_test_module(test_kernel_snake
   snake/Collision.cc
   snake/Food.cc
   snake/Prng.cc
+  snake/BonusFood.cc
   snake/stubs.cc
   "${SNAKE_GAME_SRC}"
 )

@@ -114,8 +114,10 @@ void snakeMain()
     }
 
     if (Pit::msSince(lastMove) >= static_cast<uint64_t>(game.moveIntervalMs())) {
-      lastMove = Pit::uptimeMs();
-      if (!game.step()) {
+      const auto now = Pit::uptimeMs();
+      const auto dt = now - lastMove;
+      lastMove = now;
+      if (!game.step(dt)) {
         break;
       }
     }
