@@ -9,6 +9,10 @@ class string;
 class Tty {
 public:
   static constexpr uint8_t DEFAULT_COLOR = vgaColor(COLOR_LIGHT_GREEN, COLOR_BLACK);
+
+  // Scrollable rows (0-ROWS-1). The last row is reserved for taskbar!
+  static constexpr int ROWS = VGA_HEIGHT - 1;
+
   static constexpr int SCROLLBACK_LINES = 1000;
 
   static void setColor(uint8_t color);
