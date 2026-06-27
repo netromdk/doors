@@ -36,13 +36,13 @@ private:
   // Flat task table where slot index == task id.
   static Task tasks_[MAX_TASKS];
 
-  static int taskCount_;
-  static int currentIdx_;
+  static volatile int taskCount_;
+  static volatile int currentIdx_;
 
   // Ticks left in the current task's time slice.
-  static int quantumRemaining_;
+  static volatile int quantumRemaining_;
 
-  static bool initialized_;
+  static volatile bool initialized_;
 
   static int findSlot();
   static uint32_t initStackFrame(uint8_t *stack, void (*entry)());

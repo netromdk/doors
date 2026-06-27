@@ -7,10 +7,10 @@
 #include <kernel/Scheduler.h>
 
 Task Scheduler::tasks_[MAX_TASKS]{};
-int Scheduler::taskCount_{0};
-int Scheduler::currentIdx_{0};
-int Scheduler::quantumRemaining_{0};
-bool Scheduler::initialized_{false};
+volatile int Scheduler::taskCount_{0};
+volatile int Scheduler::currentIdx_{0};
+volatile int Scheduler::quantumRemaining_{0};
+volatile bool Scheduler::initialized_{false};
 
 void Scheduler::init()
 {
