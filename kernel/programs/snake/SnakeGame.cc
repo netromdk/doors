@@ -29,6 +29,34 @@ constexpr int STATUS_LABEL_COLS = 7; // "Score: " takes up 7 chars.
 constexpr int STATUS_LABEL_START = 1;
 constexpr int SCORE_START_COL = RIGHT_WALL - STATUS_LABEL_COLS;
 
+int highScore_ = 0;
+
+// Draw a null-terminated string left-to-right at (row, col), advancing col.
+void drawStr(int row, int &col, const char *s, uint8_t color)
+{
+  while (*s) {
+    Screen::put(row, col++, *s++, color);
+  }
+}
+
+// Draw val right-aligned at (row, col) and advance col past it.
+void drawIntR(int row, int &col, int val, uint8_t color)
+{
+  int tmp = val;
+  int digits = 0;
+  do {
+    digits++;
+    tmp /= 10;
+  } while (tmp > 0);
+  int pos = col + digits - 1;
+  tmp = val;
+  do {
+    Screen::put(row, pos--, '0' + (tmp % 10), color);
+    tmp /= 10;
+  } while (tmp > 0);
+  col += digits;
+}
+
 } // namespace
 
 bool SnakeGame::isOpposite(Dir cur, Dir next)
@@ -170,6 +198,34 @@ void SnakeGame::drawGameOver() const
   for (int i = 0; i < msgLen; ++i) {
     drawAt({CENTER_ROW, col + i}, msg[i], COLOR_GAMEOVER);
   }
+
+  // Second line: "Score: N  Best: N" centered on CENTER_ROW + 1
+  const int scoreRow = CENTER_ROW + 1;
+  constexpr uint8_t COLOR_SCORE = 0x0F; // white on black
+
+  int tmp = score_;
+  int sd = 0;
+  do {
+    sd++;
+    tmp /= 10;
+  } while (tmp > 0);
+
+  tmp = highScore_;
+  int hd = 0;
+  do {
+    hd++;
+    tmp /= 10;
+  } while (tmp > 0);
+
+  constexpr int SLEN = 7; // "Score: "
+  constexpr int BLEN = 7; // "  Best: "
+  const int total = SLEN + sd + BLEN + hd;
+  int c = (TOTAL_COLS - total) / 2;
+
+  drawStr(scoreRow, c, "Score: ", COLOR_SCORE);
+  drawIntR(scoreRow, c, score_, COLOR_SCORE);
+  drawStr(scoreRow, c, "  Best: ", COLOR_SCORE);
+  drawIntR(scoreRow, c, highScore_, COLOR_SCORE);
 }
 
 int SnakeGame::score() const
@@ -181,6 +237,16 @@ int SnakeGame::moveIntervalMs() const
 {
   const int ms = 200 - length_ * 8;
   return ms < 60 ? 60 : ms;
+}
+
+int SnakeGame::highScore()
+{
+  return highScore_;
+}
+
+void SnakeGame::setHighScore(int s)
+{
+  highScore_ = s;
 }
 
 bool SnakeGame::wallCollision(Pos p) const
