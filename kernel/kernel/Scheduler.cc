@@ -97,6 +97,10 @@ uint32_t Scheduler::initStackFrame(uint8_t *stack, void (*entry)())
 
 int Scheduler::addTaskImpl(const char *name, void (*entry)())
 {
+  if (name == nullptr) {
+    return -1;
+  }
+
   const int slot = findSlot();
   if (slot < 0) {
     return -1;
