@@ -11,6 +11,38 @@ volatile int Scheduler::taskCount_{0};
 volatile int Scheduler::currentIdx_{0};
 volatile int Scheduler::quantumRemaining_{0};
 volatile bool Scheduler::initialized_{false};
+int Scheduler::totalExited_{0};
+
+int Scheduler::countIf(StatePred pred)
+{
+  int count = 0;
+  for (int i = 0; i < taskCount_; ++i) {
+    if (pred(tasks_[i].state)) {
+      ++count;
+    }
+  }
+  return count;
+}
+
+bool Scheduler::isNotDead(TaskState s)
+{
+  return s != TaskState::DEAD;
+}
+
+bool Scheduler::isRunningOrReady(TaskState s)
+{
+  return s == TaskState::READY || s == TaskState::RUNNING;
+}
+
+bool Scheduler::isBlocked(TaskState s)
+{
+  return s == TaskState::BLOCKED;
+}
+
+bool Scheduler::isDead(TaskState s)
+{
+  return s == TaskState::DEAD;
+}
 
 void Scheduler::init()
 {
@@ -219,6 +251,7 @@ int Scheduler::addTaskAndBlock(const char *name, void (*entry)())
   __asm__("cli");
 #endif
   tasks_[currentIdx_].state = TaskState::DEAD;
+  ++totalExited_;
 
   // Switch to the next READY task immediately instead of waiting for the next PIT tick to expire
   // the quantum, and thus eliminating up to ~20 ms of dead time.
@@ -259,13 +292,27 @@ int Scheduler::currentTaskId()
 
 int Scheduler::aliveTaskCount()
 {
-  int count = 0;
-  for (int i = 0; i < taskCount_; ++i) {
-    if (tasks_[i].state != TaskState::DEAD) {
-      ++count;
-    }
-  }
-  return count;
+  return countIf(isNotDead);
+}
+
+int Scheduler::runningReadyCount()
+{
+  return countIf(isRunningOrReady);
+}
+
+int Scheduler::blockedTaskCount()
+{
+  return countIf(isBlocked);
+}
+
+int Scheduler::deadTaskCount()
+{
+  return countIf(isDead);
+}
+
+int Scheduler::totalExited()
+{
+  return totalExited_;
 }
 
 void Scheduler::suppressTaskbar()

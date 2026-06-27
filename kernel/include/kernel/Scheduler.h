@@ -26,6 +26,10 @@ public:
   static void unblockTask(int id);
   static int currentTaskId();
   static int aliveTaskCount();
+  static int runningReadyCount();
+  static int blockedTaskCount();
+  static int deadTaskCount();
+  static int totalExited();
   static void suppressTaskbar();
   static bool isTaskbarSuppressed();
 
@@ -47,6 +51,8 @@ private:
 
   static volatile bool initialized_;
 
+  static int totalExited_;
+
   static int findSlot();
   static uint32_t initStackFrame(uint8_t *stack, void (*entry)());
   static int addTaskImpl(const char *name, void (*entry)());
@@ -54,6 +60,14 @@ private:
   static uint32_t switchTo(int next);
   static void checkCanary(const Task &t);
   static void taskWrapper();
+
+  // Count tasks whose state matches the given predicate.
+  using StatePred = bool (*)(TaskState);
+  static int countIf(StatePred pred);
+  static bool isNotDead(TaskState s);
+  static bool isRunningOrReady(TaskState s);
+  static bool isBlocked(TaskState s);
+  static bool isDead(TaskState s);
 };
 
 #endif // KERNEL_SCHEDULER_H
