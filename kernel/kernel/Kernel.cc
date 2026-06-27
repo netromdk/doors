@@ -18,6 +18,7 @@
 #include <kernel/Multiboot.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Serial.h>
+#include <kernel/Taskbar.h>
 #include <kernel/Shell.h>
 #include <kernel/Tty.h>
 #include <kernel/Version.h>
@@ -75,6 +76,7 @@ void kmain()
   printf("\n<<Doors are open>>\n");
 
   initCommands();
+  Scheduler::addTask("taskbar", taskbarMain);
   Shell::run();
 }
 
