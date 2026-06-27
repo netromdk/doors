@@ -167,6 +167,9 @@ uint32_t Scheduler::switchTo(int next)
   if (tasks_[currentIdx_].state == TaskState::RUNNING) {
     tasks_[currentIdx_].state = TaskState::READY;
   }
+  if (next < 0 || next >= MAX_TASKS || tasks_[next].state != TaskState::READY) {
+    panic("Scheduler::switchTo: target task is not READY");
+  }
   currentIdx_ = next;
   tasks_[currentIdx_].state = TaskState::RUNNING;
   quantumRemaining_ = QUANTUM_TICKS;
@@ -227,6 +230,8 @@ int Scheduler::addTaskAndBlock(const char *name, void (*entry)())
 #endif
   }
 
+  panic("Scheduler::exitCurrentTask: no runnable task remaining");
+
   for (;;) {
 #ifdef __IS_DOORS_KERNEL
     __asm__("sti\n\thlt");
@@ -250,6 +255,12 @@ int Scheduler::currentTaskId()
 
 int Scheduler::findNext()
 {
+  if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
+    panic("Scheduler::findNext: corrupted currentIdx");
+  }
+  if (taskCount_ < 0 || taskCount_ > MAX_TASKS) {
+    panic("Scheduler::findNext: corrupted taskCount");
+  }
   if (taskCount_ <= 1) {
     return -1;
   }
