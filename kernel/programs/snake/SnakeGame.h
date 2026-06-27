@@ -53,6 +53,7 @@ private:
   uint32_t lcg_{0};
   int score_{0};
   bool wrapMode_{false};
+  bool started_{false};
 
   bool wallCollision(Pos p) const;
   bool selfCollision(Pos p) const;
