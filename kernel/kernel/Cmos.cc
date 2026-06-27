@@ -54,13 +54,6 @@ void getRtcComps(uint8_t comps[7], uint8_t century = CMOS_REG_CENTURY)
 
 void readRtcValues()
 {
-  uint8_t centuryReg = CMOS_REG_CENTURY;
-  Fadt *fadt = Acpi::getFadt();
-  if (fadt && fadt->century != 0) {
-    centuryReg = fadt->century;
-    printf("Using century register from FADT = %d\n", centuryReg);
-  }
-
   constexpr size_t size = 7;
   uint8_t comps[size];
   getRtcComps(comps);
@@ -101,11 +94,8 @@ void readRtcValues()
   month = comps[4];
   year = comps[5];
 
-  // The year has only two digits so we have to find out which
-  // century we are in. Either we use the century register, but not
-  // all CMOS supports it, or we keep track of the year this file
-  // was compiled and use that information.
-  if (fadt && fadt->century != 0) {
+  // If CMOS supports it, read the year from there, otherwise use `THIS_CENTURY` as fallback.
+  if (const auto *fadt = Acpi::getFadt(); fadt != nullptr && fadt->century != 0) {
     year += comps[6] * 100;
   }
   else {
@@ -119,6 +109,14 @@ void Cmos::printTime()
 {
   readRtcValues();
   printf("%d/%d/%d %d:%d:%d\n", day, month, year, hours, minutes, seconds);
+}
+
+void Cmos::readTime(uint8_t &h, uint8_t &m, uint8_t &s)
+{
+  readRtcValues();
+  h = hours;
+  m = minutes;
+  s = seconds;
 }
 
 uint64_t Cmos::unixTime()
