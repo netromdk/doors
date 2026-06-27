@@ -17,7 +17,7 @@
 namespace {
 
 // Reserve row 0 for status indicator.
-constexpr int SCROLLBACK_VIEW_HEIGHT = VGA_HEIGHT - 1;
+constexpr int SCROLLBACK_VIEW_HEIGHT = Tty::ROWS - 1;
 
 static constexpr char STATUS_PREFIX[] = "-- SCROLLBACK (offset ";
 static constexpr char STATUS_MIDDLE[] = " of ";
@@ -35,7 +35,7 @@ static constinit bool scrollbackActive_ = false;
 static constinit int scrollbackOffset_ = 0;
 
 // Saved VGA RAM for restoring after scrollback exit.
-static constinit uint16_t savedScreen_[VGA_HEIGHT][VGA_WIDTH]{};
+static constinit uint16_t savedScreen_[Tty::ROWS][VGA_WIDTH]{};
 
 void clearRow(uint8_t row)
 {
@@ -57,7 +57,7 @@ void advRow()
 {
   // When reaching the bottom then scroll one line up instead of starting at the beginning and
   // overwriting things.
-  if (++termRow == VGA_HEIGHT) {
+  if (++termRow == Tty::ROWS) {
     if (scrolling) {
       // Save row 0, that is about to scroll off, into the scrollback buffer.
       for (size_t c = 0; c < VGA_WIDTH; c++) {
@@ -70,11 +70,11 @@ void advRow()
       }
 
       clearRow(0);
-      for (uint8_t r = 0; r < VGA_HEIGHT - 1; r++) {
+      for (uint8_t r = 0; r < Tty::ROWS - 1; r++) {
         swapRows(r, r + 1);
       }
 
-      termRow = VGA_HEIGHT - 1;
+      termRow = Tty::ROWS - 1;
       termCol = 0;
     }
     else {
@@ -168,8 +168,7 @@ void Tty::cls()
 {
   termRow = termCol = 0;
   termColor = Tty::DEFAULT_COLOR;
-  size_t total = VGA_WIDTH * VGA_HEIGHT;
-  for (size_t i = 0; i < total; i++) {
+  for (size_t i = 0; i < static_cast<size_t>(VGA_WIDTH * Tty::ROWS); ++i) {
     VGA_RAM[i] = vgaEntry(' ', termColor);
   }
   cursorUpdate();
@@ -365,8 +364,8 @@ void Tty::scrollbackShow(int offset)
     VGA_RAM[0 * VGA_WIDTH + col] = vgaEntry(ch, Tty::DEFAULT_COLOR);
   }
 
-  // Display scrollback content on rows 1 to VGA_HEIGHT-1.
-  for (size_t row = 1; row < VGA_HEIGHT; row++) {
+  // Display scrollback content on rows 1 to Tty::ROWS-1.
+  for (size_t row = 1; row < Tty::ROWS; row++) {
     int lineFromEnd = top - static_cast<int>(row - 1);
 
     if (lineFromEnd > scrollbackCount_ || lineFromEnd < bottom) {
