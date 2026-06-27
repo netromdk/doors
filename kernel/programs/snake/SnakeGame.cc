@@ -6,11 +6,12 @@ namespace {
 
 using SG = SnakeGame;
 
-constexpr uint8_t COLOR_SNAKE = 0x0A;    // green on black
-constexpr uint8_t COLOR_FOOD = 0x0C;     // red on black
-constexpr uint8_t COLOR_WALL = 0x07;     // gray on black
-constexpr uint8_t COLOR_STATUS = 0x0F;   // white on black
-constexpr uint8_t COLOR_GAMEOVER = 0x04; // red on black
+constexpr uint8_t COLOR_SNAKE = 0x0A;     // green on black
+constexpr uint8_t COLOR_SNAKE_ALT = 0x02; // dark green on black
+constexpr uint8_t COLOR_FOOD = 0x0C;      // red on black
+constexpr uint8_t COLOR_WALL = 0x07;      // gray on black
+constexpr uint8_t COLOR_STATUS = 0x0F;    // white on black
+constexpr uint8_t COLOR_GAMEOVER = 0x04;  // red on black
 
 // Board wall positions derived from playable-area constants.
 constexpr int TOP_WALL = 0;
@@ -128,6 +129,7 @@ bool SnakeGame::step()
     return false;
   }
 
+  const int oldHeadIdx = head_;
   const int oldTailIdx = (head_ - length_ + 1 + SNAKE_MAX) % SNAKE_MAX;
   const Pos oldTailPos = body_[oldTailIdx];
 
@@ -145,7 +147,7 @@ bool SnakeGame::step()
 
   drawAt(next, CHAR_HEAD, COLOR_SNAKE);
   if (length_ > 1) {
-    drawAt(curHead, CHAR_BODY, COLOR_SNAKE);
+    drawAt(curHead, CHAR_BODY, oldHeadIdx % 2 == 0 ? COLOR_SNAKE : COLOR_SNAKE_ALT);
   }
   drawStatus();
 
