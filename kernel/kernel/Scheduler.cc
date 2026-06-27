@@ -257,6 +257,32 @@ int Scheduler::currentTaskId()
   return currentIdx_;
 }
 
+int Scheduler::aliveTaskCount()
+{
+  int count = 0;
+  for (int i = 0; i < taskCount_; ++i) {
+    if (tasks_[i].state != TaskState::DEAD) {
+      ++count;
+    }
+  }
+  return count;
+}
+
+void Scheduler::suppressTaskbar()
+{
+  tasks_[currentIdx_].flags |= Task::FLAG_SUPPRESS_TASKBAR;
+}
+
+bool Scheduler::isTaskbarSuppressed()
+{
+  for (int i = 0; i < taskCount_; ++i) {
+    if (tasks_[i].state != TaskState::DEAD && (tasks_[i].flags & Task::FLAG_SUPPRESS_TASKBAR)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 int Scheduler::findNext()
 {
   if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
