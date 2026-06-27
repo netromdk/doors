@@ -195,18 +195,20 @@ doors_test_module(test_kernel_pit
 set(SHELL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Shell.cc")
 set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cc")
 set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cc")
+set(TTY_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Tty.cc")
 doors_test_module(test_kernel_shell
   shell/tokenizer.cc
   shell/dispatch.cc
   shell/commands.cc
   shell/history.cc
+  tty/vga_ram.cc
   stubs.cc
   "${KBD_SRC}"
   "${KBD_KEYMAP_SRC}"
+  "${TTY_SRC}"
   "${SHELL_SRC}"
 )
 
-set(TTY_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Tty.cc")
 doors_test_module(test_kernel_tty
   tty/backspace.cc
   tty/cursor.cc
