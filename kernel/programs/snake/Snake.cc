@@ -7,8 +7,6 @@
 
 namespace {
 
-constexpr uint64_t MOVE_MS = 200;
-
 SnakeGame::Dir keyToDir(Input::Key k)
 {
   switch (k) {
@@ -86,7 +84,7 @@ void snakeMain()
       game.setDir(keyToDir(ke.key));
     }
 
-    if (Pit::msSince(lastMove) >= MOVE_MS) {
+    if (Pit::msSince(lastMove) >= static_cast<uint64_t>(game.moveIntervalMs())) {
       lastMove = Pit::uptimeMs();
       if (!game.step()) {
         break;

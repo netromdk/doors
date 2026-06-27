@@ -38,6 +38,7 @@ public:
   void drawGameOver() const;
   void clearOverlay() const;
   int score() const;
+  int moveIntervalMs() const;
 
   static bool isOpposite(Dir cur, Dir next);
 
