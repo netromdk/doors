@@ -32,7 +32,8 @@ void appendUint(char *&p, uint64_t v)
   }
 }
 
-int formatStatusBar(char *buf, uint64_t sec, int alive, uint8_t h, uint8_t m, uint8_t s)
+int formatStatusBar(char *buf, uint64_t sec, int runningReady, int exited, int blocked, uint8_t h,
+                    uint8_t m, uint8_t s)
 {
   char *p = buf;
 
@@ -50,11 +51,14 @@ int formatStatusBar(char *buf, uint64_t sec, int alive, uint8_t h, uint8_t m, ui
   *p++ = ' ';
   *p++ = '|';
   *p++ = ' ';
-  appendUint(p, static_cast<uint64_t>(alive));
-  const char *tasksLabel = " tasks";
-  while (*tasksLabel) {
-    *p++ = *tasksLabel++;
-  }
+  appendUint(p, static_cast<uint64_t>(runningReady));
+  *p++ = 'r';
+  *p++ = ' ';
+  appendUint(p, static_cast<uint64_t>(exited));
+  *p++ = 'x';
+  *p++ = ' ';
+  appendUint(p, static_cast<uint64_t>(blocked));
+  *p++ = 'b';
 
   *p++ = ' ';
   *p++ = '|';
@@ -79,13 +83,15 @@ void taskbarMain()
   while (true) {
     const uint64_t totalMs = Pit::uptimeMs();
     const uint64_t sec = totalMs / 1000;
-    const int alive = Scheduler::aliveTaskCount();
+    const int runningReady = Scheduler::runningReadyCount();
+    const int exited = Scheduler::totalExited();
+    const int blocked = Scheduler::blockedTaskCount();
 
     uint8_t h_, m_, s_;
     Cmos::readTime(h_, m_, s_);
 
     char buf[81];
-    const int len = formatStatusBar(buf, sec, alive, h_, m_, s_);
+    const int len = formatStatusBar(buf, sec, runningReady, exited, blocked, h_, m_, s_);
 
     // Write directly to VGA RAM, right-aligned, bypassing Tty to avoid corrupting cursor position
     // and terminal state. Row 24 is unused by the shell (rows 0-23) and snake (rows 1-23), so there
