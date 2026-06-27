@@ -46,6 +46,19 @@ void chooseMode(SnakeGame &game)
   }
 }
 
+void countDown(SnakeGame &game)
+{
+  for (int i = 3; i >= 1; --i) {
+    game.drawCountdown(i);
+    const auto cdStart = Pit::uptimeMs();
+    while (Pit::msSince(cdStart) < 1000) {
+      __asm__("hlt");
+    }
+    game.clearOverlay();
+  }
+  game.drawBoard();
+}
+
 } // namespace
 
 namespace Snake {
@@ -67,17 +80,7 @@ void snakeMain()
   game.drawBoard();
 
   chooseMode(game);
-
-  // Count down 3, 2, 1..
-  for (int i = 3; i >= 1; --i) {
-    game.drawCountdown(i);
-    const auto cdStart = Pit::uptimeMs();
-    while (Pit::msSince(cdStart) < 1000) {
-      __asm__("hlt");
-    }
-    game.clearOverlay();
-  }
-  game.drawBoard();
+  countDown(game);
 
   uint64_t lastMove = Pit::uptimeMs();
   bool quit = false;
