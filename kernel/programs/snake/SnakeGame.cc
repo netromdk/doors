@@ -177,6 +177,12 @@ int SnakeGame::score() const
   return score_;
 }
 
+int SnakeGame::moveIntervalMs() const
+{
+  const int ms = 200 - length_ * 8;
+  return ms < 60 ? 60 : ms;
+}
+
 bool SnakeGame::wallCollision(Pos p) const
 {
   return p.row < 1 || p.row > BOARD_ROWS || p.col < 1 || p.col > BOARD_COLS;
