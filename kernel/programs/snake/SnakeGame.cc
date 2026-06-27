@@ -9,6 +9,7 @@ using SG = SnakeGame;
 constexpr uint8_t COLOR_SNAKE = 0x0A;     // green on black
 constexpr uint8_t COLOR_SNAKE_ALT = 0x02; // dark green on black
 constexpr uint8_t COLOR_FOOD = 0x0C;      // red on black
+constexpr uint8_t COLOR_BONUS = 0x0E;     // yellow on black
 constexpr uint8_t COLOR_WALL = 0x07;      // gray on black
 constexpr uint8_t COLOR_STATUS = 0x0F;    // white on black
 constexpr uint8_t COLOR_GAMEOVER = 0x04;  // red on black
@@ -71,6 +72,10 @@ void SnakeGame::init(uint32_t prngSeed)
   dir_ = Dir::Right;
   score_ = 0;
   body_[0] = {CENTER_ROW, CENTER_COL};
+  bonusActive_ = false;
+  bonusElapsedMs_ = 0;
+  bonusRemainingMs_ = 0;
+  scoreHighlightRemainingMs_ = 0;
   placeFood();
 }
 
@@ -86,7 +91,7 @@ void SnakeGame::setWrapMode(bool on)
   wrapMode_ = on;
 }
 
-bool SnakeGame::step()
+bool SnakeGame::step(uint64_t dtMs)
 {
   started_ = true;
   const Pos curHead = body_[head_];
@@ -135,12 +140,21 @@ bool SnakeGame::step()
   body_[head_] = next;
 
   const bool ate = (next.row == food_.row && next.col == food_.col);
+  const bool ateBonus = bonusActive_ && (next.row == bonusFood_.row && next.col == bonusFood_.col);
+
   if (ate) {
     length_++;
     score_++;
   }
   else {
     eraseAt(oldTailPos);
+  }
+
+  if (ateBonus) {
+    score_ += BONUS_POINTS;
+    bonusActive_ = false;
+    scoreHighlightRemainingMs_ = BONUS_HIGHLIGHT_MS;
+    eraseAt(bonusFood_);
   }
 
   drawAt(next, CHAR_HEAD, COLOR_SNAKE);
@@ -152,6 +166,40 @@ bool SnakeGame::step()
   if (ate) {
     placeFood();
     drawAt(food_, CHAR_FOOD, COLOR_FOOD);
+  }
+
+  // Bonus food timer.
+  if (bonusActive_) {
+    if (dtMs >= bonusRemainingMs_) {
+      eraseAt(bonusFood_);
+      bonusActive_ = false;
+      bonusElapsedMs_ += dtMs - bonusRemainingMs_;
+    }
+    else {
+      bonusRemainingMs_ -= dtMs;
+      bonusElapsedMs_ += dtMs;
+    }
+  }
+  else {
+    bonusElapsedMs_ += dtMs;
+  }
+
+  // Score highlight countdown.
+  if (scoreHighlightRemainingMs_ > 0) {
+    if (dtMs >= scoreHighlightRemainingMs_) {
+      scoreHighlightRemainingMs_ = 0;
+    }
+    else {
+      scoreHighlightRemainingMs_ -= dtMs;
+    }
+  }
+
+  if (!bonusActive_ && bonusElapsedMs_ >= BONUS_INTERVAL_MS) {
+    bonusElapsedMs_ = 0;
+    placeBonusFood();
+    bonusRemainingMs_ = bonusDurationMs();
+    bonusActive_ = true;
+    drawAt(bonusFood_, CHAR_BONUS, COLOR_BONUS);
   }
 
   return true;
@@ -193,6 +241,9 @@ void SnakeGame::drawBoard() const
 
   drawAt(body_[head_], CHAR_HEAD, COLOR_SNAKE);
   drawAt(food_, CHAR_FOOD, COLOR_FOOD);
+  if (bonusActive_) {
+    drawAt(bonusFood_, CHAR_BONUS, COLOR_BONUS);
+  }
   drawStatus();
 }
 
@@ -280,6 +331,12 @@ int SnakeGame::moveIntervalMs() const
   return clamped;
 }
 
+uint64_t SnakeGame::bonusDurationMs() const
+{
+  const uint64_t ms = BONUS_INTERVAL_MS - static_cast<uint64_t>(length_) * 200;
+  return ms < BONUS_DURATION_MIN_MS ? BONUS_DURATION_MIN_MS : ms;
+}
+
 int SnakeGame::highScore()
 {
   return highScore_;
@@ -329,6 +386,29 @@ void SnakeGame::placeFood()
   }
 }
 
+void SnakeGame::placeBonusFood()
+{
+  const int maxCells = BOARD_ROWS * BOARD_COLS;
+  for (int attempt = 0; attempt < maxCells * 2; ++attempt) {
+    const int r = static_cast<int>(lcgNext() % BOARD_ROWS) + 1;
+    const int c = static_cast<int>(lcgNext() % BOARD_COLS) + 1;
+    const Pos p{r, c};
+
+    bool occupied = (p.row == food_.row && p.col == food_.col);
+    for (int i = 0; !occupied && i < length_; ++i) {
+      const int idx = (head_ - i + SNAKE_MAX) % SNAKE_MAX;
+      if (body_[idx].row == p.row && body_[idx].col == p.col) {
+        occupied = true;
+        break;
+      }
+    }
+    if (!occupied) {
+      bonusFood_ = p;
+      return;
+    }
+  }
+}
+
 uint32_t SnakeGame::lcgNext()
 {
   // Linear Congruential Generator (LCG): x_{n+1} = (a * x_n + c) mod 2^32.
@@ -360,20 +440,23 @@ void SnakeGame::drawStatus() const
     }
   }
 
+  const uint8_t scoreColor = scoreHighlightRemainingMs_ > 0 ? COLOR_BONUS : COLOR_STATUS;
+
   // "Score: " at cols 1-7.
-  Screen::put(STATUS_ROW, 1, 'S', COLOR_STATUS);
-  Screen::put(STATUS_ROW, 2, 'c', COLOR_STATUS);
-  Screen::put(STATUS_ROW, 3, 'o', COLOR_STATUS);
-  Screen::put(STATUS_ROW, 4, 'r', COLOR_STATUS);
-  Screen::put(STATUS_ROW, 5, 'e', COLOR_STATUS);
-  Screen::put(STATUS_ROW, 6, ':', COLOR_STATUS);
-  Screen::put(STATUS_ROW, 7, ' ', COLOR_STATUS);
+  Screen::put(STATUS_ROW, 1, 'S', scoreColor);
+  Screen::put(STATUS_ROW, 2, 'c', scoreColor);
+  Screen::put(STATUS_ROW, 3, 'o', scoreColor);
+  Screen::put(STATUS_ROW, 4, 'r', scoreColor);
+  Screen::put(STATUS_ROW, 5, 'e', scoreColor);
+  Screen::put(STATUS_ROW, 6, ':', scoreColor);
+  Screen::put(STATUS_ROW, 7, ' ', scoreColor);
 
   // Score digits immediately after, left-to-right.
   int s = score_;
   int pos = 8;
   if (s == 0) {
-    Screen::put(STATUS_ROW, pos, '0', COLOR_STATUS);
+    Screen::put(STATUS_ROW, pos, '0', scoreColor);
+    ++pos;
   }
   else {
     int div = 1;
@@ -381,7 +464,7 @@ void SnakeGame::drawStatus() const
       div *= 10;
     }
     while (div > 0) {
-      Screen::put(STATUS_ROW, pos++, '0' + (s / div) % 10, COLOR_STATUS);
+      Screen::put(STATUS_ROW, pos++, '0' + (s / div) % 10, scoreColor);
       div /= 10;
     }
   }
