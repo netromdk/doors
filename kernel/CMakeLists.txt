@@ -65,13 +65,18 @@ add_library(
   kernel/Panic.cc
   kernel/Scheduler.cc
   kernel/Symbols.cc
+  programs/api/Screen.cc
+  programs/api/Input.cc
+  programs/snake/SnakeGame.cc
+  programs/snake/Snake.cc
 )
 
 target_compile_options(kernel_objs PRIVATE
   -ffreestanding -fno-builtin -fno-exceptions -fno-rtti)
 target_compile_definitions(kernel_objs PRIVATE __IS_DOORS_KERNEL)
 target_include_directories(kernel_objs PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/include)
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(kernel_objs PRIVATE k)
 
 if (KERNEL_UBSAN)

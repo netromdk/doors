@@ -11,8 +11,10 @@
 #include <kernel/Mem.h>
 #include <kernel/Panic.h>
 #include <kernel/Pit.h>
+#include <kernel/Scheduler.h>
 #include <kernel/Shell.h>
 #include <kernel/Tty.h>
+#include <programs/snake/Snake.h>
 
 namespace {
 
@@ -100,6 +102,17 @@ void cmdHeap(int, const string *)
   printf("Largest block: %u bytes\n", Heap::largestFreeBlock());
 }
 
+void cmdSnake(int, const string *)
+{
+  const auto shellId = Scheduler::currentTaskId();
+  Snake::setShellTaskId(shellId);
+
+  const auto id = Scheduler::addTaskAndBlock("snake", Snake::snakeMain);
+  if (id < 0) {
+    printf("snake: no task slots available\n");
+  }
+}
+
 void cmdPanic(int, const string *)
 {
   panic("triggered from shell");
@@ -143,6 +156,7 @@ void initCommands()
     {.name = "echo", .desc = "Echo text back to the terminal", .handler = cmdEcho},
     {.name = "ticks", .desc = "Show raw PIT tick count", .handler = cmdTicks},
     {.name = "heap", .desc = "Show heap allocator statistics", .handler = cmdHeap},
+    {.name = "snake", .desc = "Start the snake game", .handler = cmdSnake},
     {.name = "panic", .desc = "Trigger a kernel panic", .handler = cmdPanic},
 #ifdef __IS_DOORS_UBSAN
     {.name = "ubsan", .desc = "Trigger UBSan overflow", .handler = cmdUbsan},
