@@ -72,6 +72,7 @@ void setShellTaskId(int id)
 
 void snakeMain()
 {
+  Scheduler::suppressTaskbar();
   SnakeGame game{};
   game.init(static_cast<uint32_t>(Pit::uptimeMs()));
   Screen::save();
