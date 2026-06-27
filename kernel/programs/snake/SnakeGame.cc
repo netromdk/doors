@@ -97,7 +97,7 @@ bool SnakeGame::step()
   }
 
   drawAt(next, CHAR_HEAD, COLOR_SNAKE);
-  if (curHead.row != next.row || curHead.col != next.col) {
+  if (length_ > 1) {
     drawAt(curHead, CHAR_BODY, COLOR_SNAKE);
   }
   drawStatus();
@@ -152,7 +152,7 @@ int SnakeGame::score() const
 
 bool SnakeGame::wallCollision(Pos p) const
 {
-  return p.row < TOP_WALL || p.row > BOTTOM_WALL || p.col < LEFT_WALL || p.col > RIGHT_WALL;
+  return p.row < 1 || p.row > BOARD_ROWS || p.col < 1 || p.col > BOARD_COLS;
 }
 
 bool SnakeGame::selfCollision(Pos p) const
