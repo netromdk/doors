@@ -212,6 +212,21 @@ int Scheduler::addTaskAndBlock(const char *name, void (*entry)())
   __asm__("cli");
 #endif
   tasks_[currentIdx_].state = TaskState::DEAD;
+
+  // Switch to the next READY task immediately instead of waiting for the next PIT tick to expire
+  // the quantum, and thus eliminating up to ~20 ms of dead time.
+  const int next = findNext();
+  if (next >= 0) {
+#ifdef __IS_DOORS_KERNEL
+    const uint32_t esp = switchTo(next);
+
+    // Unlike the timer ISR path (asmIntTick -> intTick -> tick -> switchTo -> %eax -> movl %esp),
+    // there is no ISR frame or return chain from `exitCurrentTask()`. Switch to the new task's
+    // saved register frame directly.
+    __asm__("movl %0, %%esp\n\tpopal\n\tiret" : : "r"(esp));
+#endif
+  }
+
   for (;;) {
 #ifdef __IS_DOORS_KERNEL
     __asm__("sti\n\thlt");
