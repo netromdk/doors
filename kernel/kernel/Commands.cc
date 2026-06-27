@@ -102,6 +102,34 @@ void cmdHeap(int, const string *)
   printf("Largest block: %u bytes\n", Heap::largestFreeBlock());
 }
 
+void testTaskPrint(char ch)
+{
+  for (int i = 0; i < 32; ++i) {
+    putchar(ch);
+    const auto t = Pit::uptimeMs();
+    while (Pit::msSince(t) < 50) {
+      __asm__("hlt");
+    }
+  }
+}
+
+void testTaskA()
+{
+  testTaskPrint('A');
+}
+
+void testTaskB()
+{
+  testTaskPrint('B');
+}
+
+void cmdTestScheduler(int, const string *)
+{
+  printf("Starting scheduler test (A/B interleaved)...\n");
+  Scheduler::addTask("schedA", testTaskA);
+  Scheduler::addTask("schedB", testTaskB);
+}
+
 void cmdSnake(int, const string *)
 {
   const auto shellId = Scheduler::currentTaskId();
@@ -157,6 +185,9 @@ void initCommands()
     {.name = "ticks", .desc = "Show raw PIT tick count", .handler = cmdTicks},
     {.name = "heap", .desc = "Show heap allocator statistics", .handler = cmdHeap},
     {.name = "snake", .desc = "Start the snake game", .handler = cmdSnake},
+    {.name = "testsched",
+     .desc = "Test scheduler with two interleaved tasks",
+     .handler = cmdTestScheduler},
     {.name = "panic", .desc = "Trigger a kernel panic", .handler = cmdPanic},
 #ifdef __IS_DOORS_UBSAN
     {.name = "ubsan", .desc = "Trigger UBSan overflow", .handler = cmdUbsan},

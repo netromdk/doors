@@ -14,7 +14,7 @@ The name is the recursive acronym "Doors of Open Run-time Systems".
 - Heap allocator (best-fit free-list, coalescing, 16-byte aligned)
 - Preemptive round-robin kernel task scheduler (8 slots, 20 ms quantum)
 - Snake game running as a scheduled task with VGA save/restore
-- Shell with 13 built-in commands
+- Shell with 14 built-in commands
 - IDT/PIC with exception handlers and IRQ routing
 - GDT (5 entries, PL0/PL3)
 - CMOS/RTC, CPU detection, memory map
@@ -23,7 +23,7 @@ The name is the recursive acronym "Doors of Open Run-time Systems".
 ### Shell commands
 
 `uptime`, `cpuinfo`, `meminfo`, `clear`, `help`, `halt`, `reboot`, `datetime`, `echo`, `ticks`,
-`heap`, `snake`, `panic`, `ubsan`/`ubsanp` (only when `-DKERNEL_UBSAN=ON`)
+`heap`, `snake`, `testsched`, `panic`, `ubsan`/`ubsanp` (only when `-DKERNEL_UBSAN=ON`)
 
 ### Prerequisites
 
