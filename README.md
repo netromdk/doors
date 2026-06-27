@@ -12,7 +12,9 @@ The name is the recursive acronym "Doors of Open Run-time Systems".
 - PS/2 keyboard (Set 1, shift/ctrl/alt/caps, ring buffer, line editing)
 - PIT timer at 1000 Hz with uptime tracking
 - Heap allocator (best-fit free-list, coalescing, 16-byte aligned)
-- Shell with 11 built-in commands
+- Preemptive round-robin kernel task scheduler (8 slots, 20 ms quantum)
+- Snake game running as a scheduled task with VGA save/restore
+- Shell with 13 built-in commands
 - IDT/PIC with exception handlers and IRQ routing
 - GDT (5 entries, PL0/PL3)
 - CMOS/RTC, CPU detection, memory map
@@ -21,7 +23,7 @@ The name is the recursive acronym "Doors of Open Run-time Systems".
 ### Shell commands
 
 `uptime`, `cpuinfo`, `meminfo`, `clear`, `help`, `halt`, `reboot`, `datetime`, `echo`, `ticks`,
-`heap`, `panic`, `ubsan`/`ubsanp` (only when `-DKERNEL_UBSAN=ON`)
+`heap`, `snake`, `panic`, `ubsan`/`ubsanp` (only when `-DKERNEL_UBSAN=ON`)
 
 ### Prerequisites
 
