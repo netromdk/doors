@@ -65,6 +65,7 @@ add_library(
   kernel/Panic.cc
   kernel/Scheduler.cc
   kernel/Symbols.cc
+  kernel/Taskbar.cc
   programs/api/Screen.cc
   programs/api/Input.cc
   programs/snake/SnakeGame.cc
