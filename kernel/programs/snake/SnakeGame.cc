@@ -146,6 +146,15 @@ void SnakeGame::drawPause() const
   }
 }
 
+void SnakeGame::drawCountdown(int n) const
+{
+  constexpr uint8_t COLOR_CD = 0x0E; // yellow on black
+  const int col = (TOTAL_COLS - 3) / 2;
+  drawAt({CENTER_ROW, col}, ' ', COLOR_CD);
+  drawAt({CENTER_ROW, col + 1}, static_cast<char>('0' + n), COLOR_CD);
+  drawAt({CENTER_ROW, col + 2}, ' ', COLOR_CD);
+}
+
 void SnakeGame::clearOverlay() const
 {
   for (int c = 1; c < RIGHT_WALL; ++c) {

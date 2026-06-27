@@ -34,6 +34,7 @@ public:
   bool step();
   void drawBoard() const;
   void drawPause() const;
+  void drawCountdown(int n) const;
   void drawGameOver() const;
   void clearOverlay() const;
   int score() const;
