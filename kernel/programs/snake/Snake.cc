@@ -45,6 +45,17 @@ void snakeMain()
   Screen::cursorHide();
   game.drawBoard();
 
+  // Count down 3, 2, 1..
+  for (int i = 3; i >= 1; --i) {
+    game.drawCountdown(i);
+    const auto cdStart = Pit::uptimeMs();
+    while (Pit::msSince(cdStart) < 1000) {
+      __asm__("hlt");
+    }
+    game.clearOverlay();
+  }
+  game.drawBoard();
+
   uint64_t lastMove = Pit::uptimeMs();
   bool quit = false;
   bool paused = false;
