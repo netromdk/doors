@@ -159,22 +159,36 @@ bool SnakeGame::step()
 
 void SnakeGame::drawBoard() const
 {
-  // Corners.
-  drawAt({TOP_WALL, LEFT_WALL}, CHAR_CORNER, COLOR_WALL);
-  drawAt({TOP_WALL, RIGHT_WALL}, CHAR_CORNER, COLOR_WALL);
-  drawAt({BOTTOM_WALL, LEFT_WALL}, CHAR_CORNER, COLOR_WALL);
-  drawAt({BOTTOM_WALL, RIGHT_WALL}, CHAR_CORNER, COLOR_WALL);
-
-  // Top and bottom walls.
-  for (int c = 1; c < RIGHT_WALL; ++c) {
-    drawAt({TOP_WALL, c}, CHAR_HWALL, COLOR_WALL);
-    drawAt({BOTTOM_WALL, c}, CHAR_HWALL, COLOR_WALL);
+  if (wrapMode_) {
+    // Erase cosmetic walls. In wrap mode the border is empty and the initial classic-mode wall
+    // artifacts are cleaned up here.
+    for (int c = 0; c <= RIGHT_WALL; ++c) {
+      eraseAt({TOP_WALL, c});
+      eraseAt({BOTTOM_WALL, c});
+    }
+    for (int r = 1; r < BOTTOM_WALL; ++r) {
+      eraseAt({r, LEFT_WALL});
+      eraseAt({r, RIGHT_WALL});
+    }
   }
+  else {
+    // Corners.
+    drawAt({TOP_WALL, LEFT_WALL}, CHAR_CORNER, COLOR_WALL);
+    drawAt({TOP_WALL, RIGHT_WALL}, CHAR_CORNER, COLOR_WALL);
+    drawAt({BOTTOM_WALL, LEFT_WALL}, CHAR_CORNER, COLOR_WALL);
+    drawAt({BOTTOM_WALL, RIGHT_WALL}, CHAR_CORNER, COLOR_WALL);
 
-  // Left and right walls.
-  for (int r = 1; r < BOTTOM_WALL; ++r) {
-    drawAt({r, LEFT_WALL}, CHAR_VWALL, COLOR_WALL);
-    drawAt({r, RIGHT_WALL}, CHAR_VWALL, COLOR_WALL);
+    // Top and bottom walls.
+    for (int c = 1; c < RIGHT_WALL; ++c) {
+      drawAt({TOP_WALL, c}, CHAR_HWALL, COLOR_WALL);
+      drawAt({BOTTOM_WALL, c}, CHAR_HWALL, COLOR_WALL);
+    }
+
+    // Left and right walls.
+    for (int r = 1; r < BOTTOM_WALL; ++r) {
+      drawAt({r, LEFT_WALL}, CHAR_VWALL, COLOR_WALL);
+      drawAt({r, RIGHT_WALL}, CHAR_VWALL, COLOR_WALL);
+    }
   }
 
   drawAt(body_[head_], CHAR_HEAD, COLOR_SNAKE);
