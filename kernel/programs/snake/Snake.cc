@@ -128,8 +128,9 @@ void snakeMain()
       SnakeGame::setHighScore(game.score());
     }
     game.drawGameOver();
-    const auto endTime = Pit::uptimeMs();
-    while (Pit::msSince(endTime) < 2000) {
+
+    // Wait for any key.
+    while (Input::poll().key == Input::Key::Unknown) {
       __asm__("hlt");
     }
   }
