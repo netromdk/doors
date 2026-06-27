@@ -32,7 +32,9 @@ void Shell::run()
   for (;;) {
     HistoryCtx hctx{historyBuf_, HISTORY_MAX, historyCount_, historyHead_, &historyPos};
 
+    Tty::setColor(vgaColor(COLOR_LIGHT_GREY, COLOR_BLACK));
     printf("> ");
+    Tty::setColor(Tty::DEFAULT_COLOR);
     Kbd::readLine(line, &hctx);
 
     int argc = Shell::tokenize(line, argv, MAX_ARGS);
