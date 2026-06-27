@@ -262,6 +262,23 @@ int Scheduler::findNext()
   return -1;
 }
 
+#ifndef __IS_DOORS_KERNEL
+void Scheduler::testSetTaskState(int id, TaskState s)
+{
+  if (id >= 0 && id < MAX_TASKS) {
+    tasks_[id].state = s;
+  }
+}
+
+const Task *Scheduler::testGetTask(int id)
+{
+  if (id >= 0 && id < MAX_TASKS) {
+    return &tasks_[id];
+  }
+  return nullptr;
+}
+#endif
+
 void Scheduler::checkCanary(const Task &t)
 {
   if (t.stackBuf == nullptr) {

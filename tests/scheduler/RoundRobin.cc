@@ -94,3 +94,36 @@ TEST_CASE("tick: switched-to task becomes RUNNING, old becomes READY")
   // Should switch back to task 0.
   CHECK(Scheduler::currentTaskId() == 0);
 }
+
+TEST_CASE("tick: skips DEAD tasks")
+{
+  Heap::init(testPool, sizeof(testPool));
+  Scheduler::init();
+
+  Scheduler::addTask("alive", nullptr); // task 1 = READY
+  Scheduler::addTask("dead", nullptr);  // task 2 = READY
+
+  // Exhaust quantum on task 0 -> switch to task 1.
+  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+    Scheduler::tick(0x1000);
+  }
+  CHECK(Scheduler::currentTaskId() == 1);
+
+  // Exhaust quantum on task 1 -> switch to task 2.
+  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+    Scheduler::tick(0x2000);
+  }
+  CHECK(Scheduler::currentTaskId() == 2);
+
+  // Mark task 2 DEAD.
+  Scheduler::testSetTaskState(2, TaskState::DEAD);
+
+  // Exhaust quantum on the dead task 2. `findNext()` must skip DEAD task 2 and the current
+  // (RUNNING/DEAD) task, finding only the still-READY task 0 or 1.
+  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+    Scheduler::tick(0x3000);
+  }
+
+  // Must have switched to a READY task (task 0).
+  CHECK(Scheduler::currentTaskId() == 0);
+}

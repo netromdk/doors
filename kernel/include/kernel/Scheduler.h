@@ -14,6 +14,10 @@ public:
   // Heap-allocated stack size per task in bytes.
   static constexpr size_t TASK_STACK_SIZE = 8192;
 
+  // Size of the initial register frame pushed for a new task (popal + iret).
+  // A task's saved esp points to `stackBuf + TASK_STACK_SIZE - FRAME_SIZE`.
+  static constexpr uint32_t FRAME_SIZE = 44;
+
   static void init();
   static int addTask(const char *name, void (*entry)());
   static int addTaskAndBlock(const char *name, void (*entry)());
@@ -21,6 +25,12 @@ public:
   [[noreturn]] static void exitCurrentTask();
   static void unblockTask(int id);
   static int currentTaskId();
+
+#ifndef __IS_DOORS_KERNEL
+  // Test helpers. These expose state that kernel builds reach only through internal transitions.
+  static void testSetTaskState(int id, TaskState s);
+  static const Task *testGetTask(int id);
+#endif
 
 private:
   // Flat task table where slot index == task id.
