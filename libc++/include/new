@@ -1,0 +1,26 @@
+#ifndef NEW_H
+#define NEW_H
+
+#include <cstddef>
+
+// Placement new/delete for constructing objects in pre-allocated storage.
+
+inline void *operator new(size_t, void *p) noexcept
+{
+  return p;
+}
+
+inline void *operator new[](size_t, void *p) noexcept
+{
+  return p;
+}
+
+inline void operator delete(void *, void *) noexcept
+{
+}
+
+inline void operator delete[](void *, void *) noexcept
+{
+}
+
+#endif // NEW_H
