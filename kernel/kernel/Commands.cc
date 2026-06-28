@@ -181,28 +181,12 @@ void printTaskTable()
       continue;
     }
 
-    // ID (right-aligned in 2).
-    if (i < 10) putchar(' ');
-    printf("%u", i);
-    Tty::puts("  ");
-
-    // Name (left-aligned in 16), then 1-space gap.
     const char *name = Scheduler::taskName(i);
-    Tty::puts(name);
-    int pad = 16 - static_cast<int>(strlen(name));
-    for (int j = 0; j < pad; ++j) {
-      putchar(' ');
-    }
-    putchar(' ');
-
-    // State (left-aligned in 11), then 1-space gap.
     const char *state = taskStateStr(Scheduler::taskState(i));
-    Tty::puts(state);
-    pad = 11 - static_cast<int>(strlen(state));
-    for (int j = 0; j < pad; ++j) {
-      putchar(' ');
-    }
-    putchar(' ');
+
+    char buf[64];
+    snprintf(buf, sizeof(buf), "%2u  %-16s %-11s ", static_cast<unsigned>(i), name, state);
+    Tty::puts(buf);
 
     // Flags.
     const uint8_t flags = Scheduler::taskFlags(i);

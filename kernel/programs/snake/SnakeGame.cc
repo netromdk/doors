@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <cstring>
 
 #include <programs/snake/SnakeGame.h>
@@ -43,19 +44,12 @@ void drawStr(int row, int &col, const char *s, uint8_t color)
 // Draw val right-aligned at (row, col) and advance col past it.
 void drawIntR(int row, int &col, int val, uint8_t color)
 {
-  int tmp = val;
-  int digits = 0;
-  do {
-    digits++;
-    tmp /= 10;
-  } while (tmp > 0);
-  int pos = col + digits - 1;
-  tmp = val;
-  do {
-    Screen::put(row, pos--, '0' + (tmp % 10), color);
-    tmp /= 10;
-  } while (tmp > 0);
-  col += digits;
+  char buf[16];
+  const int len = snprintf(buf, sizeof(buf), "%d", val);
+  for (int i = 0; i < len; ++i) {
+    Screen::put(row, col + i, buf[i], color);
+  }
+  col += len;
 }
 
 } // namespace
@@ -321,11 +315,13 @@ void SnakeGame::drawPause() const
 
 void SnakeGame::drawCountdown(int n) const
 {
-  constexpr uint8_t COLOR_CD = 0x0E; // yellow on black
+  constexpr uint8_t COLOR_CD = 0x0E;
+  char buf[4];
+  snprintf(buf, sizeof(buf), " %d ", n);
   const int col = (TOTAL_COLS - 3) / 2;
-  drawAt({CENTER_ROW, col}, ' ', COLOR_CD);
-  drawAt({CENTER_ROW, col + 1}, static_cast<char>('0' + n), COLOR_CD);
-  drawAt({CENTER_ROW, col + 2}, ' ', COLOR_CD);
+  for (int i = 0; i < 3; ++i) {
+    drawAt({CENTER_ROW, col + i}, buf[i], COLOR_CD);
+  }
 }
 
 void SnakeGame::clearOverlay() const
@@ -347,30 +343,10 @@ void SnakeGame::drawGameOver() const
   // Second line: "Score: N  Best: N" centered on CENTER_ROW + 1
   const int scoreRow = CENTER_ROW + 1;
   constexpr uint8_t COLOR_SCORE = 0x0F; // white on black
-
-  int tmp = score_;
-  int sd = 0;
-  do {
-    sd++;
-    tmp /= 10;
-  } while (tmp > 0);
-
-  tmp = highScore_;
-  int hd = 0;
-  do {
-    hd++;
-    tmp /= 10;
-  } while (tmp > 0);
-
-  constexpr int SLEN = 7; // "Score: "
-  constexpr int BLEN = 7; // "  Best: "
-  const int total = SLEN + sd + BLEN + hd;
-  int c = (TOTAL_COLS - total) / 2;
-
-  drawStr(scoreRow, c, "Score: ", COLOR_SCORE);
-  drawIntR(scoreRow, c, score_, COLOR_SCORE);
-  drawStr(scoreRow, c, "  Best: ", COLOR_SCORE);
-  drawIntR(scoreRow, c, highScore_, COLOR_SCORE);
+  char buf[64];
+  int len = snprintf(buf, sizeof(buf), "Score: %d  Best: %d", score_, highScore_);
+  int c = (TOTAL_COLS - len) / 2;
+  drawStr(scoreRow, c, buf, COLOR_SCORE);
 
   // Quit message at bottom row.
   constexpr const char quitMsg[] = "Press q to quit";
@@ -714,31 +690,12 @@ void SnakeGame::drawStatus() const
 
   const uint8_t scoreColor = scoreHighlightRemainingMs_ > 0 ? COLOR_BONUS : COLOR_STATUS;
 
-  // "Score: " at cols 1-7.
-  Screen::put(STATUS_ROW, 1, 'S', scoreColor);
-  Screen::put(STATUS_ROW, 2, 'c', scoreColor);
-  Screen::put(STATUS_ROW, 3, 'o', scoreColor);
-  Screen::put(STATUS_ROW, 4, 'r', scoreColor);
-  Screen::put(STATUS_ROW, 5, 'e', scoreColor);
-  Screen::put(STATUS_ROW, 6, ':', scoreColor);
-  Screen::put(STATUS_ROW, 7, ' ', scoreColor);
-
-  // Score digits immediately after, left-to-right.
-  int s = score_;
-  int pos = 8;
-  if (s == 0) {
-    Screen::put(STATUS_ROW, pos, '0', scoreColor);
-    ++pos;
-  }
-  else {
-    int div = 1;
-    while (div * 10 <= s) {
-      div *= 10;
-    }
-    while (div > 0) {
-      Screen::put(STATUS_ROW, pos++, '0' + (s / div) % 10, scoreColor);
-      div /= 10;
-    }
+  // Show score.
+  char scoreBuf[32];
+  int scoreLen = snprintf(scoreBuf, sizeof(scoreBuf), "Score: %d", score_);
+  int pos = 1;
+  for (int i = 0; i < scoreLen && pos < RIGHT_WALL; ++i) {
+    Screen::put(STATUS_ROW, pos++, scoreBuf[i], scoreColor);
   }
 
   // Speed indicator: base interval (before diagonal adjustment).
