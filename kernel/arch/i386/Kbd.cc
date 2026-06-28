@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <string>
+#include <utility>
 
 #include <kernel/Io.h>
 #include <kernel/Kbd.h>
@@ -144,9 +145,7 @@ void Kbd::init()
 
 void Kbd::pushChar(char ch)
 {
-  size_t h = head_;
-  buffer_[h % BUF_SIZE] = ch;
-  head_ = h + 1;
+  buffer_[exchange(head_, head_ + 1) % BUF_SIZE] = ch;
 }
 
 bool Kbd::charAvail()
@@ -159,10 +158,7 @@ char Kbd::getChar()
   while (!charAvail()) {
     // spin
   }
-  size_t t = tail_;
-  char ch = buffer_[t % BUF_SIZE];
-  tail_ = t + 1;
-  return ch;
+  return buffer_[exchange(tail_, tail_ + 1) % BUF_SIZE];
 }
 
 Kbd::KeyEvent Kbd::tryReadKey()
@@ -200,10 +196,7 @@ Kbd::KeyEvent Kbd::tryReadKey()
     return {Key::End};
   }
   if (head_ != tail_) {
-    size_t t = tail_;
-    char ch = buffer_[t % BUF_SIZE];
-    tail_ = t + 1;
-    return {Key::Char, ch};
+    return {Key::Char, buffer_[exchange(tail_, tail_ + 1) % BUF_SIZE]};
   }
   return {Key::Unknown};
 }
@@ -477,8 +470,7 @@ void Kbd::isrHandler()
     return;
   }
 
-  processScancode(scancode, extended_);
-  extended_ = false;
+  processScancode(scancode, exchange(extended_, false));
 }
 
 bool Kbd::isShiftPressed()
