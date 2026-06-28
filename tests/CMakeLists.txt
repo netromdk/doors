@@ -137,6 +137,7 @@ doors_test_module(test_libcpp_ctype_header
 doors_test_module(test_libcpp_algorithm_header
   libc++/algorithm/min.cc
   libc++/algorithm/max.cc
+  libc++/algorithm/clamp.cc
   libc++/algorithm/swap.cc
 )
 
