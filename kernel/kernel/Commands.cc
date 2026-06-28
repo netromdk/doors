@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 #include <kernel/Tty.h>
@@ -219,6 +220,47 @@ void cmdTasks(int, const string *)
   }
 }
 
+void cmdKill(int argc, const string *argv)
+{
+  if (argc < 2) {
+    printf("Usage: kill <task-id>\n");
+    return;
+  }
+
+  // Validate the argument is a non-empty numeric string. If empty `aoit("")` would yiled 0 and kill
+  // the `shell` task.
+  const char *s = argv[1].c_str();
+  if (*s == '\0') {
+    printf("kill: invalid task id\n");
+    return;
+  }
+  for (const char *p = s; *p; ++p) {
+    if (*p < '0' || *p > '9') {
+      printf("kill: invalid task id\n");
+      return;
+    }
+  }
+
+  const int id = atoi(s);
+  if (id < 0 || id >= Scheduler::taskCount()) {
+    printf("kill: task %u does not exist\n", id);
+    return;
+  }
+
+  const char *name = Scheduler::taskName(id);
+  if (Scheduler::taskState(id) == TaskState::DEAD) {
+    printf("kill: task %u (%s) is already dead\n", id, name);
+    return;
+  }
+  if (id == Scheduler::currentTaskId()) {
+    printf("kill: cannot kill the current task (%u)\n", id);
+    return;
+  }
+
+  Scheduler::killTask(id);
+  printf("Task %u (%s) killed\n", id, name);
+}
+
 #ifdef __IS_DOORS_UBSAN
 void cmdUbsan(int argc, const string *)
 {
@@ -262,6 +304,7 @@ void initCommands()
      .desc = "Test scheduler with two interleaved tasks",
      .handler = cmdTestScheduler},
     {.name = "tasks", .desc = "Show task list with state and flags", .handler = cmdTasks},
+    {.name = "kill", .desc = "Kill a task by ID", .handler = cmdKill},
     {.name = "panic", .desc = "Trigger a kernel panic", .handler = cmdPanic},
 #ifdef __IS_DOORS_UBSAN
     {.name = "ubsan", .desc = "Trigger UBSan overflow", .handler = cmdUbsan},
