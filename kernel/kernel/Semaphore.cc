@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <utility>
+#include <volatile.h>
 
 #include <kernel/Semaphore.h>
 
@@ -11,8 +12,8 @@ void Semaphore::wait()
 #endif
 
   // Enable interrupts when `count_ > 0` and return.
-  if (count_ > 0) {
-    count_--;
+  if (volatileLoad(count_) > 0) {
+    volatileStore(count_, volatileLoad(count_) - 1);
 #ifdef __IS_DOORS_KERNEL
     __asm__("sti");
 #endif
@@ -32,7 +33,9 @@ void Semaphore::wait()
   // but the timer ISR still fires and `tick()` runs, which is how `signal()` from another task
   // eventually reaches `unblockTask()`).
   const int id = Scheduler::currentTaskId();
-  waiters_[waitCount_++] = id;
+  const int wc = volatileLoad(waitCount_);
+  volatileStore(waitCount_, wc + 1);
+  waiters_[wc] = id;
   Scheduler::blockCurrentTask();
 
 #ifdef __IS_DOORS_KERNEL
@@ -59,7 +62,7 @@ void Semaphore::signal()
     Scheduler::unblockTask(id);
   }
   else {
-    count_++;
+    volatileStore(count_, volatileLoad(count_) + 1);
   }
 
 #ifdef __IS_DOORS_KERNEL

@@ -1,6 +1,8 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 
+#include <volatile.h>
+
 template <typename T1, typename T2>
 struct pair {
   T1 first;
@@ -14,9 +16,9 @@ struct pair {
 };
 
 template <typename T, typename U = T>
-constexpr T exchange(T &obj, U new_value) noexcept
+constexpr remove_volatile_t<T> exchange(T &obj, U new_value) noexcept
 {
-  T old = static_cast<T>(obj);
+  auto old = static_cast<remove_volatile_t<T>>(obj);
   obj = static_cast<T>(new_value);
   return old;
 }
