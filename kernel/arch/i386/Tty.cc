@@ -129,6 +129,9 @@ int rawPuts(const char *str)
     else if (str[i] == '\r') {
       termCol = 0;
     }
+    else if (str[i] == '\b') {
+      decCol();
+    }
     else {
       VGA_RAM[termRow * VGA_WIDTH + termCol] = vgaEntry(str[i], termColor);
       advCol();
@@ -149,6 +152,9 @@ int rawPuts(const string &str)
     }
     else if (str[i] == '\r') {
       termCol = 0;
+    }
+    else if (str[i] == '\b') {
+      decCol();
     }
     else {
       VGA_RAM[termRow * VGA_WIDTH + termCol] = vgaEntry(str[i], termColor);
