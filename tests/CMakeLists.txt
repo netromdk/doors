@@ -159,6 +159,10 @@ doors_test_module(test_libcpp_numeric_header
   libc++/numeric/accumulate.cc
 )
 
+doors_test_module(test_libcpp_utility_header
+  libc++/utility/exchange.cc
+)
+
 doors_test_module(test_libcpp_optional
   libc++/optional/optional.cc
 )
