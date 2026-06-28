@@ -1,0 +1,280 @@
+#ifndef OPTIONAL_H
+#define OPTIONAL_H
+
+#include <cstddef>
+#include <new>
+#include <sys/cdefs.h>
+
+struct nullopt_t {
+  struct init_tag {};
+  constexpr explicit nullopt_t(init_tag)
+  {
+  }
+};
+
+constexpr nullopt_t nullopt{nullopt_t::init_tag{}};
+
+struct in_place_t {
+  struct init_tag {};
+  constexpr explicit in_place_t(init_tag)
+  {
+  }
+};
+
+constexpr in_place_t in_place{in_place_t::init_tag{}};
+
+template <typename T>
+class optional {
+  alignas(T) unsigned char storage_[sizeof(T)];
+  bool hasValue_;
+
+  T *ptr() noexcept
+  {
+    return reinterpret_cast<T *>(storage_);
+  }
+
+  const T *ptr() const noexcept
+  {
+    return reinterpret_cast<const T *>(storage_);
+  }
+
+  template <typename... Args>
+  void construct(Args &&...args)
+  {
+    ::new (storage_) T(static_cast<Args &&>(args)...);
+    hasValue_ = true;
+  }
+
+  void destroy()
+  {
+    if (hasValue_) {
+      ptr()->~T();
+      hasValue_ = false;
+    }
+  }
+
+public:
+  constexpr optional() noexcept : hasValue_(false)
+  {
+  }
+
+  constexpr optional(nullopt_t) noexcept : hasValue_(false)
+  {
+  }
+
+  optional(const T &value) : hasValue_(false)
+  {
+    construct(value);
+  }
+
+  optional(T &&value) : hasValue_(false)
+  {
+    construct(static_cast<T &&>(value));
+  }
+
+  optional(const optional &other) : hasValue_(false)
+  {
+    if (other.hasValue_) {
+      construct(*other.ptr());
+    }
+  }
+
+  optional(optional &&other) : hasValue_(false)
+  {
+    if (other.hasValue_) {
+      construct(static_cast<T &&>(*other.ptr()));
+    }
+  }
+
+  ~optional()
+  {
+    destroy();
+  }
+
+  optional &operator=(nullopt_t) noexcept
+  {
+    destroy();
+    return *this;
+  }
+
+  optional &operator=(const optional &other)
+  {
+    if (this != &other) {
+      if (hasValue_ && other.hasValue_) {
+        *ptr() = *other.ptr();
+      }
+      else if (hasValue_) {
+        destroy();
+      }
+      else if (other.hasValue_) {
+        construct(*other.ptr());
+      }
+    }
+    return *this;
+  }
+
+  optional &operator=(optional &&other)
+  {
+    if (this != &other) {
+      if (hasValue_ && other.hasValue_) {
+        *ptr() = static_cast<T &&>(*other.ptr());
+      }
+      else if (hasValue_) {
+        destroy();
+      }
+      else if (other.hasValue_) {
+        construct(static_cast<T &&>(*other.ptr()));
+      }
+    }
+    return *this;
+  }
+
+  optional &operator=(const T &value)
+  {
+    if (hasValue_) {
+      *ptr() = value;
+    }
+    else {
+      construct(value);
+    }
+    return *this;
+  }
+
+  optional &operator=(T &&value)
+  {
+    if (hasValue_) {
+      *ptr() = static_cast<T &&>(value);
+    }
+    else {
+      construct(static_cast<T &&>(value));
+    }
+    return *this;
+  }
+
+  constexpr explicit operator bool() const noexcept
+  {
+    return hasValue_;
+  }
+
+  constexpr bool has_value() const noexcept
+  {
+    return hasValue_;
+  }
+
+  T &operator*() noexcept
+  {
+    return *ptr();
+  }
+
+  const T &operator*() const noexcept
+  {
+    return *ptr();
+  }
+
+  T *operator->() noexcept
+  {
+    return ptr();
+  }
+
+  const T *operator->() const noexcept
+  {
+    return ptr();
+  }
+
+  T &value()
+  {
+    if (!hasValue_) {
+      __builtin_trap();
+    }
+    return *ptr();
+  }
+
+  const T &value() const
+  {
+    if (!hasValue_) {
+      __builtin_trap();
+    }
+    return *ptr();
+  }
+
+  template <typename U>
+  T value_or(U &&defaultValue) const
+  {
+    return hasValue_ ? *ptr() : static_cast<T>(static_cast<U &&>(defaultValue));
+  }
+
+  void reset() noexcept
+  {
+    destroy();
+  }
+
+  template <typename... Args>
+  T &emplace(Args &&...args)
+  {
+    destroy();
+    construct(static_cast<Args &&>(args)...);
+    return *ptr();
+  }
+
+  friend bool operator==(const optional &a, const optional &b)
+  {
+    if (a.hasValue_ != b.hasValue_) {
+      return false;
+    }
+    if (!a.hasValue_) {
+      return true;
+    }
+    return *a.ptr() == *b.ptr();
+  }
+
+  friend bool operator!=(const optional &a, const optional &b)
+  {
+    return !(a == b);
+  }
+
+  friend bool operator==(const optional &a, nullopt_t) noexcept
+  {
+    return !a.hasValue_;
+  }
+
+  friend bool operator==(nullopt_t, const optional &a) noexcept
+  {
+    return !a.hasValue_;
+  }
+
+  friend bool operator!=(const optional &a, nullopt_t) noexcept
+  {
+    return a.hasValue_;
+  }
+
+  friend bool operator!=(nullopt_t, const optional &a) noexcept
+  {
+    return a.hasValue_;
+  }
+};
+
+template <typename T>
+bool operator==(const optional<T> &a, const T &value)
+{
+  return a.has_value() && *a == value;
+}
+
+template <typename T>
+bool operator==(const T &value, const optional<T> &a)
+{
+  return a.has_value() && *a == value;
+}
+
+template <typename T>
+bool operator!=(const optional<T> &a, const T &value)
+{
+  return !(a == value);
+}
+
+template <typename T>
+bool operator!=(const T &value, const optional<T> &a)
+{
+  return !(a == value);
+}
+
+#endif // OPTIONAL_H

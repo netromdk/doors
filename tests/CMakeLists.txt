@@ -149,6 +149,10 @@ doors_test_module(test_libcpp_array_header
   libc++/array/array.cc
 )
 
+doors_test_module(test_libcpp_optional
+  libc++/optional/optional.cc
+)
+
 # Test that `abort()` actually terminates with a non-zero exit code.
 add_executable(test_libcpp_abort abort/test_abort.cc)
 target_include_directories(test_libcpp_abort PRIVATE "${DOORS_LIBC_INC_DIR}")
