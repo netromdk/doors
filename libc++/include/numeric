@@ -1,0 +1,13 @@
+#ifndef NUMERIC_H
+#define NUMERIC_H
+
+template <typename InputIt, typename T>
+constexpr T accumulate(InputIt first, InputIt last, T init)
+{
+  for (; first != last; ++first) {
+    init = init + *first;
+  }
+  return init;
+}
+
+#endif // NUMERIC_H
