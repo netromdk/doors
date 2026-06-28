@@ -437,6 +437,14 @@ bool Scheduler::isTaskbarSuppressed()
   return false;
 }
 
+void Scheduler::blockCurrentTask()
+{
+  if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
+    panic("Scheduler::blockCurrentTask: corrupted currentIdx");
+  }
+  tasks_[currentIdx_].state = TaskState::BLOCKED;
+}
+
 int Scheduler::findNext()
 {
   if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
@@ -471,6 +479,13 @@ const Task *Scheduler::testGetTask(int id)
     return &tasks_[id];
   }
   return nullptr;
+}
+
+void Scheduler::testSetCurrentIdx(int id)
+{
+  if (id >= 0 && id < MAX_TASKS) {
+    currentIdx_ = id;
+  }
 }
 #endif
 

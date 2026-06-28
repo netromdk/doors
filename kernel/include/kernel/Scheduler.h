@@ -36,12 +36,14 @@ public:
   static uint8_t taskFlags(int id);
   static void killTask(int id);
   static void sleep(uint64_t ms);
+  static void blockCurrentTask();
   static void suppressTaskbar();
   static bool isTaskbarSuppressed();
 
 #ifndef __IS_DOORS_KERNEL
   // Test helpers. These expose state that kernel builds reach only through internal transitions.
   static void testSetTaskState(int id, TaskState s);
+  static void testSetCurrentIdx(int id);
   static const Task *testGetTask(int id);
 #endif
 
