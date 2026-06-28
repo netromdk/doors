@@ -1,6 +1,7 @@
 #ifndef KERNEL_SCHEDULER_H
 #define KERNEL_SCHEDULER_H
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <kernel/Task.h>
@@ -57,7 +58,7 @@ public:
 
 private:
   // Flat task table where slot index == task id.
-  static Task tasks_[MAX_TASKS];
+  static array<Task, MAX_TASKS> tasks_;
 
   static volatile int taskCount_;
   static volatile int currentIdx_;

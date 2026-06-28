@@ -7,7 +7,7 @@
 #include <kernel/Pit.h>
 #include <kernel/Scheduler.h>
 
-Task Scheduler::tasks_[MAX_TASKS]{};
+array<Task, Scheduler::MAX_TASKS> Scheduler::tasks_{};
 volatile int Scheduler::taskCount_{0};
 volatile int Scheduler::currentIdx_{0};
 volatile int Scheduler::quantumRemaining_{0};
