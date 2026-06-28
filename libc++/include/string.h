@@ -10,7 +10,14 @@ void *memset(void *ptr, int value, size_t num);
 int memcmp(const void *ptr1, const void *ptr2, size_t num);
 const void *memchr(const void *ptr, int value, size_t num);
 
-size_t strlen(const char *str);
+inline constexpr size_t strlen(const char *str)
+{
+  auto *pos = str;
+  for (; *pos; ++pos) {
+  }
+  return pos - str;
+}
+
 char *strcpy(char *dst, const char *src);
 char *strncpy(char *dst, const char *src, size_t num);
 int strcmp(const char *str1, const char *str2);

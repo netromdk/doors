@@ -21,7 +21,6 @@ set(LIBCPP_SOURCES
   string/strcmp.cc
   string/strcpy.cc
   string/string.cc
-  string/strlen.cc
   string/strncmp.cc
   string/strncpy.cc
   string/strrchr.cc
