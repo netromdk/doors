@@ -13,24 +13,32 @@ uint16_t savedBuf_[VGA_WIDTH * VGA_HEIGHT];
 
 void Screen::put(int row, int col, char ch, uint8_t color)
 {
+  Tty::lock();
   VGA_RAM[row * static_cast<int>(VGA_WIDTH) + col] = vgaEntry(ch, color);
+  Tty::unlock();
 }
 
 void Screen::save()
 {
+  Tty::lock();
   __builtin_memcpy(savedBuf_, VGA_RAM, sizeof(savedBuf_));
+  Tty::unlock();
 }
 
 void Screen::restore()
 {
+  Tty::lock();
   __builtin_memcpy(VGA_RAM, savedBuf_, sizeof(savedBuf_));
+  Tty::unlock();
 }
 
 void Screen::cls(uint8_t color)
 {
+  Tty::lock();
   for (int i = 0; i < VGA_WIDTH * VGA_HEIGHT; ++i) {
     VGA_RAM[i] = vgaEntry(' ', color);
   }
+  Tty::unlock();
 }
 
 void Screen::cursorShow()

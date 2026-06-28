@@ -2,6 +2,7 @@
 #define KERNEL_TTY_H
 
 #include <cstdint>
+#include <kernel/Semaphore.h>
 #include <kernel/Vga.h>
 
 class string;
@@ -17,6 +18,14 @@ public:
 
   static void setColor(uint8_t color);
   static void setScrolling(bool enabled = true);
+
+  static void lock();
+  static void unlock();
+
+#ifndef __IS_DOORS_KERNEL
+  // Reset the internal semaphore to a clean binary state (used by tests).
+  static void resetLock();
+#endif
 
   static void cls();
 
@@ -50,6 +59,9 @@ public:
   static void scrollbackLineDown();
   static void scrollbackHome();
   static int scrollbackOffset();
+
+private:
+  static Semaphore lock_;
 };
 
 #endif // KERNEL_TTY_H

@@ -41,7 +41,7 @@ void clearRow(uint8_t row)
 {
   termColor = Tty::DEFAULT_COLOR;
   for (uint8_t col = 0; col < VGA_WIDTH; col++) {
-    Tty::putc(' ', row, col);
+    VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(' ', termColor);
   }
 }
 
@@ -118,7 +118,67 @@ void cursorUpdate()
   Io::outb(0x3D5, static_cast<uint8_t>(pos));
 }
 
+int rawPuts(const char *str)
+{
+  size_t i = 0;
+  while (str[i]) {
+    if (str[i] == '\n') {
+      advRow();
+      termCol = 0;
+    }
+    else if (str[i] == '\r') {
+      termCol = 0;
+    }
+    else {
+      VGA_RAM[termRow * VGA_WIDTH + termCol] = vgaEntry(str[i], termColor);
+      advCol();
+    }
+    ++i;
+  }
+  cursorUpdate();
+  return static_cast<int>(i);
+}
+
+int rawPuts(const string &str)
+{
+  size_t i = 0;
+  for (; i < str.size(); ++i) {
+    if (str[i] == '\n') {
+      advRow();
+      termCol = 0;
+    }
+    else if (str[i] == '\r') {
+      termCol = 0;
+    }
+    else {
+      VGA_RAM[termRow * VGA_WIDTH + termCol] = vgaEntry(str[i], termColor);
+      advCol();
+    }
+  }
+  cursorUpdate();
+  return static_cast<int>(i);
+}
+
 } // namespace
+
+Semaphore Tty::lock_(1);
+
+void Tty::lock()
+{
+  lock_.wait();
+}
+
+void Tty::unlock()
+{
+  lock_.signal();
+}
+
+#ifndef __IS_DOORS_KERNEL
+void Tty::resetLock()
+{
+  lock_ = Semaphore(1);
+}
+#endif
 
 // The two VGA CRTC cursor-shape registers, start (0x0A) and end (0x0B), define scanlines of the
 // cursor. With a 16-scanline font (numbered 0-15, top to bottom), scanlines 14-15 produce a
@@ -149,33 +209,45 @@ void Tty::cursorDisable()
 
 void Tty::cursorSetPos(uint8_t row, uint8_t col)
 {
+  lock();
   termRow = row;
   termCol = col;
   cursorUpdate();
+  unlock();
 }
 
 void Tty::setColor(uint8_t color)
 {
+  lock();
   termColor = color;
+  unlock();
 }
 
 void Tty::setScrolling(bool enabled)
 {
+  lock();
   scrolling = enabled;
+  unlock();
 }
 
 void Tty::cls()
 {
+  lock();
+
   termRow = termCol = 0;
   termColor = Tty::DEFAULT_COLOR;
   for (size_t i = 0; i < static_cast<size_t>(VGA_WIDTH * Tty::ROWS); ++i) {
     VGA_RAM[i] = vgaEntry(' ', termColor);
   }
   cursorUpdate();
+
+  unlock();
 }
 
 void Tty::putc(char ch)
 {
+  lock();
+
   // Exit scrollback view on any character input.
   if (scrollbackActive_) {
     scrollbackExit();
@@ -197,54 +269,66 @@ void Tty::putc(char ch)
     decCol();
   }
   else {
-    putc(ch, termRow, termCol);
+    VGA_RAM[termRow * VGA_WIDTH + termCol] = vgaEntry(ch, termColor);
     advCol();
   }
 
   cursorUpdate();
+
+  unlock();
 }
 
 void Tty::putc(char ch, uint8_t row, uint8_t col)
 {
+  lock();
   VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(ch, termColor);
+  unlock();
 }
 
 // NOTE: Both `const char*` and `string` overloads have their own loops rather than delegating one
 // to the other, because `string(const char*)` calls `Heap::alloc()` when the string exceeds
 // SSO. The panic/UBSan paths must never risk heap allocation!
+
 int Tty::puts(const char *str)
 {
-  size_t len = strlen(str);
-  for (size_t i = 0; i < len; i++) {
-    putc(str[i]);
-  }
-  return len;
+  lock();
+  const int ret = rawPuts(str);
+  unlock();
+  return ret;
 }
 
 int Tty::puts(const char *str, uint8_t row, uint8_t col)
 {
+  lock();
   termRow = row;
   termCol = col;
-  return puts(str);
+  const int ret = rawPuts(str);
+  unlock();
+  return ret;
 }
 
 int Tty::puts(const string &str)
 {
-  for (size_t i = 0; i < str.size(); i++) {
-    putc(str[i]);
-  }
-  return str.size();
+  lock();
+  const int ret = rawPuts(str);
+  unlock();
+  return ret;
 }
 
 int Tty::puts(const string &str, uint8_t row, uint8_t col)
 {
+  lock();
   termRow = row;
   termCol = col;
-  return puts(str);
+  const int ret = rawPuts(str);
+  unlock();
+  return ret;
 }
 
 void Tty::putLine(const char *str, uint8_t row)
 {
+  lock();
+
   // NOTE: Must use its own loop (not construct a string from str) because `string(const char*)` may
   // heap-allocate when SSO is exceeded.
   termRow = row;
@@ -261,10 +345,14 @@ void Tty::putLine(const char *str, uint8_t row)
   }
 
   cursorUpdate();
+
+  unlock();
 }
 
 void Tty::putLine(const string &str, uint8_t row)
 {
+  lock();
+
   termRow = row;
 
   size_t i = 0;
@@ -278,16 +366,24 @@ void Tty::putLine(const string &str, uint8_t row)
   }
 
   cursorUpdate();
+
+  unlock();
 }
 
 uint8_t Tty::getRow()
 {
-  return termRow;
+  lock();
+  const uint8_t r = termRow;
+  unlock();
+  return r;
 }
 
 uint8_t Tty::getCol()
 {
-  return termCol;
+  lock();
+  const uint8_t c = termCol;
+  unlock();
+  return c;
 }
 
 int Tty::scrollbackSize()
@@ -304,7 +400,12 @@ const char *Tty::scrollbackLine(int n)
 
 void Tty::scrollbackShow(int offset)
 {
-  if (offset < 1) return;
+  lock();
+
+  if (offset < 1) {
+    unlock();
+    return;
+  }
   if (offset > scrollbackCount_) {
     offset = scrollbackCount_;
   }
@@ -385,16 +486,25 @@ void Tty::scrollbackShow(int offset)
 
   scrollbackActive_ = true;
   scrollbackOffset_ = offset;
+
+  unlock();
 }
 
 void Tty::scrollbackExit()
 {
-  if (!scrollbackActive_) return;
+  lock();
+
+  if (!scrollbackActive_) {
+    unlock();
+    return;
+  }
   scrollbackActive_ = false;
   scrollbackOffset_ = 0;
   memcpy(VGA_RAM, savedScreen_, sizeof(savedScreen_));
   cursorEnable();
   Kbd::clearNavigation();
+
+  unlock();
 }
 
 bool Tty::scrollbackActive()

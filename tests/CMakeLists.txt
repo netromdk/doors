@@ -149,6 +149,17 @@ set_tests_properties(test_libcpp_abort PROPERTIES WILL_FAIL TRUE)
 # The following tests compile kernel code for host-side testing.
 
 set(HEAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Heap.cc")
+set(PIT_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Pit.cc")
+set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cc")
+set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cc")
+set(TTY_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Tty.cc")
+set(SHELL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Shell.cc")
+set(SCHED_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Scheduler.cc")
+set(SEMAPHORE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Semaphore.cc")
+set(PANIC_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Panic.cc")
+set(BTRACE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Backtrace.cc")
+set(SYMBOLS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Symbols.cc")
+
 doors_test_module(test_kernel_heap_initstate
   heap/is_initialized.cc
   "${HEAP_SRC}"
@@ -163,8 +174,6 @@ doors_test_module(test_kernel_heap
   "${HEAP_SRC}"
 )
 
-set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cc")
-set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cc")
 doors_test_module(test_kernel_kbd
   kbd/scancode_table.cc
   kbd/ring_buffer.cc
@@ -185,17 +194,12 @@ doors_test_module(test_kernel_kbd_caps_is_ctrl
 )
 target_compile_definitions(test_kernel_kbd_caps_is_ctrl PRIVATE CAPS_LOCK_IS_CTRL)
 
-set(PIT_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Pit.cc")
 doors_test_module(test_kernel_pit
   pit/uptime_math.cc
   stubs.cc
   "${PIT_SRC}"
 )
 
-set(SHELL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Shell.cc")
-set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cc")
-set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cc")
-set(TTY_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Tty.cc")
 doors_test_module(test_kernel_shell
   shell/tokenizer.cc
   shell/dispatch.cc
@@ -203,9 +207,16 @@ doors_test_module(test_kernel_shell
   shell/history.cc
   tty/vga_ram.cc
   stubs.cc
+  "${HEAP_SRC}"
+  "${PIT_SRC}"
   "${KBD_SRC}"
   "${KBD_KEYMAP_SRC}"
   "${TTY_SRC}"
+  "${SCHED_SRC}"
+  "${SEMAPHORE_SRC}"
+  "${PANIC_SRC}"
+  "${BTRACE_SRC}"
+  "${SYMBOLS_SRC}"
   "${SHELL_SRC}"
 )
 
@@ -215,33 +226,32 @@ doors_test_module(test_kernel_tty
   tty/scrollback.cc
   tty/string_puts.cc
   tty/vga_ram.cc
+  tty/lock.cc
   stubs.cc
+  "${HEAP_SRC}"
+  "${PIT_SRC}"
+  "${SCHED_SRC}"
+  "${SEMAPHORE_SRC}"
+  "${PANIC_SRC}"
+  "${BTRACE_SRC}"
+  "${SYMBOLS_SRC}"
   "${TTY_SRC}"
 )
 
-set(SYMBOLS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Symbols.cc")
 doors_test_module(test_kernel_symbols
   symbols/test_symbols.cc
   symbols/mock_table.cc
   "${SYMBOLS_SRC}"
 )
 
-set(BACKTRACE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Backtrace.cc")
-set(PANIC_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Panic.cc")
 doors_test_module(test_kernel_panic
   panic/test_panic.cc
   stubs.cc
-  "${BACKTRACE_SRC}"
+  "${BTRACE_SRC}"
   "${PANIC_SRC}"
   "${SYMBOLS_SRC}"
 )
 
-set(HEAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Heap.cc")
-set(SCHED_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Scheduler.cc")
-set(SEMAPHORE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Semaphore.cc")
-set(PANIC_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Panic.cc")
-set(BTRACE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Backtrace.cc")
-set(SYMBOLS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Symbols.cc")
 doors_test_module(test_kernel_scheduler
   scheduler/Init.cc
   scheduler/KillTask.cc
