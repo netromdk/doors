@@ -360,6 +360,33 @@ uint8_t Scheduler::taskFlags(int id)
   return tasks_[id].flags;
 }
 
+void Scheduler::killTask(int id)
+{
+  if (id < 0 || id >= taskCount_) {
+    return;
+  }
+
+  // Cannot kill self.
+  if (id == currentIdx_) {
+    return;
+  }
+
+  // Cannot kill a DEAD task.
+  if (tasks_[id].state == TaskState::DEAD) {
+    return;
+  }
+
+  tasks_[id].state = TaskState::DEAD;
+  ++totalExited_;
+
+  // Free memory used by task.
+  if (tasks_[id].stackBuf != nullptr) {
+    Heap::free(tasks_[id].stackBuf);
+    tasks_[id].stackBuf = nullptr;
+  }
+  tasks_[id].stackSize = 0;
+}
+
 void Scheduler::suppressTaskbar()
 {
   if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
