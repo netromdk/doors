@@ -486,12 +486,9 @@ void Scheduler::suppressTaskbar()
 
 bool Scheduler::isTaskbarSuppressed()
 {
-  for (int i = 0; i < taskCount_; ++i) {
-    if (tasks_[i].state != TaskState::DEAD && (tasks_[i].flags & Task::FLAG_SUPPRESS_TASKBAR)) {
-      return true;
-    }
-  }
-  return false;
+  return any_of(tasks_.begin(), tasks_.begin() + taskCount_, [](const Task &t) {
+    return t.state != TaskState::DEAD && (t.flags & Task::FLAG_SUPPRESS_TASKBAR);
+  });
 }
 
 void Scheduler::blockCurrentTask()

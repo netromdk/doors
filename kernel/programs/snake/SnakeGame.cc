@@ -456,12 +456,8 @@ bool SnakeGame::selfCollision(Pos p) const
 
 bool SnakeGame::obstacleCollision(Pos p) const
 {
-  for (int i = 0; i < obstacleCount_; ++i) {
-    if (obstacles_[i].row == p.row && obstacles_[i].col == p.col) {
-      return true;
-    }
-  }
-  return false;
+  return any_of(obstacles_.begin(), obstacles_.begin() + obstacleCount_,
+                [p](const Pos &o) { return o.row == p.row && o.col == p.col; });
 }
 
 void SnakeGame::placeObstacles()
@@ -479,14 +475,8 @@ void SnakeGame::placeObstacles()
     }
 
     // Skip existing obstacles.
-    bool dup = false;
-    for (int i = 0; i < obstacleCount_; ++i) {
-      if (obstacles_[i].row == p.row && obstacles_[i].col == p.col) {
-        dup = true;
-        break;
-      }
-    }
-    if (dup) {
+    if (any_of(obstacles_.begin(), obstacles_.begin() + obstacleCount_,
+               [p](const Pos &o) { return o.row == p.row && o.col == p.col; })) {
       continue;
     }
 
@@ -523,10 +513,9 @@ void SnakeGame::spawnObstacle()
     }
 
     // Check existing obstacles.
-    for (int i = 0; !occupied && i < obstacleCount_; ++i) {
-      if (obstacles_[i].row == p.row && obstacles_[i].col == p.col) {
-        occupied = true;
-      }
+    if (!occupied) {
+      occupied = any_of(obstacles_.begin(), obstacles_.begin() + obstacleCount_,
+                        [p](const Pos &o) { return o.row == p.row && o.col == p.col; });
     }
 
     if (!occupied) {
@@ -560,14 +549,8 @@ void SnakeGame::placeBoostZones()
     }
 
     // Skip obstacles.
-    bool onObstacle = false;
-    for (int i = 0; i < obstacleCount_; ++i) {
-      if (obstacles_[i].row == p.row && obstacles_[i].col == p.col) {
-        onObstacle = true;
-        break;
-      }
-    }
-    if (onObstacle) {
+    if (any_of(obstacles_.begin(), obstacles_.begin() + obstacleCount_,
+               [p](const Pos &o) { return o.row == p.row && o.col == p.col; })) {
       continue;
     }
 
@@ -582,14 +565,8 @@ void SnakeGame::placeBoostZones()
     }
 
     // Skip other boost zones.
-    bool onZone = false;
-    for (int i = 0; i < boostZoneCount_; ++i) {
-      if (boostZones_[i].row == p.row && boostZones_[i].col == p.col) {
-        onZone = true;
-        break;
-      }
-    }
-    if (onZone) {
+    if (any_of(boostZones_.begin(), boostZones_.begin() + boostZoneCount_,
+               [p](const Pos &z) { return z.row == p.row && z.col == p.col; })) {
       continue;
     }
 
@@ -613,13 +590,9 @@ void SnakeGame::placeFood()
         break;
       }
     }
-    bool onObstacle = false;
-    for (int i = 0; !onSnake && i < obstacleCount_; ++i) {
-      if (obstacles_[i].row == p.row && obstacles_[i].col == p.col) {
-        onObstacle = true;
-        break;
-      }
-    }
+    bool onObstacle =
+      !onSnake && any_of(obstacles_.begin(), obstacles_.begin() + obstacleCount_,
+                         [p](const Pos &o) { return o.row == p.row && o.col == p.col; });
     if (!onSnake && !onObstacle) {
       food_ = p;
       return;
@@ -643,11 +616,9 @@ void SnakeGame::placeBonusFood()
         break;
       }
     }
-    for (int i = 0; !occupied && i < obstacleCount_; ++i) {
-      if (obstacles_[i].row == p.row && obstacles_[i].col == p.col) {
-        occupied = true;
-        break;
-      }
+    if (!occupied) {
+      occupied = any_of(obstacles_.begin(), obstacles_.begin() + obstacleCount_,
+                        [p](const Pos &o) { return o.row == p.row && o.col == p.col; });
     }
     if (!occupied) {
       bonusFood_ = p;
