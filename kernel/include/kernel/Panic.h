@@ -2,6 +2,7 @@
 #define KERNEL_PANIC_H
 
 #include <cstdint>
+#include <string_view>
 
 struct CpuState {
   uint32_t eax;
@@ -27,6 +28,6 @@ struct CpuState {
 
 void readCpuState(CpuState *state);
 void dumpCpuState(const CpuState *state);
-[[noreturn]] void panic(const char *msg);
+[[noreturn]] void panic(string_view msg);
 
 #endif // KERNEL_PANIC_H

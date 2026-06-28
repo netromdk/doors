@@ -2,6 +2,7 @@
 #define KERNEL_CPU_H
 
 #include <cstdint>
+#include <string_view>
 
 static constexpr auto CPUID_VENDOR_OLDAMD = "AMDisbetter!",
   CPUID_VENDOR_AMD = "AuthenticAMD",
@@ -32,7 +33,7 @@ public:
   /**
    * Checks if the CPU has the specificed vendor ID.
    */
-  static bool hasVendorId(const char *id);
+  static bool hasVendorId(string_view id);
 
   /**
    * Checks if the CPU supports Physical Address Extension (for 4+ GB

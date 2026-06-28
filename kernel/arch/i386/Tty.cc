@@ -111,61 +111,31 @@ void cursorUpdate()
   Io::outb(0x3D5, static_cast<uint8_t>(pos));
 }
 
-int rawPuts(const char *str)
+int rawPuts(string_view sv)
 {
-  size_t i = 0;
-  while (str[i]) {
+  for (size_t i = 0; i < sv.size(); ++i) {
 #ifdef DEBUG_THROUGH_SERIAL_COM1
-    if (str[i] != '\b') {
-      Serial::write(str[i]);
+    if (sv[i] != '\b') {
+      Serial::write(sv[i]);
     }
 #endif
-    if (str[i] == '\n') {
+    if (sv[i] == '\n') {
       advRow();
       termCol = 0;
     }
-    else if (str[i] == '\r') {
+    else if (sv[i] == '\r') {
       termCol = 0;
     }
-    else if (str[i] == '\b') {
+    else if (sv[i] == '\b') {
       decCol();
     }
     else {
-      VGA_RAM[termRow * VGA_WIDTH + termCol] = vgaEntry(str[i], termColor);
-      advCol();
-    }
-    ++i;
-  }
-  cursorUpdate();
-  return static_cast<int>(i);
-}
-
-int rawPuts(const string &str)
-{
-  size_t i = 0;
-  for (; i < str.size(); ++i) {
-#ifdef DEBUG_THROUGH_SERIAL_COM1
-    if (str[i] != '\b') {
-      Serial::write(str[i]);
-    }
-#endif
-    if (str[i] == '\n') {
-      advRow();
-      termCol = 0;
-    }
-    else if (str[i] == '\r') {
-      termCol = 0;
-    }
-    else if (str[i] == '\b') {
-      decCol();
-    }
-    else {
-      VGA_RAM[termRow * VGA_WIDTH + termCol] = vgaEntry(str[i], termColor);
+      VGA_RAM[termRow * VGA_WIDTH + termCol] = vgaEntry(sv[i], termColor);
       advCol();
     }
   }
   cursorUpdate();
-  return static_cast<int>(i);
+  return static_cast<int>(sv.size());
 }
 
 } // namespace
@@ -292,11 +262,7 @@ void Tty::putc(char ch, uint8_t row, uint8_t col)
   unlock();
 }
 
-// NOTE: Both `const char*` and `string` overloads have their own loops rather than delegating one
-// to the other, because `string(const char*)` calls `Heap::alloc()` when the string exceeds
-// SSO. The panic/UBSan paths must never risk heap allocation!
-
-int Tty::puts(const char *str)
+int Tty::puts(string_view str)
 {
   lock();
   const int ret = rawPuts(str);
@@ -304,7 +270,7 @@ int Tty::puts(const char *str)
   return ret;
 }
 
-int Tty::puts(const char *str, uint8_t row, uint8_t col)
+int Tty::puts(string_view str, uint8_t row, uint8_t col)
 {
   lock();
   termRow = row;
@@ -314,47 +280,7 @@ int Tty::puts(const char *str, uint8_t row, uint8_t col)
   return ret;
 }
 
-int Tty::puts(const string &str)
-{
-  lock();
-  const int ret = rawPuts(str);
-  unlock();
-  return ret;
-}
-
-int Tty::puts(const string &str, uint8_t row, uint8_t col)
-{
-  lock();
-  termRow = row;
-  termCol = col;
-  const int ret = rawPuts(str);
-  unlock();
-  return ret;
-}
-
-void Tty::putLine(const char *str, uint8_t row)
-{
-  lock();
-
-  // NOTE: Must use its own loop (not construct a string from str) because `string(const char*)` may
-  // heap-allocate when SSO is exceeded.
-  termRow = row;
-
-  size_t i = 0;
-  for (; str[i] && i < VGA_WIDTH; ++i) {
-    VGA_RAM[row * VGA_WIDTH + i] = vgaEntry(str[i], termColor);
-  }
-  termCol = static_cast<uint8_t>(i);
-
-  // Fill the rest of the line.
-  fill_n(&VGA_RAM[row * VGA_WIDTH + i], VGA_WIDTH - i, vgaEntry(' ', termColor));
-
-  cursorUpdate();
-
-  unlock();
-}
-
-void Tty::putLine(const string &str, uint8_t row)
+void Tty::putLine(string_view str, uint8_t row)
 {
   lock();
 

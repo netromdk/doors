@@ -128,7 +128,7 @@ void dumpCpuState(const CpuState *state)
   printf("\n");
 }
 
-[[noreturn]] void panic(const char *msg)
+[[noreturn]] void panic(string_view msg)
 {
   Pic::disableInt();
 
@@ -136,7 +136,7 @@ void dumpCpuState(const CpuState *state)
   Tty::setColor(vgaColor(COLOR_RED, COLOR_BLACK));
 #endif
   printf("\n\nKernel: I'm sorry Dave, I'm afraid I can't do that\n");
-  printf("Reason: %s\n\n", msg);
+  printf("Reason: %s\n\n", msg.data());
 #ifdef __IS_DOORS_KERNEL
   Tty::setColor(Tty::DEFAULT_COLOR);
 #endif

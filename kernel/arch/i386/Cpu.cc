@@ -319,13 +319,9 @@ void Cpu::dump()
   printf("\n");
 }
 
-bool Cpu::hasVendorId(const char *id)
+bool Cpu::hasVendorId(string_view id)
 {
-  size_t len = strlen(vendorId);
-  if (len != strlen(id)) {
-    return false;
-  }
-  return strcmp(vendorId, id) == 0;
+  return id == vendorId;
 }
 
 bool Cpu::hasPae()
