@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -63,13 +64,10 @@ bool checkSdt(Sdt *sdt)
 Sdt *detectFadt(Rsdt *rsdt)
 {
   size_t nelm = (rsdt->header.length - sizeof(rsdt->header)) / sizeof(uint32_t);
-  for (size_t i = 0; i < nelm; i++) {
-    Sdt *sdt = (Sdt *) rsdt->otherSdts[i];
-    if (strncmp(sdt->sig, "FACP", 4) == 0) {
-      return sdt;
-    }
-  }
-  return nullptr;
+  const auto it = find_if(rsdt->otherSdts, rsdt->otherSdts + nelm, [](uint32_t ptr) {
+    return strncmp(reinterpret_cast<Sdt *>(ptr)->sig, "FACP", 4) == 0;
+  });
+  return it != rsdt->otherSdts + nelm ? reinterpret_cast<Sdt *>(*it) : nullptr;
 }
 
 void cleanup()
@@ -78,6 +76,7 @@ void cleanup()
   rsdt = nullptr;
   fadt = nullptr;
 }
+
 } // namespace
 
 bool Acpi::init()

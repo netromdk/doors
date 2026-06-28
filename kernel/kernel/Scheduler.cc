@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -83,10 +84,10 @@ int Scheduler::addTask(const char *name, void (*entry)())
 
 int Scheduler::findSlot()
 {
-  for (int i = 0; i < taskCount_; ++i) {
-    if (tasks_[i].state == TaskState::DEAD) {
-      return i;
-    }
+  const auto it = find_if(tasks_.begin(), tasks_.begin() + taskCount_,
+                          [](const Task &t) { return t.state == TaskState::DEAD; });
+  if (it != tasks_.begin() + taskCount_) {
+    return static_cast<int>(it - tasks_.begin());
   }
   if (taskCount_ >= MAX_TASKS) {
     return -1;

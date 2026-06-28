@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <cctype>
 #include <cstdio>
@@ -86,11 +87,11 @@ bool Shell::dispatch(int argc, const string *argv)
     return true;
   }
 
-  for (int i = 0; i < numCmds; i++) {
-    if (argv[0] == cmdTable[i].name) {
-      cmdTable[i].handler(argc, argv);
-      return true;
-    }
+  const auto it = find_if(cmdTable.begin(), cmdTable.begin() + numCmds,
+                          [&](const Command &cmd) { return argv[0] == cmd.name; });
+  if (it != cmdTable.begin() + numCmds) {
+    it->handler(argc, argv);
+    return true;
   }
 
   printf("Unknown command: %s\n", argv[0].c_str());

@@ -175,13 +175,12 @@ bool SnakeGame::step(uint64_t dtMs)
   }
 
   // Boost zone consumption.
-  for (int i = 0; i < boostZoneCount_; ++i) {
-    if (next.row == boostZones_[i].row && next.col == boostZones_[i].col) {
-      boostZones_[i] = boostZones_[--boostZoneCount_];
-      boostActive_ = true;
-      boostTimerMs_ = BOOST_DURATION_MS;
-      break;
-    }
+  const auto bzIt = find_if(boostZones_.begin(), boostZones_.begin() + boostZoneCount_,
+                            [&](const Pos &z) { return next.row == z.row && next.col == z.col; });
+  if (bzIt != boostZones_.begin() + boostZoneCount_) {
+    *bzIt = boostZones_[--boostZoneCount_];
+    boostActive_ = true;
+    boostTimerMs_ = BOOST_DURATION_MS;
   }
 
   drawAt(next, CHAR_HEAD, COLOR_SNAKE);

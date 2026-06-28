@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstddef>
 #include <cstdio>
 
@@ -62,13 +63,12 @@ size_t Mem::availableAbove(void *addr)
 {
   uintptr_t start = reinterpret_cast<uintptr_t>(addr);
 
-  for (size_t i = 0; i < memCnt; i++) {
-    uintptr_t chunkStart = memMap[i]->addr;
-    uintptr_t chunkEnd = chunkStart + memMap[i]->len;
+  const auto it = find_if(memMap, memMap + memCnt, [start](multiboot_memory_map_t *chunk) {
+    return start >= chunk->addr && start < chunk->addr + chunk->len;
+  });
 
-    if (start >= chunkStart && start < chunkEnd) {
-      return chunkEnd - start;
-    }
+  if (it != memMap + memCnt) {
+    return (*it)->addr + (*it)->len - start;
   }
 
   return 0;
