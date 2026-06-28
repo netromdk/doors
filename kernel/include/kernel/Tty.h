@@ -4,8 +4,7 @@
 #include <cstdint>
 #include <kernel/Semaphore.h>
 #include <kernel/Vga.h>
-
-class string;
+#include <string_view>
 
 class Tty {
 public:
@@ -32,13 +31,10 @@ public:
   static void putc(char ch);
   static void putc(char ch, uint8_t row, uint8_t col);
 
-  static int puts(const char *str);
-  static int puts(const char *str, uint8_t row, uint8_t col);
-  static int puts(const string &str);
-  static int puts(const string &str, uint8_t row, uint8_t col);
+  static int puts(string_view str);
+  static int puts(string_view str, uint8_t row, uint8_t col);
 
-  static void putLine(const char *str, uint8_t row);
-  static void putLine(const string &str, uint8_t row);
+  static void putLine(string_view str, uint8_t row);
 
   static void cursorEnable();
   static void cursorDisable();

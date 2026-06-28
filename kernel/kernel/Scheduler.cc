@@ -58,7 +58,7 @@ void Scheduler::init()
   initialized_ = true;
 }
 
-optional<int> Scheduler::addTask(const char *name, void (*entry)())
+optional<int> Scheduler::addTask(string_view name, void (*entry)())
 {
   // Disable interrupts while modifying the shared task table so the timer ISR, which calls
   // `tick()`, does not see a partially-initialized slot.
@@ -123,9 +123,9 @@ uint32_t Scheduler::initStackFrame(uint8_t *stack, void (*entry)())
   return static_cast<uint32_t>(reinterpret_cast<unsigned long long>(stackTop - 11));
 }
 
-optional<int> Scheduler::addTaskImpl(const char *name, void (*entry)())
+optional<int> Scheduler::addTaskImpl(string_view name, void (*entry)())
 {
-  if (name == nullptr) {
+  if (name.data() == nullptr) {
     return nullopt;
   }
 
@@ -152,8 +152,8 @@ optional<int> Scheduler::addTaskImpl(const char *name, void (*entry)())
   t.id = static_cast<uint8_t>(slot);
   t.stackBuf = stack;
   t.stackSize = TASK_STACK_SIZE;
-  strncpy(t.name.data(), name, t.name.size() - 1);
-  t.name[t.name.size() - 1] = '\0';
+  const auto len = name.copy(t.name.data(), t.name.size() - 1);
+  t.name[len] = '\0';
 
   return slot;
 }
@@ -229,7 +229,7 @@ uint32_t Scheduler::switchTo(int next)
   return tasks_[currentIdx_].esp;
 }
 
-optional<int> Scheduler::addTaskAndBlock(const char *name, void (*entry)())
+optional<int> Scheduler::addTaskAndBlock(string_view name, void (*entry)())
 {
 #ifdef __IS_DOORS_KERNEL
   __asm__("cli");

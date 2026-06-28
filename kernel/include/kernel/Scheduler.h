@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <kernel/Task.h>
 #include <optional>
+#include <string_view>
 
 class Scheduler {
 public:
@@ -22,8 +23,8 @@ public:
   static constexpr uint32_t FRAME_SIZE = 44;
 
   static void init();
-  static optional<int> addTask(const char *name, void (*entry)());
-  static optional<int> addTaskAndBlock(const char *name, void (*entry)());
+  static optional<int> addTask(string_view name, void (*entry)());
+  static optional<int> addTaskAndBlock(string_view name, void (*entry)());
   static uint32_t tick(uint32_t currentEsp);
   [[noreturn]] static void exitCurrentTask();
   static void unblockTask(int id);
@@ -73,7 +74,7 @@ private:
 
   static optional<int> findSlot();
   static uint32_t initStackFrame(uint8_t *stack, void (*entry)());
-  static optional<int> addTaskImpl(const char *name, void (*entry)());
+  static optional<int> addTaskImpl(string_view name, void (*entry)());
   static optional<int> findNext();
   static uint32_t switchTo(int next);
   static void checkCanary(const Task &t);
