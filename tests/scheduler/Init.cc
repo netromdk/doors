@@ -11,7 +11,7 @@ alignas(16) uint8_t testPool[262144];
 
 TEST_CASE("init: task 0 is RUNNING, all others DEAD")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
   CHECK(Scheduler::currentTaskId() == 0);
 
@@ -40,7 +40,7 @@ TEST_CASE("init: taskCount is 1, currentIdx is 0")
 
 TEST_CASE("init: re-init resets state from a previous run")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   Scheduler::addTask("a", nullptr);

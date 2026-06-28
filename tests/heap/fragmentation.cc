@@ -4,7 +4,7 @@
 TEST_CASE("coalesce adjacent blocks")
 {
   alignas(16) static uint8_t pool[4096];
-  Heap::init(pool, sizeof(pool));
+  Heap::init({pool, sizeof(pool)});
 
   void *a = Heap::alloc(32);
   void *b = Heap::alloc(32);
@@ -23,7 +23,7 @@ TEST_CASE("coalesce adjacent blocks")
 TEST_CASE("coalesce chain of three")
 {
   alignas(16) static uint8_t pool[8192];
-  Heap::init(pool, sizeof(pool));
+  Heap::init({pool, sizeof(pool)});
 
   void *blocks[5];
   for (int i = 0; i < 5; i++) {
@@ -42,7 +42,7 @@ TEST_CASE("coalesce chain of three")
 TEST_CASE("alloc after coalesce fills correct spot")
 {
   alignas(16) static uint8_t pool[4096];
-  Heap::init(pool, sizeof(pool));
+  Heap::init({pool, sizeof(pool)});
 
   void *a = Heap::alloc(16);
   void *b = Heap::alloc(64);

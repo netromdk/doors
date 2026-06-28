@@ -11,7 +11,7 @@ alignas(16) uint8_t testPool[65536];
 
 TEST_CASE("unblockTask: BLOCKED task becomes READY and is found by round-robin")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   // `addTaskAndBlock()` adds task 1 and sets task 0 (the current task) to BLOCKED.
@@ -37,7 +37,7 @@ TEST_CASE("unblockTask: BLOCKED task becomes READY and is found by round-robin")
 
 TEST_CASE("unblockTask: no-op if already READY")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   Scheduler::addTask("task1", nullptr);
@@ -78,7 +78,7 @@ TEST_CASE("unblockTask: no-op if RUNNING")
 
 TEST_CASE("unblockTask: no-op if DEAD")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   Scheduler::addTask("alive", nullptr);   // task 1 = READY

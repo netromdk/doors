@@ -39,8 +39,8 @@ void Shell::run()
     Tty::setColor(Tty::DEFAULT_COLOR);
     Kbd::readLine(line, &hctx);
 
-    const int argc = Shell::tokenize(line, argv.data(), MAX_ARGS);
-    Shell::dispatch(argc, argv.data());
+    const int argc = Shell::tokenize(line, {argv.data(), MAX_ARGS});
+    Shell::dispatch({argv.data(), static_cast<size_t>(argc)});
 
     // Save to history but skip empty or duplicate of the most recent entry.
     if (!line.empty() && (historyCount_ == 0 ||
@@ -55,7 +55,7 @@ void Shell::run()
   }
 }
 
-int Shell::tokenize(const string &line, string *argv, int max)
+int Shell::tokenize(const string &line, span<string> argv)
 {
   int argc = 0;
   size_t i = 0;
@@ -67,7 +67,7 @@ int Shell::tokenize(const string &line, string *argv, int max)
     if (i >= n) {
       break;
     }
-    if (argc >= max - 1) {
+    if (argc >= static_cast<int>(argv.size()) - 1) {
       break;
     }
     string::size_type start = i;
@@ -81,16 +81,16 @@ int Shell::tokenize(const string &line, string *argv, int max)
   return argc;
 }
 
-bool Shell::dispatch(int argc, const string *argv)
+bool Shell::dispatch(span<const string> argv)
 {
-  if (argc == 0) {
+  if (argv.size() == 0) {
     return true;
   }
 
   const auto it = find_if(cmdTable.begin(), cmdTable.begin() + numCmds,
                           [&](const Command &cmd) { return argv[0] == cmd.name; });
   if (it != cmdTable.begin() + numCmds) {
-    it->handler(argc, argv);
+    it->handler(static_cast<int>(argv.size()), argv.data());
     return true;
   }
 

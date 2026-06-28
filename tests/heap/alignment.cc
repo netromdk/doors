@@ -5,7 +5,7 @@
 TEST_CASE("all sizes 1..64 are 8-byte aligned")
 {
   alignas(16) static uint8_t pool[8192];
-  Heap::init(pool, sizeof(pool));
+  Heap::init({pool, sizeof(pool)});
 
   for (size_t sz = 1; sz <= 64; sz++) {
     void *p = Heap::alloc(sz);
@@ -17,7 +17,7 @@ TEST_CASE("all sizes 1..64 are 8-byte aligned")
 TEST_CASE("large alloc alignment")
 {
   alignas(16) static uint8_t pool[8192];
-  Heap::init(pool, sizeof(pool));
+  Heap::init({pool, sizeof(pool)});
 
   void *p = Heap::alloc(1000);
   REQUIRE(p != nullptr);
@@ -27,7 +27,7 @@ TEST_CASE("large alloc alignment")
 TEST_CASE("consecutive allocs have distinct aligned addresses")
 {
   alignas(16) static uint8_t pool[8192];
-  Heap::init(pool, sizeof(pool));
+  Heap::init({pool, sizeof(pool)});
 
   void *a = Heap::alloc(16);
   void *b = Heap::alloc(32);

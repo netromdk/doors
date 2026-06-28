@@ -4,7 +4,7 @@
 TEST_CASE("kfree reuse")
 {
   alignas(16) static uint8_t pool[4096];
-  Heap::init(pool, sizeof(pool));
+  Heap::init({pool, sizeof(pool)});
 
   void *p = Heap::alloc(64);
   REQUIRE(p != nullptr);
@@ -18,7 +18,7 @@ TEST_CASE("kfree reuse")
 TEST_CASE("kfree nullptr")
 {
   alignas(16) static uint8_t pool[256];
-  Heap::init(pool, sizeof(pool));
+  Heap::init({pool, sizeof(pool)});
 
   CHECK_NOTHROW(Heap::free(nullptr));
 }
@@ -26,7 +26,7 @@ TEST_CASE("kfree nullptr")
 TEST_CASE("kfree then smaller alloc")
 {
   alignas(16) static uint8_t pool[4096];
-  Heap::init(pool, sizeof(pool));
+  Heap::init({pool, sizeof(pool)});
 
   void *p = Heap::alloc(128);
   REQUIRE(p != nullptr);
@@ -46,7 +46,7 @@ TEST_CASE("kfree then smaller alloc")
 TEST_CASE("kfree double free")
 {
   alignas(16) static uint8_t pool[4096];
-  Heap::init(pool, sizeof(pool));
+  Heap::init({pool, sizeof(pool)});
 
   void *p = Heap::alloc(64);
   REQUIRE(p != nullptr);
@@ -58,7 +58,7 @@ TEST_CASE("kfree double free")
 TEST_CASE("kfree then alloc larger")
 {
   alignas(16) static uint8_t pool[4096];
-  Heap::init(pool, sizeof(pool));
+  Heap::init({pool, sizeof(pool)});
 
   void *p = Heap::alloc(64);
   REQUIRE(p != nullptr);
