@@ -5,15 +5,15 @@
 #include <sys/cdefs.h>
 
 template <typename T>
-constexpr inline T min(T a, T b)
+constexpr inline const T &min(const T &a, const T &b)
 {
-  return (a < b ? a : b);
+  return a < b ? a : b;
 }
 
 template <typename T>
-constexpr inline T max(T a, T b)
+constexpr inline const T &max(const T &a, const T &b)
 {
-  return (a < b ? b : a);
+  return a < b ? b : a;
 }
 
 template <typename T>
