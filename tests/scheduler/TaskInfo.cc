@@ -13,7 +13,7 @@ alignas(16) uint8_t testPool[262144];
 
 TEST_CASE("taskCount: starts at 1 after init, increments with addTask")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
   CHECK(Scheduler::taskCount() == 1); // Shell task.
 
@@ -35,7 +35,7 @@ TEST_CASE("taskName: returns stored name and empty string for bad id")
 
 TEST_CASE("taskName: returns name of added task")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   Scheduler::addTask("foobar", nullptr);
@@ -57,7 +57,7 @@ TEST_CASE("taskState: returns nullopt for invalid ids")
 
 TEST_CASE("taskState: added task starts READY, becomes DEAD after exit")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   Scheduler::addTask("t", nullptr);
@@ -70,7 +70,7 @@ TEST_CASE("taskState: added task starts READY, becomes DEAD after exit")
 
 TEST_CASE("taskFlags: returns 0 for added task, sets suppress correctly")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   CHECK(Scheduler::taskFlags(0) == 0);
@@ -97,7 +97,7 @@ TEST_CASE("taskEsp: returns nullopt for invalid id")
 
 TEST_CASE("taskStackBuf: nullptr for shell, non-null for added task")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
   CHECK(Scheduler::taskStackBuf(0) == nullptr);
 
@@ -114,7 +114,7 @@ TEST_CASE("taskStackBuf: returns nullopt for invalid id")
 
 TEST_CASE("taskStackSize: 0 for shell, TASK_STACK_SIZE for added task")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
   CHECK(Scheduler::taskStackSize(0) == 0);
 
@@ -129,7 +129,7 @@ static void taskEntryTestDummy()
 
 TEST_CASE("taskEntryAddr: 0 for shell, non-zero for added task")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
   CHECK(Scheduler::taskEntryAddr(0) == 0);
 
@@ -201,7 +201,7 @@ TEST_CASE("taskRuntimeMs: tick increments running task")
 
 TEST_CASE("taskRuntimeMs: different tasks accumulate independently")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
   Scheduler::tick(0);
   CHECK(Scheduler::taskRuntimeMs(0) == 1);

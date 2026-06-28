@@ -11,7 +11,7 @@ alignas(16) uint8_t testPool[65536];
 
 TEST_CASE("tick: returns 0 before quantum expires")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   Scheduler::addTask("task1", nullptr);
@@ -23,7 +23,7 @@ TEST_CASE("tick: returns 0 before quantum expires")
 
 TEST_CASE("tick: returns new esp after QUANTUM_TICKS calls")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   Scheduler::addTask("task1", nullptr);
@@ -50,7 +50,7 @@ TEST_CASE("tick: returns 0 if only one runnable task")
 
 TEST_CASE("tick: wraps around task array")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   Scheduler::addTask("task1", nullptr);
@@ -74,7 +74,7 @@ TEST_CASE("tick: wraps around task array")
 
 TEST_CASE("tick: switched-to task becomes RUNNING, old becomes READY")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   Scheduler::addTask("task1", nullptr);
@@ -97,7 +97,7 @@ TEST_CASE("tick: switched-to task becomes RUNNING, old becomes READY")
 
 TEST_CASE("tick: skips DEAD tasks")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   Scheduler::addTask("alive", nullptr); // task 1 = READY

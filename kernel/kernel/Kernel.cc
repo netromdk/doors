@@ -65,7 +65,7 @@ void kmain()
   void *heapStart = reinterpret_cast<void *>(_kernel_end);
   size_t heapSize = Mem::availableAbove(heapStart);
   if (heapSize > 0) {
-    Heap::init(heapStart, heapSize);
+    Heap::init({reinterpret_cast<uint8_t *>(heapStart), heapSize});
   }
   else {
     printf("Warning: no memory available for heap\n");

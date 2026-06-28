@@ -6,8 +6,8 @@
 template <size_t N>
 bool dispatchLine(const string &line, string (&argv)[N])
 {
-  int argc = Shell::tokenize(line, argv, N);
-  return Shell::dispatch(argc, argv);
+  const int argc = Shell::tokenize(line, {argv, N});
+  return Shell::dispatch({argv, static_cast<size_t>(argc)});
 }
 
 #endif // TESTS_SHELL_TESTHELPERS_H

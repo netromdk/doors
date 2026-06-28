@@ -3,13 +3,14 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <span>
 
 class Heap {
 public:
   static constexpr size_t BLOCK_ALIGN = 16;
   static constexpr size_t MIN_BLOCK = 32;
 
-  static void init(void *start, size_t size);
+  static void init(span<uint8_t> memory);
   static bool isInitialized();
   static void *alloc(size_t size);
   static void free(void *ptr);

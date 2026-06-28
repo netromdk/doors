@@ -2,6 +2,7 @@
 #define KERNEL_SHELL_H
 
 #include <cstddef>
+#include <span>
 #include <string>
 
 struct Command {
@@ -13,8 +14,8 @@ struct Command {
 class Shell {
 public:
   static void run();
-  static int tokenize(const string &line, string *argv, int max);
-  static bool dispatch(int argc, const string *argv);
+  static int tokenize(const string &line, span<string> argv);
+  static bool dispatch(span<const string> argv);
   static void registerCmd(const Command &cmd);
   static void printHelp();
 };

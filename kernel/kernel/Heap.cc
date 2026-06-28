@@ -42,10 +42,10 @@ Heap::FreeNode *Heap::freeList_ = nullptr;
 size_t Heap::heapStart_ = 0;
 size_t Heap::heapEnd_ = 0;
 
-void Heap::init(void *start, size_t size)
+void Heap::init(span<uint8_t> memory)
 {
-  heapStart_ = alignUp(reinterpret_cast<size_t>(start), Heap::BLOCK_ALIGN);
-  heapEnd_ = heapStart_ + alignUp(size, Heap::BLOCK_ALIGN);
+  heapStart_ = alignUp(reinterpret_cast<size_t>(memory.data()), Heap::BLOCK_ALIGN);
+  heapEnd_ = heapStart_ + alignUp(memory.size(), Heap::BLOCK_ALIGN);
 
   auto *first = reinterpret_cast<FreeNode *>(heapStart_);
   first->header.size = static_cast<uint32_t>(heapEnd_ - heapStart_);

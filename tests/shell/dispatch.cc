@@ -69,7 +69,7 @@ TEST_CASE("no_match")
 
 TEST_CASE("empty")
 {
-  bool result = Shell::dispatch(0, nullptr);
+  const bool result = Shell::dispatch({});
   CHECK(result == true);
 }
 

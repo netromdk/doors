@@ -11,7 +11,7 @@ alignas(16) uint8_t testPool[262144];
 
 TEST_CASE("killTask: marks READY task as DEAD")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   Scheduler::addTask("t", nullptr);
@@ -26,7 +26,7 @@ TEST_CASE("killTask: marks READY task as DEAD")
 
 TEST_CASE("killTask: frees stack buffer")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   const size_t before = Heap::freeMem();
@@ -49,7 +49,7 @@ TEST_CASE("killTask: frees stack buffer")
 
 TEST_CASE("killTask: already DEAD is no-op")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   Scheduler::addTask("t", nullptr);

@@ -25,7 +25,7 @@ uint32_t exhaustAndSwitch()
 
 TEST_CASE("addTask: stack canary written at stackBuf[0]")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
   REQUIRE(Scheduler::addTask("test", nullptr));
 
@@ -42,7 +42,7 @@ TEST_CASE("addTask: stack canary written at stackBuf[0]")
 
 TEST_CASE("addTask: initial EFLAGS has IF set (0x202)")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
   REQUIRE(Scheduler::addTask("test", nullptr));
 
@@ -60,7 +60,7 @@ TEST_CASE("addTask: initial EFLAGS has IF set (0x202)")
 
 TEST_CASE("addTask: initial CS is 0x08")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
   REQUIRE(Scheduler::addTask("test", nullptr));
 
@@ -78,7 +78,7 @@ TEST_CASE("addTask: initial CS is 0x08")
 
 TEST_CASE("addTask: initial EIP is non-zero (taskWrapper)")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
   REQUIRE(Scheduler::addTask("test", nullptr));
 
@@ -96,7 +96,7 @@ TEST_CASE("addTask: initial EIP is non-zero (taskWrapper)")
 
 TEST_CASE("addTask: GP registers in frame are zeroed")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
   REQUIRE(Scheduler::addTask("test", nullptr));
 
@@ -116,7 +116,7 @@ TEST_CASE("addTask: GP registers in frame are zeroed")
 
 TEST_CASE("addTask: task.esp points to correct offset within stackBuf")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
   REQUIRE(Scheduler::addTask("test", nullptr));
 
@@ -137,7 +137,7 @@ TEST_CASE("addTask: task.esp points to correct offset within stackBuf")
 
 TEST_CASE("addTask: returns -1 when all MAX_TASKS slots are occupied")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   for (int i = 0; i < Scheduler::MAX_TASKS - 1; ++i) {
@@ -150,7 +150,7 @@ TEST_CASE("addTask: returns -1 when all MAX_TASKS slots are occupied")
 
 TEST_CASE("addTask: reuses a DEAD slot")
 {
-  Heap::init(testPool, sizeof(testPool));
+  Heap::init({testPool, sizeof(testPool)});
   Scheduler::init();
 
   const int first = *Scheduler::addTask("a", nullptr);
