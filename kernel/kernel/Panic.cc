@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <arch/i386/Pic.h>
 #include <cstdint>
 #include <cstdio>
@@ -181,9 +182,7 @@ void dumpCpuState(const CpuState *state)
   for (; banner[j]; j++) {
     VGA_RAM[j] = vgaEntry(banner[j], whiteOnRed);
   }
-  for (; j < VGA_WIDTH; j++) {
-    VGA_RAM[j] = vgaEntry(' ', whiteOnRed);
-  }
+  fill_n(VGA_RAM + j, VGA_WIDTH - j, vgaEntry(' ', whiteOnRed));
   Tty::unlock();
 #endif
 

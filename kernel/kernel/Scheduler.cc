@@ -49,9 +49,7 @@ bool Scheduler::isDead(TaskState s)
 
 void Scheduler::init()
 {
-  for (int i = 0; i < MAX_TASKS; ++i) {
-    tasks_[i] = {};
-  }
+  fill(tasks_.begin(), tasks_.end(), Task{});
   tasks_[0].state = TaskState::RUNNING;
   tasks_[0].id = 0;
   tasks_[0].entry = nullptr;

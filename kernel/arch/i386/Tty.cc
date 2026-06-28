@@ -37,9 +37,7 @@ static constinit array<array<uint16_t, VGA_WIDTH>, Tty::ROWS> savedScreen_{};
 void clearRow(uint8_t row)
 {
   termColor = Tty::DEFAULT_COLOR;
-  for (uint8_t col = 0; col < VGA_WIDTH; col++) {
-    VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(' ', termColor);
-  }
+  fill_n(&VGA_RAM[row * VGA_WIDTH], VGA_WIDTH, vgaEntry(' ', termColor));
 }
 
 void swapRows(uint8_t row1, uint8_t row2)
@@ -249,9 +247,7 @@ void Tty::cls()
 
   termRow = termCol = 0;
   termColor = Tty::DEFAULT_COLOR;
-  for (size_t i = 0; i < static_cast<size_t>(VGA_WIDTH * Tty::ROWS); ++i) {
-    VGA_RAM[i] = vgaEntry(' ', termColor);
-  }
+  fill_n(VGA_RAM, VGA_WIDTH * Tty::ROWS, vgaEntry(' ', termColor));
   cursorUpdate();
 
   unlock();
@@ -353,9 +349,7 @@ void Tty::putLine(const char *str, uint8_t row)
   termCol = static_cast<uint8_t>(i);
 
   // Fill the rest of the line.
-  for (; i < VGA_WIDTH; ++i) {
-    VGA_RAM[row * VGA_WIDTH + i] = vgaEntry(' ', termColor);
-  }
+  fill_n(&VGA_RAM[row * VGA_WIDTH + i], VGA_WIDTH - i, vgaEntry(' ', termColor));
 
   cursorUpdate();
 
@@ -374,9 +368,8 @@ void Tty::putLine(const string &str, uint8_t row)
   }
   termCol = static_cast<uint8_t>(i);
 
-  for (; i < VGA_WIDTH; ++i) {
-    VGA_RAM[row * VGA_WIDTH + i] = vgaEntry(' ', termColor);
-  }
+  // Fill the rest of the line.
+  fill_n(&VGA_RAM[row * VGA_WIDTH + i], VGA_WIDTH - i, vgaEntry(' ', termColor));
 
   cursorUpdate();
 
@@ -463,9 +456,7 @@ void Tty::scrollbackShow(int offset)
     int lineFromEnd = top - static_cast<int>(row - 1);
 
     if (lineFromEnd > scrollbackCount_ || lineFromEnd < bottom) {
-      for (size_t col = 0; col < VGA_WIDTH; col++) {
-        VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(' ', Tty::DEFAULT_COLOR);
-      }
+      fill_n(&VGA_RAM[row * VGA_WIDTH], VGA_WIDTH, vgaEntry(' ', Tty::DEFAULT_COLOR));
     }
     else {
       int actualIdx = (scrollbackHead_ - lineFromEnd + SCROLLBACK_LINES) % SCROLLBACK_LINES;
