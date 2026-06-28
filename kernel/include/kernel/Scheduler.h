@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <kernel/Task.h>
+#include <optional>
 
 class Scheduler {
 public:
@@ -21,8 +22,8 @@ public:
   static constexpr uint32_t FRAME_SIZE = 44;
 
   static void init();
-  static int addTask(const char *name, void (*entry)());
-  static int addTaskAndBlock(const char *name, void (*entry)());
+  static optional<int> addTask(const char *name, void (*entry)());
+  static optional<int> addTaskAndBlock(const char *name, void (*entry)());
   static uint32_t tick(uint32_t currentEsp);
   [[noreturn]] static void exitCurrentTask();
   static void unblockTask(int id);
@@ -33,16 +34,16 @@ public:
   static int deadTaskCount();
   static int totalExited();
   static int taskCount();
-  static const char *taskName(int id);
-  static TaskState taskState(int id);
-  static uint8_t taskFlags(int id);
+  static optional<const char *> taskName(int id);
+  static optional<TaskState> taskState(int id);
+  static optional<uint8_t> taskFlags(int id);
   static void killTask(int id);
-  static uint32_t taskEsp(int id);
-  static const uint8_t *taskStackBuf(int id);
-  static uint32_t taskStackSize(int id);
-  static uint64_t taskEntryAddr(int id);
-  static uint64_t taskWakeupMs(int id);
-  static uint64_t taskRuntimeMs(int id);
+  static optional<uint32_t> taskEsp(int id);
+  static optional<const uint8_t *> taskStackBuf(int id);
+  static optional<uint32_t> taskStackSize(int id);
+  static optional<uint64_t> taskEntryAddr(int id);
+  static optional<uint64_t> taskWakeupMs(int id);
+  static optional<uint64_t> taskRuntimeMs(int id);
   static int quantumRemaining();
   static void sleep(uint64_t ms);
   static void blockCurrentTask();
@@ -70,10 +71,10 @@ private:
 
   static int totalExited_;
 
-  static int findSlot();
+  static optional<int> findSlot();
   static uint32_t initStackFrame(uint8_t *stack, void (*entry)());
-  static int addTaskImpl(const char *name, void (*entry)());
-  static int findNext();
+  static optional<int> addTaskImpl(const char *name, void (*entry)());
+  static optional<int> findNext();
   static uint32_t switchTo(int next);
   static void checkCanary(const Task &t);
   static void taskWrapper();

@@ -17,10 +17,10 @@ TEST_CASE("taskCount: starts at 1 after init, increments with addTask")
   Scheduler::init();
   CHECK(Scheduler::taskCount() == 1); // Shell task.
 
-  CHECK(Scheduler::addTask("a", nullptr) == 1);
+  CHECK(*Scheduler::addTask("a", nullptr) == 1);
   CHECK(Scheduler::taskCount() == 2);
 
-  CHECK(Scheduler::addTask("b", nullptr) == 2);
+  CHECK(*Scheduler::addTask("b", nullptr) == 2);
   CHECK(Scheduler::taskCount() == 3);
 }
 
@@ -28,9 +28,9 @@ TEST_CASE("taskName: returns stored name and empty string for bad id")
 {
   Scheduler::init();
 
-  CHECK(strcmp(Scheduler::taskName(0), "shell") == 0);
-  CHECK(strcmp(Scheduler::taskName(-1), "") == 0);
-  CHECK(strcmp(Scheduler::taskName(99), "") == 0);
+  CHECK(strcmp(*Scheduler::taskName(0), "shell") == 0);
+  CHECK(strcmp(Scheduler::taskName(-1).value_or(""), "") == 0);
+  CHECK(strcmp(Scheduler::taskName(99).value_or(""), "") == 0);
 }
 
 TEST_CASE("taskName: returns name of added task")
@@ -39,7 +39,7 @@ TEST_CASE("taskName: returns name of added task")
   Scheduler::init();
 
   Scheduler::addTask("foobar", nullptr);
-  CHECK(strcmp(Scheduler::taskName(1), "foobar") == 0);
+  CHECK(strcmp(*Scheduler::taskName(1), "foobar") == 0);
 }
 
 TEST_CASE("taskState: returns RUNNING for task 0 after init")
@@ -48,11 +48,11 @@ TEST_CASE("taskState: returns RUNNING for task 0 after init")
   CHECK(Scheduler::taskState(0) == TaskState::RUNNING);
 }
 
-TEST_CASE("taskState: returns DEAD for invalid ids")
+TEST_CASE("taskState: returns nullopt for invalid ids")
 {
   Scheduler::init();
-  CHECK(Scheduler::taskState(-1) == TaskState::DEAD);
-  CHECK(Scheduler::taskState(99) == TaskState::DEAD);
+  CHECK(!Scheduler::taskState(-1));
+  CHECK(!Scheduler::taskState(99));
 }
 
 TEST_CASE("taskState: added task starts READY, becomes DEAD after exit")
@@ -74,12 +74,12 @@ TEST_CASE("taskFlags: returns 0 for added task, sets suppress correctly")
   Scheduler::init();
 
   CHECK(Scheduler::taskFlags(0) == 0);
-  CHECK(Scheduler::taskFlags(-1) == 0);
-  CHECK(Scheduler::taskFlags(99) == 0);
+  CHECK(!Scheduler::taskFlags(-1));
+  CHECK(!Scheduler::taskFlags(99));
 
   // Suppress taskbar for the running task (shell in this case).
   Scheduler::suppressTaskbar();
-  CHECK((Scheduler::taskFlags(0) & Task::FLAG_SUPPRESS_TASKBAR) != 0);
+  CHECK((*Scheduler::taskFlags(0) & Task::FLAG_SUPPRESS_TASKBAR) != 0);
 }
 
 TEST_CASE("taskEsp: returns saved esp for task 0")
@@ -88,11 +88,11 @@ TEST_CASE("taskEsp: returns saved esp for task 0")
   CHECK(Scheduler::taskEsp(0) == 0);
 }
 
-TEST_CASE("taskEsp: returns 0 for invalid id")
+TEST_CASE("taskEsp: returns nullopt for invalid id")
 {
   Scheduler::init();
-  CHECK(Scheduler::taskEsp(-1) == 0);
-  CHECK(Scheduler::taskEsp(99) == 0);
+  CHECK(!Scheduler::taskEsp(-1));
+  CHECK(!Scheduler::taskEsp(99));
 }
 
 TEST_CASE("taskStackBuf: nullptr for shell, non-null for added task")
@@ -105,11 +105,11 @@ TEST_CASE("taskStackBuf: nullptr for shell, non-null for added task")
   CHECK(Scheduler::taskStackBuf(1) != nullptr);
 }
 
-TEST_CASE("taskStackBuf: returns nullptr for invalid id")
+TEST_CASE("taskStackBuf: returns nullopt for invalid id")
 {
   Scheduler::init();
-  CHECK(Scheduler::taskStackBuf(-1) == nullptr);
-  CHECK(Scheduler::taskStackBuf(99) == nullptr);
+  CHECK(!Scheduler::taskStackBuf(-1));
+  CHECK(!Scheduler::taskStackBuf(99));
 }
 
 TEST_CASE("taskStackSize: 0 for shell, TASK_STACK_SIZE for added task")
@@ -137,11 +137,11 @@ TEST_CASE("taskEntryAddr: 0 for shell, non-zero for added task")
   CHECK(Scheduler::taskEntryAddr(1) != 0);
 }
 
-TEST_CASE("taskEntryAddr: returns 0 for invalid id")
+TEST_CASE("taskEntryAddr: returns nullopt for invalid id")
 {
   Scheduler::init();
-  CHECK(Scheduler::taskEntryAddr(-1) == 0);
-  CHECK(Scheduler::taskEntryAddr(99) == 0);
+  CHECK(!Scheduler::taskEntryAddr(-1));
+  CHECK(!Scheduler::taskEntryAddr(99));
 }
 
 TEST_CASE("taskWakeupMs: returns 0 initially")
@@ -177,11 +177,11 @@ TEST_CASE("taskWakeupMs: cleared by tick after deadline")
   CHECK(Scheduler::taskWakeupMs(0) == 0);
 }
 
-TEST_CASE("taskWakeupMs: returns 0 for invalid id")
+TEST_CASE("taskWakeupMs: returns nullopt for invalid id")
 {
   Scheduler::init();
-  CHECK(Scheduler::taskWakeupMs(-1) == 0);
-  CHECK(Scheduler::taskWakeupMs(99) == 0);
+  CHECK(!Scheduler::taskWakeupMs(-1));
+  CHECK(!Scheduler::taskWakeupMs(99));
 }
 
 TEST_CASE("taskRuntimeMs: starts at 0")
@@ -212,11 +212,11 @@ TEST_CASE("taskRuntimeMs: different tasks accumulate independently")
   CHECK(Scheduler::taskRuntimeMs(1) == 0);
 }
 
-TEST_CASE("taskRuntimeMs: returns 0 for invalid id")
+TEST_CASE("taskRuntimeMs: returns nullopt for invalid id")
 {
   Scheduler::init();
-  CHECK(Scheduler::taskRuntimeMs(-1) == 0);
-  CHECK(Scheduler::taskRuntimeMs(99) == 0);
+  CHECK(!Scheduler::taskRuntimeMs(-1));
+  CHECK(!Scheduler::taskRuntimeMs(99));
 }
 
 TEST_CASE("quantumRemaining: starts at QUANTUM_TICKS")

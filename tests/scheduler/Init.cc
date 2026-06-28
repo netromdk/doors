@@ -18,11 +18,11 @@ TEST_CASE("init: task 0 is RUNNING, all others DEAD")
   // All remaining `MAX_TASKS-1` slots must be available (DEAD).
   // Filling them proves none were left in a non-reusable state.
   for (int i = 1; i < Scheduler::MAX_TASKS; ++i) {
-    CHECK(Scheduler::addTask("t", nullptr) == i);
+    CHECK(*Scheduler::addTask("t", nullptr) == i);
   }
 
   // The MAX_TASKS-th addition should fail (no slots left).
-  CHECK(Scheduler::addTask("full", nullptr) == -1);
+  CHECK(!Scheduler::addTask("full", nullptr));
 }
 
 TEST_CASE("init: taskCount is 1, currentIdx is 0")
@@ -52,7 +52,7 @@ TEST_CASE("init: re-init resets state from a previous run")
 
   // All `MAX_TASKS-1` slots must be clean after re-init.
   for (int i = 1; i < Scheduler::MAX_TASKS; ++i) {
-    CHECK(Scheduler::addTask("t", nullptr) == i);
+    CHECK(*Scheduler::addTask("t", nullptr) == i);
   }
-  CHECK(Scheduler::addTask("full", nullptr) == -1);
+  CHECK(!Scheduler::addTask("full", nullptr));
 }

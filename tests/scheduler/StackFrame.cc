@@ -27,7 +27,7 @@ TEST_CASE("addTask: stack canary written at stackBuf[0]")
 {
   Heap::init(testPool, sizeof(testPool));
   Scheduler::init();
-  REQUIRE(Scheduler::addTask("test", nullptr) >= 0);
+  REQUIRE(Scheduler::addTask("test", nullptr));
 
   // Exhaust quantum to trigger a switch to task 1.
   const uint32_t esp = exhaustAndSwitch();
@@ -44,7 +44,7 @@ TEST_CASE("addTask: initial EFLAGS has IF set (0x202)")
 {
   Heap::init(testPool, sizeof(testPool));
   Scheduler::init();
-  REQUIRE(Scheduler::addTask("test", nullptr) >= 0);
+  REQUIRE(Scheduler::addTask("test", nullptr));
 
   const uint32_t esp = exhaustAndSwitch();
   REQUIRE(esp != 0);
@@ -62,7 +62,7 @@ TEST_CASE("addTask: initial CS is 0x08")
 {
   Heap::init(testPool, sizeof(testPool));
   Scheduler::init();
-  REQUIRE(Scheduler::addTask("test", nullptr) >= 0);
+  REQUIRE(Scheduler::addTask("test", nullptr));
 
   const uint32_t esp = exhaustAndSwitch();
   REQUIRE(esp != 0);
@@ -80,7 +80,7 @@ TEST_CASE("addTask: initial EIP is non-zero (taskWrapper)")
 {
   Heap::init(testPool, sizeof(testPool));
   Scheduler::init();
-  REQUIRE(Scheduler::addTask("test", nullptr) >= 0);
+  REQUIRE(Scheduler::addTask("test", nullptr));
 
   const uint32_t esp = exhaustAndSwitch();
   REQUIRE(esp != 0);
@@ -98,7 +98,7 @@ TEST_CASE("addTask: GP registers in frame are zeroed")
 {
   Heap::init(testPool, sizeof(testPool));
   Scheduler::init();
-  REQUIRE(Scheduler::addTask("test", nullptr) >= 0);
+  REQUIRE(Scheduler::addTask("test", nullptr));
 
   const uint32_t esp = exhaustAndSwitch();
   REQUIRE(esp != 0);
@@ -118,7 +118,7 @@ TEST_CASE("addTask: task.esp points to correct offset within stackBuf")
 {
   Heap::init(testPool, sizeof(testPool));
   Scheduler::init();
-  REQUIRE(Scheduler::addTask("test", nullptr) >= 0);
+  REQUIRE(Scheduler::addTask("test", nullptr));
 
   const uint32_t esp = exhaustAndSwitch();
   REQUIRE(esp != 0);
@@ -141,12 +141,11 @@ TEST_CASE("addTask: returns -1 when all MAX_TASKS slots are occupied")
   Scheduler::init();
 
   for (int i = 0; i < Scheduler::MAX_TASKS - 1; ++i) {
-    const int id = Scheduler::addTask("t", nullptr);
+    const int id = *Scheduler::addTask("t", nullptr);
     CHECK(id >= 0);
   }
 
-  const int id = Scheduler::addTask("full", nullptr);
-  CHECK(id == -1);
+  CHECK(!Scheduler::addTask("full", nullptr));
 }
 
 TEST_CASE("addTask: reuses a DEAD slot")
@@ -154,7 +153,7 @@ TEST_CASE("addTask: reuses a DEAD slot")
   Heap::init(testPool, sizeof(testPool));
   Scheduler::init();
 
-  const int first = Scheduler::addTask("a", nullptr);
+  const int first = *Scheduler::addTask("a", nullptr);
   REQUIRE(first >= 0);
   REQUIRE(first == 1);
 
@@ -170,6 +169,6 @@ TEST_CASE("addTask: reuses a DEAD slot")
   }
   REQUIRE(Scheduler::currentTaskId() == 0);
 
-  const int reused = Scheduler::addTask("b", nullptr);
+  const int reused = *Scheduler::addTask("b", nullptr);
   CHECK(reused == 1);
 }
