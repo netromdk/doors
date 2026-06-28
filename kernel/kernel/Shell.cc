@@ -1,3 +1,4 @@
+#include <array>
 #include <cctype>
 #include <cstdio>
 
@@ -9,12 +10,12 @@
 namespace {
 
 constexpr int MAX_CMDS = 32;
-Command cmdTable[MAX_CMDS];
+array<Command, MAX_CMDS> cmdTable;
 int numCmds = 0;
 
 // Command history ring buffer.
 constexpr int HISTORY_MAX = 100;
-static string historyBuf_[HISTORY_MAX];
+static array<string, HISTORY_MAX> historyBuf_;
 static constinit int historyCount_ = 0;
 static constinit int historyHead_ = 0;
 
@@ -25,20 +26,20 @@ void Shell::run()
   Pic::enableInt();
   Tty::cursorEnable();
   string line;
-  string argv[16];
+  array<string, 16> argv;
   constexpr int MAX_ARGS = 16;
   int historyPos = -1;
 
   for (;;) {
-    HistoryCtx hctx{historyBuf_, HISTORY_MAX, historyCount_, historyHead_, &historyPos};
+    HistoryCtx hctx{historyBuf_.data(), HISTORY_MAX, historyCount_, historyHead_, &historyPos};
 
     Tty::setColor(vgaColor(COLOR_LIGHT_GREY, COLOR_BLACK));
     printf("> ");
     Tty::setColor(Tty::DEFAULT_COLOR);
     Kbd::readLine(line, &hctx);
 
-    int argc = Shell::tokenize(line, argv, MAX_ARGS);
-    Shell::dispatch(argc, argv);
+    const int argc = Shell::tokenize(line, argv.data(), MAX_ARGS);
+    Shell::dispatch(argc, argv.data());
 
     // Save to history but skip empty or duplicate of the most recent entry.
     if (!line.empty() && (historyCount_ == 0 ||
