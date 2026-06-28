@@ -22,7 +22,7 @@ TEST_CASE("count_if partial match")
 TEST_CASE("count_if empty range")
 {
   const int arr[] = {1, 2, 3};
-  CHECK(count_if(arr, arr, [](int x) { return true; }) == 0);
+  CHECK(count_if(arr, arr, [](int) { return true; }) == 0);
 }
 
 TEST_CASE("count_if with lambda predicate")
