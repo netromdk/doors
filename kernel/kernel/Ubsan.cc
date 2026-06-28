@@ -11,7 +11,9 @@ namespace {
 struct type_descriptor {
   uint16_t type_kind;
   uint16_t type_info;
-  char type_name[];
+
+  // flexible array (C99) accepted via `-Wpedantic`.
+  __extension__ char type_name[];
 };
 
 static char hex_nibble(uint8_t v)
