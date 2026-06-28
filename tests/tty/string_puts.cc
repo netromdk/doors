@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <doctest/doctest.h>
 #include <stdint.h>
 #include <string>
@@ -78,7 +79,7 @@ TEST_CASE("putLine_fills_entire_row")
   uint8_t attr = vgaColor(COLOR_WHITE, COLOR_RED);
   CHECK(VGA_RAM[2 * VGA_WIDTH + 0] == vgaEntry('a', attr));
   CHECK(VGA_RAM[2 * VGA_WIDTH + 1] == vgaEntry('b', attr));
-  for (int col = 2; col < VGA_WIDTH; ++col) {
+  for (size_t col = 2; col < VGA_WIDTH; ++col) {
     CHECK(VGA_RAM[2 * VGA_WIDTH + col] == vgaEntry(' ', attr));
   }
 }
@@ -98,7 +99,7 @@ TEST_CASE("putLine_empty_row_clears_row")
   Tty::setColor(vgaColor(COLOR_LIGHT_GREEN, COLOR_BLACK));
   Tty::putLine(string(""), 0);
 
-  for (int col = 0; col < VGA_WIDTH; ++col) {
+  for (size_t col = 0; col < VGA_WIDTH; ++col) {
     CHECK(VGA_RAM[0 * VGA_WIDTH + col] == vgaEntry(' ', vgaColor(COLOR_LIGHT_GREEN, COLOR_BLACK)));
   }
 }

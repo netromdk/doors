@@ -16,5 +16,5 @@ TEST_CASE("any_of false")
 TEST_CASE("any_of empty")
 {
   int arr[] = {1, 2, 3};
-  CHECK(!any_of(arr, arr, [](int x) { return true; }));
+  CHECK(!any_of(arr, arr, [](int) { return true; }));
 }

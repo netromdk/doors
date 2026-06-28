@@ -16,5 +16,5 @@ TEST_CASE("none_of false")
 TEST_CASE("none_of empty")
 {
   int arr[] = {1, 2, 3};
-  CHECK(none_of(arr, arr, [](int x) { return true; }));
+  CHECK(none_of(arr, arr, [](int) { return true; }));
 }

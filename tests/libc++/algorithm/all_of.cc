@@ -16,5 +16,5 @@ TEST_CASE("all_of false")
 TEST_CASE("all_of empty")
 {
   int arr[] = {1, 2, 3};
-  CHECK(all_of(arr, arr, [](int x) { return false; }));
+  CHECK(all_of(arr, arr, [](int) { return false; }));
 }

@@ -53,7 +53,6 @@ TEST_CASE("killTask: already DEAD is no-op")
   Scheduler::init();
 
   Scheduler::addTask("t", nullptr);
-  const int exitedBefore = Scheduler::totalExited();
   Scheduler::killTask(1);
   CHECK(Scheduler::deadTaskCount() == 1);
 
