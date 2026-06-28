@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <utility>
 
 #include <programs/snake/SnakeGame.h>
 
@@ -142,11 +143,9 @@ bool SnakeGame::step(uint64_t dtMs)
     return false;
   }
 
-  const int oldHeadIdx = head_;
-  const int oldTailIdx = (head_ - length_ + 1 + SNAKE_MAX) % SNAKE_MAX;
+  const int oldHeadIdx = exchange(head_, (head_ + 1) % SNAKE_MAX);
+  const int oldTailIdx = (oldHeadIdx - length_ + 1 + SNAKE_MAX) % SNAKE_MAX;
   const Pos oldTailPos = body_[oldTailIdx];
-
-  head_ = (head_ + 1) % SNAKE_MAX;
   body_[head_] = next;
 
   const bool ate = (next.row == food_.row && next.col == food_.col);

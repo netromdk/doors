@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <utility>
+
 #include <kernel/Semaphore.h>
 
 void Semaphore::wait()
@@ -52,9 +54,8 @@ void Semaphore::signal()
     // Wake the longest-waiting task. Take the first and shift the rest to one the left, such that
     // index 0 is removed.
     const int id = waiters_[0];
-    const int count = waitCount_;
+    const int count = exchange(waitCount_, waitCount_ - 1);
     copy(waiters_.data() + 1, waiters_.data() + count, waiters_.data());
-    waitCount_--;
     Scheduler::unblockTask(id);
   }
   else {
