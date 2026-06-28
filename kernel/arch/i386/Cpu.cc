@@ -381,8 +381,8 @@ uint32_t _getCyclesOverhead()
 uint32_t _getCyclesPrFDiv()
 {
   __asm__( // Load arguments to fdiv.
-    "fld __x;"
-    "fld __x;"
+    "flds __x;"
+    "flds __x;"
     "cpuid;" // Serialize to ensure no out-of-order exec.
     "rdtsc;"
     "mov %eax, __time;"
