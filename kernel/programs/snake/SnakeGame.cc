@@ -371,6 +371,14 @@ void SnakeGame::drawGameOver() const
   drawIntR(scoreRow, c, score_, COLOR_SCORE);
   drawStr(scoreRow, c, "  Best: ", COLOR_SCORE);
   drawIntR(scoreRow, c, highScore_, COLOR_SCORE);
+
+  // Quit message at bottom row.
+  constexpr const char quitMsg[] = "Press q to quit";
+  const int quitMsgLen = strlen(quitMsg);
+  const int qc = (TOTAL_COLS - quitMsgLen) / 2;
+  for (int i = 0; i < quitMsgLen; ++i) {
+    drawAt({BOARD_ROWS + 1, qc + i}, quitMsg[i], COLOR_SCORE);
+  }
 }
 
 int SnakeGame::score() const

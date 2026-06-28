@@ -133,8 +133,12 @@ void snakeMain()
     }
     game.drawGameOver();
 
-    // Wait for any key.
-    while (Input::poll().key == Input::Key::Unknown) {
+    // Only 'q' quits.
+    while (true) {
+      if (const auto pk = Input::poll();
+          pk.key == Input::Key::Char && (pk.ch == 'q' || pk.ch == 'Q')) {
+        break;
+      }
       __asm__("hlt");
     }
   }
