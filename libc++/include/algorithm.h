@@ -85,4 +85,21 @@ constexpr bool none_of(InputIt first, InputIt last, Pred pred)
   return true;
 }
 
+template <typename It, typename T>
+constexpr void fill(It first, It last, const T &value)
+{
+  for (; first != last; ++first) {
+    *first = value;
+  }
+}
+
+template <typename It, typename N, typename T>
+constexpr It fill_n(It first, N count, const T &value)
+{
+  for (N i = 0; i < count; ++i) {
+    *first++ = value;
+  }
+  return first;
+}
+
 #endif // ALGORITHM_H
