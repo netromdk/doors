@@ -52,7 +52,6 @@ add_library(libc++test STATIC
   ${DOORS_LIBC_SRC_DIR}/string/strcmp.cc
   ${DOORS_LIBC_SRC_DIR}/string/strcpy.cc
   ${DOORS_LIBC_SRC_DIR}/string/string.cc
-  ${DOORS_LIBC_SRC_DIR}/string/strlen.cc
   ${DOORS_LIBC_SRC_DIR}/string/strncmp.cc
   ${DOORS_LIBC_SRC_DIR}/string/strncpy.cc
   ${DOORS_LIBC_SRC_DIR}/string/strrchr.cc
@@ -83,7 +82,6 @@ doors_test_module(test_libcpp_string_header
   libc++/string/memcmp.cc
   libc++/string/memmove.cc
   libc++/string/memchr.cc
-  libc++/string/strlen.cc
   libc++/string/strcmp.cc
   libc++/string/strncmp.cc
   libc++/string/strcpy.cc
