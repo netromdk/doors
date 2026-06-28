@@ -238,12 +238,14 @@ doors_test_module(test_kernel_panic
 
 set(HEAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Heap.cc")
 set(SCHED_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Scheduler.cc")
+set(SEMAPHORE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Semaphore.cc")
 set(PANIC_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Panic.cc")
 set(BTRACE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Backtrace.cc")
 set(SYMBOLS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Symbols.cc")
 doors_test_module(test_kernel_scheduler
   scheduler/Init.cc
   scheduler/KillTask.cc
+  scheduler/Semaphore.cc
   scheduler/Sleep.cc
   scheduler/StackFrame.cc
   scheduler/RoundRobin.cc
@@ -253,6 +255,7 @@ doors_test_module(test_kernel_scheduler
   "${HEAP_SRC}"
   "${PIT_SRC}"
   "${SCHED_SRC}"
+  "${SEMAPHORE_SRC}"
   "${PANIC_SRC}"
   "${BTRACE_SRC}"
   "${SYMBOLS_SRC}"
