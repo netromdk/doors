@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <kernel/Keymap.h>
 #include <kernel/Scancodes.h>
 
@@ -59,10 +60,11 @@ char KeyMap::toText(Key key, bool shift, bool ctrl, bool caps)
     return static_cast<char>(ukey);
   }
 
-  for (auto const &entry : symbolTable) {
-    if (entry.key == key) {
-      return shift ? entry.shifted : entry.unshifted;
-    }
+  constexpr auto symEnd = symbolTable + sizeof(symbolTable) / sizeof(symbolTable[0]);
+  const auto it =
+    find_if(symbolTable, symEnd, [key](const SymbolEntry &e) { return e.key == key; });
+  if (it != symEnd) {
+    return shift ? it->shifted : it->unshifted;
   }
 
   switch (key) {
