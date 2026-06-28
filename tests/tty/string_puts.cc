@@ -22,8 +22,8 @@ TEST_CASE("puts_string_with_row_col_positions_cursor")
   Tty::cls();
   Tty::puts(string("hello"), 5, 10);
 
-  CHECK(Tty::getRow() == 5);
-  CHECK(Tty::getCol() == 15);
+  CHECK(Tty::getCursor().first == 5);
+  CHECK(Tty::getCursor().second == 15);
 }
 
 TEST_CASE("puts_string_advances_cursor")
@@ -32,8 +32,8 @@ TEST_CASE("puts_string_advances_cursor")
   Tty::cursorSetPos(3, 7);
   Tty::puts(string("xyz"));
 
-  CHECK(Tty::getRow() == 3);
-  CHECK(Tty::getCol() == 10);
+  CHECK(Tty::getCursor().first == 3);
+  CHECK(Tty::getCursor().second == 10);
 }
 
 TEST_CASE("puts_string_returns_length")
@@ -65,8 +65,8 @@ TEST_CASE("puts_string_empty_does_nothing")
   Tty::cursorSetPos(4, 5);
   Tty::puts(string(""), 7, 3);
 
-  CHECK(Tty::getRow() == 7);
-  CHECK(Tty::getCol() == 3);
+  CHECK(Tty::getCursor().first == 7);
+  CHECK(Tty::getCursor().second == 3);
 }
 
 TEST_CASE("putLine_fills_entire_row")
@@ -88,8 +88,8 @@ TEST_CASE("putLine_sets_cursor_to_end")
   Tty::cls();
   Tty::putLine(string("hello"), 5);
 
-  CHECK(Tty::getRow() == 5);
-  CHECK(Tty::getCol() == 5);
+  CHECK(Tty::getCursor().first == 5);
+  CHECK(Tty::getCursor().second == 5);
 }
 
 TEST_CASE("putLine_empty_row_clears_row")

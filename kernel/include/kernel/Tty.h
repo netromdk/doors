@@ -2,6 +2,7 @@
 #define KERNEL_TTY_H
 
 #include <cstdint>
+#include <utility>
 #include <kernel/Semaphore.h>
 #include <kernel/Vga.h>
 #include <string_view>
@@ -40,8 +41,7 @@ public:
   static void cursorDisable();
   static void cursorSetPos(uint8_t row, uint8_t col);
 
-  static uint8_t getRow();
-  static uint8_t getCol();
+  static pair<uint8_t, uint8_t> getCursor();
 
   // Scrollback buffer
   static int scrollbackSize();

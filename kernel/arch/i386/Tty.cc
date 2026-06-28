@@ -300,20 +300,12 @@ void Tty::putLine(string_view str, uint8_t row)
   unlock();
 }
 
-uint8_t Tty::getRow()
+pair<uint8_t, uint8_t> Tty::getCursor()
 {
   lock();
-  const uint8_t r = termRow;
+  const auto p = pair<uint8_t, uint8_t>{termRow, termCol};
   unlock();
-  return r;
-}
-
-uint8_t Tty::getCol()
-{
-  lock();
-  const uint8_t c = termCol;
-  unlock();
-  return c;
+  return p;
 }
 
 int Tty::scrollbackSize()
