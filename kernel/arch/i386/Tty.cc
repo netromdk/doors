@@ -42,10 +42,8 @@ void clearRow(uint8_t row)
 
 void swapRows(uint8_t row1, uint8_t row2)
 {
-  uint16_t *line1 = &VGA_RAM[row1 * VGA_WIDTH], *line2 = &VGA_RAM[row2 * VGA_WIDTH];
-  for (uint8_t i = 0; i < VGA_WIDTH; i++) {
-    swap(line1[i], line2[i]);
-  }
+  swap_ranges(&VGA_RAM[row1 * VGA_WIDTH], &VGA_RAM[row1 * VGA_WIDTH + VGA_WIDTH],
+              &VGA_RAM[row2 * VGA_WIDTH]);
 }
 
 void advRow()
