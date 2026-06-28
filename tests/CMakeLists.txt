@@ -244,12 +244,14 @@ set(SYMBOLS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Symbols.cc")
 doors_test_module(test_kernel_scheduler
   scheduler/Init.cc
   scheduler/KillTask.cc
+  scheduler/Sleep.cc
   scheduler/StackFrame.cc
   scheduler/RoundRobin.cc
   scheduler/TaskInfo.cc
   scheduler/TaskStates.cc
   stubs.cc
   "${HEAP_SRC}"
+  "${PIT_SRC}"
   "${SCHED_SRC}"
   "${PANIC_SRC}"
   "${BTRACE_SRC}"

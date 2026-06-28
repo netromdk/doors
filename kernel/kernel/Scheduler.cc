@@ -4,6 +4,7 @@
 
 #include <kernel/Heap.h>
 #include <kernel/Panic.h>
+#include <kernel/Pit.h>
 #include <kernel/Scheduler.h>
 
 Task Scheduler::tasks_[MAX_TASKS]{};
@@ -188,6 +189,16 @@ uint32_t Scheduler::tick(uint32_t currentEsp)
   // Detect stack overflow before it corrupts the saved frame.
   checkCanary(tasks_[currentIdx_]);
 
+  // Wake up BLOCKED tasks whose sleep deadline has passed.
+  const uint64_t now = Pit::uptimeMs();
+  for (int i = 0; i < taskCount_; ++i) {
+    if (tasks_[i].state == TaskState::BLOCKED && tasks_[i].wakeupMs != 0 &&
+        tasks_[i].wakeupMs <= now) {
+      tasks_[i].state = TaskState::READY;
+      tasks_[i].wakeupMs = 0;
+    }
+  }
+
   // Charge one tick against the current task's quantum. If quantum remains, stay.
   if (--quantumRemaining_ > 0) {
     return 0;
@@ -298,6 +309,7 @@ void Scheduler::unblockTask(int id)
 {
   if (id >= 0 && id < taskCount_ && tasks_[id].state == TaskState::BLOCKED) {
     tasks_[id].state = TaskState::READY;
+    tasks_[id].wakeupMs = 0;
   }
 }
 
@@ -385,6 +397,26 @@ void Scheduler::killTask(int id)
     tasks_[id].stackBuf = nullptr;
   }
   tasks_[id].stackSize = 0;
+}
+
+void Scheduler::sleep(uint64_t ms)
+{
+  if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
+    panic("Scheduler::sleep: corrupted currentIdx");
+  }
+
+  tasks_[currentIdx_].wakeupMs = Pit::uptimeMs() + ms;
+  tasks_[currentIdx_].state = TaskState::BLOCKED;
+
+  // Enable interrupts so `tick()` can be called, halt CPU until next interrupt, and then disable
+  // interrupts because they are expected off and ISR will re-enable.
+  while (tasks_[currentIdx_].state == TaskState::BLOCKED) {
+#ifdef __IS_DOORS_KERNEL
+    __asm__("sti\n\thlt\n\tcli");
+#else
+    break;
+#endif
+  }
 }
 
 void Scheduler::suppressTaskbar()
