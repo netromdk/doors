@@ -46,7 +46,7 @@ public:
   static constexpr int MAX_BOOST_ZONES = 3;
   static constexpr uint64_t BOOST_DURATION_MS = 4000;
   static constexpr uint64_t BOOST_RESPAWN_MS = 8000;
-  static constexpr char CHAR_BOOST = '.';
+  static constexpr char CHAR_BOOST = '+';
 
   void init(uint32_t prngSeed, bool withObstacles = false);
   void setDir(Dir d);
