@@ -64,6 +64,7 @@ add_library(
   kernel/Backtrace.cc
   kernel/Panic.cc
   kernel/Scheduler.cc
+  kernel/Semaphore.cc
   kernel/Symbols.cc
   kernel/Taskbar.cc
   programs/api/Screen.cc

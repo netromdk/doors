@@ -163,6 +163,7 @@ void dumpCpuState(const CpuState *state)
     "     '---'",
   };
   uint8_t grey = vgaColor(COLOR_DARK_GREY, COLOR_BLACK);
+  Tty::lock();
   for (int i = 0; i < 9; i++) {
     for (int j = 0; hal[i][j]; j++) {
       VGA_RAM[(1 + i) * VGA_WIDTH + 67 + j] = vgaEntry(hal[i][j], grey);
@@ -183,6 +184,7 @@ void dumpCpuState(const CpuState *state)
   for (; j < VGA_WIDTH; j++) {
     VGA_RAM[j] = vgaEntry(' ', whiteOnRed);
   }
+  Tty::unlock();
 #endif
 
   for (;;) {

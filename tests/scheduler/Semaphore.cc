@@ -148,3 +148,12 @@ TEST_CASE("semaphore: before scheduler init does not crash")
   s.signal();
   CHECK(s.testCount() == 1);
 }
+
+TEST_CASE("semaphore: blockCurrentTask sets state to BLOCKED")
+{
+  Scheduler::init();
+  CHECK(Scheduler::taskState(0) == TaskState::RUNNING);
+  Scheduler::blockCurrentTask();
+  CHECK(Scheduler::taskState(0) == TaskState::BLOCKED);
+  CHECK(Scheduler::currentTaskId() == 0);
+}

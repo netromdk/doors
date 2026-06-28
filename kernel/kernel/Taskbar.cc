@@ -4,6 +4,7 @@
 #include <kernel/Pit.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Taskbar.h>
+#include <kernel/Tty.h>
 #include <kernel/Vga.h>
 
 namespace {
@@ -95,13 +96,16 @@ void taskbarMain()
 
     // Write directly to VGA RAM, right-aligned, bypassing Tty to avoid corrupting cursor position
     // and terminal state. Row 24 is unused by the shell (rows 0-23) and snake (rows 1-23), so there
-    // is no data race on these cells.
+    // is no data race on these cells. The Tty lock is still taken to serialise with
+    // Screen::save/restore which copies row 24.
     if (!Scheduler::isTaskbarSuppressed()) {
+      Tty::lock();
       const int start = static_cast<int>(VGA_WIDTH) - len;
       for (int i = 0; i < static_cast<int>(VGA_WIDTH); ++i) {
         const char ch = (i >= start) ? buf[i - start] : ' ';
         VGA_RAM[ROW * VGA_WIDTH + i] = vgaEntry(ch, COLOR);
       }
+      Tty::unlock();
     }
 
     const uint64_t lastUpdate = Pit::uptimeMs();
