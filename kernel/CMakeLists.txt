@@ -99,7 +99,7 @@ endif()
 set(STUB_SYMBOL_TABLE "${CMAKE_CURRENT_BINARY_DIR}/stub_symbol_table.cc")
 file(WRITE ${STUB_SYMBOL_TABLE}
   "#include <kernel/Symbols.h>\n"
-  "const SymbolEntry symbol_table[] = {};\n"
+  "const SymbolEntry symbol_table[1] = {};\n"
   "const int symbol_table_count = 0;\n"
 )
 
