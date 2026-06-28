@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 
@@ -35,9 +36,7 @@ void Screen::restore()
 void Screen::cls(uint8_t color)
 {
   Tty::lock();
-  for (int i = 0; i < VGA_WIDTH * VGA_HEIGHT; ++i) {
-    VGA_RAM[i] = vgaEntry(' ', color);
-  }
+  fill_n(VGA_RAM, VGA_WIDTH * VGA_HEIGHT, vgaEntry(' ', color));
   Tty::unlock();
 }
 
