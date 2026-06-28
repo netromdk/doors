@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <numeric>
 
 #include <kernel/Acpi.h>
 #include <kernel/Bda.h>
@@ -42,20 +43,14 @@ Rsd *detectRsdp()
 
 bool checkRsdp(Rsd *rsd)
 {
-  uint8_t sum = 0;
-  for (size_t i = 0; i < sizeof(Rsd); i++) {
-    sum += ((uint8_t *) rsd)[i];
-  }
-  return sum == 0;
+  const auto *first = reinterpret_cast<uint8_t *>(rsd);
+  return accumulate(first, first + sizeof(Rsd), uint8_t{0}) == 0;
 }
 
 bool checkSdt(Sdt *sdt)
 {
-  uint8_t sum = 0;
-  for (size_t i = 0; i < sdt->length; i++) {
-    sum += ((uint8_t *) sdt)[i];
-  }
-  return sum == 0;
+  const auto *first = reinterpret_cast<uint8_t *>(sdt);
+  return accumulate(first, first + sdt->length, uint8_t{0}) == 0;
 }
 
 /**
