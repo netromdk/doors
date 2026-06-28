@@ -35,6 +35,7 @@ public:
   static TaskState taskState(int id);
   static uint8_t taskFlags(int id);
   static void killTask(int id);
+  static void sleep(uint64_t ms);
   static void suppressTaskbar();
   static bool isTaskbarSuppressed();
 
