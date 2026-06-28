@@ -23,11 +23,20 @@ constexpr inline const T &clamp(const T &v, const T &low, const T &high)
 }
 
 template <typename T>
-inline void swap(T &a, T &b)
+constexpr inline void swap(T &a, T &b)
 {
   T tmp = b;
   b = a;
   a = tmp;
+}
+
+template <typename ForwardIt1, typename ForwardIt2>
+constexpr ForwardIt2 swap_ranges(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2)
+{
+  for (; first1 != last1; ++first1, ++first2) {
+    swap(*first1, *first2);
+  }
+  return first2;
 }
 
 template <typename InputIt, typename T>

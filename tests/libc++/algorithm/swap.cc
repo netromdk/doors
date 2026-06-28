@@ -8,3 +8,13 @@ TEST_CASE("swap")
   CHECK(a == 2);
   CHECK(b == 1);
 }
+
+TEST_CASE("swap constexpr")
+{
+  constexpr auto result = [] {
+    int x = 10, y = 20;
+    swap(x, y);
+    return x * 10 + y;
+  }();
+  CHECK(result == 210);
+}
