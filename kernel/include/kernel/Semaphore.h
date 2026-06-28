@@ -1,6 +1,7 @@
 #ifndef KERNEL_SEMAPHORE_H
 #define KERNEL_SEMAPHORE_H
 
+#include <array>
 #include <cstdint>
 #include <kernel/Scheduler.h>
 
@@ -18,7 +19,7 @@ public:
 protected:
   volatile int count_;
   volatile int waitCount_;
-  int waiters_[MAX_WAITERS];
+  array<int, MAX_WAITERS> waiters_;
 };
 
 #endif // KERNEL_SEMAPHORE_H
