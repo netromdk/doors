@@ -1,6 +1,7 @@
 #ifndef PROGRAMS_SNAKE_SNAKEGAME_H
 #define PROGRAMS_SNAKE_SNAKEGAME_H
 
+#include <array>
 #include <cstdint>
 
 #include <programs/api/Input.h>
@@ -72,12 +73,12 @@ public:
   static void setHighScore(int s);
 
 private:
-  Pos body_[SNAKE_MAX]{};
+  array<Pos, SNAKE_MAX> body_{};
   int head_{0}, length_{1};
   Dir dir_{Dir::Right};
   Pos food_{};
   Pos bonusFood_{};
-  Pos obstacles_[MAX_OBSTACLES]{};
+  array<Pos, MAX_OBSTACLES> obstacles_{};
   int obstacleCount_{0};
   int eatsSinceObstacle_{0};
   uint32_t lcg_{0};
@@ -88,7 +89,7 @@ private:
   bool wrapMode_{false};
   bool started_{false};
   bool bonusActive_{false};
-  Pos boostZones_[MAX_BOOST_ZONES]{};
+  array<Pos, MAX_BOOST_ZONES> boostZones_{};
   int boostZoneCount_{0};
   bool boostActive_{false};
   uint64_t boostTimerMs_{0};
