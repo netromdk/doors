@@ -1,0 +1,295 @@
+#ifndef STRING_VIEW_DATA_TYPE_H
+#define STRING_VIEW_DATA_TYPE_H
+
+#include <cstddef>
+#include <cstring>
+
+class string_view {
+public:
+  using size_type = size_t;
+  using value_type = char;
+  using const_pointer = const char *;
+  using const_reference = const char &;
+  using const_iterator = const char *;
+
+  static constexpr size_type npos = static_cast<size_type>(-1);
+
+  constexpr string_view() noexcept : data_(nullptr), size_(0)
+  {
+  }
+
+  constexpr string_view(const char *s) noexcept : data_(s), size_(s ? strlen(s) : 0)
+  {
+  }
+
+  constexpr string_view(const char *s, size_type count) noexcept : data_(s), size_(count)
+  {
+  }
+
+  constexpr const_pointer data() const noexcept
+  {
+    return data_;
+  }
+
+  constexpr size_type size() const noexcept
+  {
+    return size_;
+  }
+
+  constexpr size_type length() const noexcept
+  {
+    return size_;
+  }
+
+  constexpr bool empty() const noexcept
+  {
+    return size_ == 0;
+  }
+
+  constexpr const_reference operator[](size_type pos) const noexcept
+  {
+    return data_[pos];
+  }
+
+  constexpr const_reference at(size_type pos) const noexcept
+  {
+    return pos < size_ ? data_[pos] : data_[0];
+  }
+
+  constexpr const_reference front() const noexcept
+  {
+    return data_[0];
+  }
+
+  constexpr const_reference back() const noexcept
+  {
+    return data_[size_ - 1];
+  }
+
+  constexpr const_iterator begin() const noexcept
+  {
+    return data_;
+  }
+
+  constexpr const_iterator end() const noexcept
+  {
+    return data_ + size_;
+  }
+
+  constexpr const_iterator cbegin() const noexcept
+  {
+    return data_;
+  }
+
+  constexpr const_iterator cend() const noexcept
+  {
+    return data_ + size_;
+  }
+
+  constexpr void remove_prefix(size_type n) noexcept
+  {
+    data_ += n;
+    size_ -= n;
+  }
+
+  constexpr void remove_suffix(size_type n) noexcept
+  {
+    size_ -= n;
+  }
+
+  constexpr void swap(string_view &other) noexcept
+  {
+    const auto tmp = *this;
+    *this = other;
+    other = tmp;
+  }
+
+  size_type copy(char *s, size_type count, size_type pos = 0) const noexcept
+  {
+    if (pos > size_) {
+      return 0;
+    }
+    const size_type rcount = count < size_ - pos ? count : size_ - pos;
+    __builtin_memcpy(s, data_ + pos, rcount);
+    return rcount;
+  }
+
+  constexpr string_view substr(size_type pos = 0, size_type count = npos) const noexcept
+  {
+    if (pos > size_) {
+      return {};
+    }
+    const size_type rcount = count < size_ - pos ? count : size_ - pos;
+    return string_view(data_ + pos, rcount);
+  }
+
+  constexpr int compare(string_view other) const noexcept
+  {
+    const size_type rlen = size_ < other.size_ ? size_ : other.size_;
+    if (rlen == 0) {
+      return size_ == other.size_ ? 0 : (size_ < other.size_ ? -1 : 1);
+    }
+    for (size_type i = 0; i < rlen; ++i) {
+      if (data_[i] != other.data_[i]) {
+        return static_cast<unsigned char>(data_[i]) < static_cast<unsigned char>(other.data_[i])
+                 ? -1
+                 : 1;
+      }
+    }
+    return size_ == other.size_ ? 0 : (size_ < other.size_ ? -1 : 1);
+  }
+
+  size_type find(string_view v, size_type pos = 0) const noexcept
+  {
+    if (pos > size_ || v.size_ > size_ - pos) {
+      return npos;
+    }
+    for (size_type i = pos; i <= size_ - v.size_; ++i) {
+      if (__builtin_memcmp(data_ + i, v.data_, v.size_) == 0) {
+        return i;
+      }
+    }
+    return npos;
+  }
+
+  size_type rfind(string_view v, size_type pos = npos) const noexcept
+  {
+    if (v.size_ > size_) {
+      return npos;
+    }
+    pos = pos < size_ - v.size_ ? pos : size_ - v.size_;
+    for (size_type i = pos;; --i) {
+      if (__builtin_memcmp(data_ + i, v.data_, v.size_) == 0) {
+        return i;
+      }
+      if (i == 0) break;
+    }
+    return npos;
+  }
+
+  size_type find_first_of(string_view v, size_type pos = 0) const noexcept
+  {
+    for (size_type i = pos; i < size_; ++i) {
+      for (size_type j = 0; j < v.size_; ++j) {
+        if (data_[i] == v.data_[j]) {
+          return i;
+        }
+      }
+    }
+    return npos;
+  }
+
+  size_type find_last_of(string_view v, size_type pos = npos) const noexcept
+  {
+    if (empty()) {
+      return npos;
+    }
+    pos = pos < size_ ? pos : size_ - 1;
+    for (size_type i = pos;; --i) {
+      for (size_type j = 0; j < v.size_; ++j) {
+        if (data_[i] == v.data_[j]) {
+          return i;
+        }
+      }
+      if (i == 0) break;
+    }
+    return npos;
+  }
+
+  size_type find_first_not_of(string_view v, size_type pos = 0) const noexcept
+  {
+    for (size_type i = pos; i < size_; ++i) {
+      size_type j = 0;
+      for (; j < v.size_; ++j) {
+        if (data_[i] == v.data_[j]) break;
+      }
+      if (j == v.size_) {
+        return i;
+      }
+    }
+    return npos;
+  }
+
+  size_type find_last_not_of(string_view v, size_type pos = npos) const noexcept
+  {
+    if (empty()) {
+      return npos;
+    }
+    pos = pos < size_ ? pos : size_ - 1;
+    for (size_type i = pos;; --i) {
+      size_type j = 0;
+      for (; j < v.size_; ++j) {
+        if (data_[i] == v.data_[j]) break;
+      }
+      if (j == v.size_) {
+        return i;
+      }
+      if (i == 0) break;
+    }
+    return npos;
+  }
+
+  bool contains(string_view v) const noexcept
+  {
+    return find(v) != npos;
+  }
+
+  bool starts_with(string_view v) const noexcept
+  {
+    return size_ >= v.size_ && __builtin_memcmp(data_, v.data_, v.size_) == 0;
+  }
+
+  bool ends_with(string_view v) const noexcept
+  {
+    return size_ >= v.size_ && __builtin_memcmp(data_ + size_ - v.size_, v.data_, v.size_) == 0;
+  }
+
+  friend constexpr bool operator==(string_view a, string_view b) noexcept
+  {
+    if (a.size_ != b.size_) {
+      return false;
+    }
+    for (size_type i = 0; i < a.size_; ++i) {
+      if (a.data_[i] != b.data_[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  friend constexpr bool operator!=(string_view a, string_view b) noexcept
+  {
+    return !(a == b);
+  }
+
+  friend constexpr bool operator<(string_view a, string_view b) noexcept
+  {
+    return a.compare(b) < 0;
+  }
+
+  friend constexpr bool operator>(string_view a, string_view b) noexcept
+  {
+    return a.compare(b) > 0;
+  }
+
+  friend constexpr bool operator<=(string_view a, string_view b) noexcept
+  {
+    return a.compare(b) <= 0;
+  }
+
+  friend constexpr bool operator>=(string_view a, string_view b) noexcept
+  {
+    return a.compare(b) >= 0;
+  }
+
+  friend void swap(string_view &a, string_view &b) noexcept
+  {
+    a.swap(b);
+  }
+
+private:
+  const_pointer data_;
+  size_type size_;
+};
+
+#endif // STRING_VIEW_DATA_TYPE_H
