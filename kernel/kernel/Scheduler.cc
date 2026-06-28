@@ -18,13 +18,8 @@ int Scheduler::totalExited_{0};
 
 int Scheduler::countIf(StatePred pred)
 {
-  int count = 0;
-  for (int i = 0; i < taskCount_; ++i) {
-    if (pred(tasks_[i].state)) {
-      ++count;
-    }
-  }
-  return count;
+  return static_cast<int>(count_if(tasks_.begin(), tasks_.begin() + taskCount_,
+                                   [&pred](const Task &t) { return pred(t.state); }));
 }
 
 bool Scheduler::isNotDead(TaskState s)
