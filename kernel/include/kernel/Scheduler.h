@@ -2,6 +2,7 @@
 #define KERNEL_SCHEDULER_H
 
 #include <cstddef>
+#include <cstdint>
 #include <kernel/Task.h>
 
 class Scheduler {
@@ -35,6 +36,13 @@ public:
   static TaskState taskState(int id);
   static uint8_t taskFlags(int id);
   static void killTask(int id);
+  static uint32_t taskEsp(int id);
+  static const uint8_t *taskStackBuf(int id);
+  static uint32_t taskStackSize(int id);
+  static uint64_t taskEntryAddr(int id);
+  static uint64_t taskWakeupMs(int id);
+  static uint64_t taskRuntimeMs(int id);
+  static int quantumRemaining();
   static void sleep(uint64_t ms);
   static void blockCurrentTask();
   static void suppressTaskbar();
