@@ -60,14 +60,25 @@ bool checkSdt(Sdt *sdt)
 
 /**
  * Detect the FADT which has the signature "FACP".
+ *
+ * The RSDT entry array follows the header in memory but may not be 4-byte aligned. A raw
+ * `uint32_t*` implies natural alignment, and UBSan enforces this and aborts on misaligned
+ * dereference. `PackedU32` is a wrapper that carries no alignment requirement, so the compiler
+ * generates byte-at-a-time loads regardless of the runtime address.
  */
+struct __attribute__((packed)) PackedU32 {
+  uint32_t v;
+};
 Sdt *detectFadt(Rsdt *rsdt)
 {
-  size_t nelm = (rsdt->header.length - sizeof(rsdt->header)) / sizeof(uint32_t);
-  const auto it = find_if(rsdt->otherSdts, rsdt->otherSdts + nelm, [](uint32_t ptr) {
+  const size_t nelm = (rsdt->header.length - sizeof(rsdt->header)) / sizeof(uint32_t);
+  const auto *entries =
+    reinterpret_cast<PackedU32 *>(reinterpret_cast<uintptr_t>(rsdt) + sizeof(rsdt->header));
+  const auto it = find_if(entries, entries + nelm, [](const PackedU32 &entry) {
+    const uint32_t ptr = entry.v;
     return strncmp(reinterpret_cast<Sdt *>(ptr)->sig, "FACP", 4) == 0;
   });
-  return it != rsdt->otherSdts + nelm ? reinterpret_cast<Sdt *>(*it) : nullptr;
+  return it != entries + nelm ? reinterpret_cast<Sdt *>(it->v) : nullptr;
 }
 
 void cleanup()
