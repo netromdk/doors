@@ -3,6 +3,7 @@
 
 #include <compare>
 #include <cstring>
+#include <string_view>
 
 class string {
 public:
@@ -140,6 +141,11 @@ public:
 
   [[nodiscard]] size_type copy(char *s, size_type count, size_type pos = 0) const noexcept;
   [[nodiscard]] string substr(size_type pos = 0, size_type count = npos) const noexcept;
+
+  operator string_view() const noexcept
+  {
+    return string_view(data_, size_);
+  }
 
   iterator begin() noexcept
   {
