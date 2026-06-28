@@ -62,3 +62,31 @@ TEST_CASE("write_then_backspace_restores_position")
   Tty::putc('\b');
   CHECK(Tty::getCol() == 10);
 }
+
+TEST_CASE("puts_backspace_moves_col_left")
+{
+  Tty::cls();
+  Tty::puts("", 0, 5);
+  Tty::puts("\b");
+  CHECK(Tty::getRow() == 0);
+  CHECK(Tty::getCol() == 4);
+}
+
+TEST_CASE("puts_multiple_backspaces")
+{
+  Tty::cls();
+  Tty::puts("", 2, 10);
+  Tty::puts("\b\b\b");
+  CHECK(Tty::getRow() == 2);
+  CHECK(Tty::getCol() == 7);
+}
+
+TEST_CASE("puts_backspace_does_not_write_to_vga")
+{
+  Tty::cls();
+  Tty::puts("", 0, 0);
+  Tty::puts("\b");
+  // Backspace at (0,0) should be a no-op.
+  CHECK(Tty::getRow() == 0);
+  CHECK(Tty::getCol() == 0);
+}
