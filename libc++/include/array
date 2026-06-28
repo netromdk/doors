@@ -1,0 +1,182 @@
+#ifndef ARRAY_DATA_TYPE_H
+#define ARRAY_DATA_TYPE_H
+
+#include <cstddef>
+#include <sys/cdefs.h>
+
+template <class T, size_t N>
+struct array {
+  using value_type = T;
+  using size_type = size_t;
+  using difference_type = ptrdiff_t;
+  using reference = T &;
+  using const_reference = const T &;
+  using pointer = T *;
+  using const_pointer = const T *;
+  using iterator = T *;
+  using const_iterator = const T *;
+
+  T elems_[N];
+
+  constexpr reference at(size_type i)
+  {
+    return i < N ? elems_[i] : (__builtin_trap(), elems_[0]);
+  }
+
+  constexpr const_reference at(size_type i) const
+  {
+    return i < N ? elems_[i] : (__builtin_trap(), elems_[0]);
+  }
+
+  constexpr reference operator[](size_type i) noexcept
+  {
+    return elems_[i];
+  }
+
+  constexpr const_reference operator[](size_type i) const noexcept
+  {
+    return elems_[i];
+  }
+
+  constexpr reference front() noexcept
+  {
+    return elems_[0];
+  }
+
+  constexpr const_reference front() const noexcept
+  {
+    return elems_[0];
+  }
+
+  constexpr reference back() noexcept
+  {
+    return elems_[N - 1];
+  }
+
+  constexpr const_reference back() const noexcept
+  {
+    return elems_[N - 1];
+  }
+
+  [[nodiscard]] constexpr pointer data() noexcept
+  {
+    return elems_;
+  }
+
+  [[nodiscard]] constexpr const_pointer data() const noexcept
+  {
+    return elems_;
+  }
+
+  constexpr iterator begin() noexcept
+  {
+    return elems_;
+  }
+
+  constexpr const_iterator begin() const noexcept
+  {
+    return elems_;
+  }
+
+  constexpr iterator end() noexcept
+  {
+    return elems_ + N;
+  }
+
+  constexpr const_iterator end() const noexcept
+  {
+    return elems_ + N;
+  }
+
+  constexpr const_iterator cbegin() const noexcept
+  {
+    return elems_;
+  }
+
+  constexpr const_iterator cend() const noexcept
+  {
+    return elems_ + N;
+  }
+
+  [[nodiscard]] constexpr bool empty() const noexcept
+  {
+    return N == 0;
+  }
+
+  [[nodiscard]] constexpr size_type size() const noexcept
+  {
+    return N;
+  }
+
+  [[nodiscard]] constexpr size_type max_size() const noexcept
+  {
+    return N;
+  }
+
+  constexpr void fill(const T &v)
+  {
+    for (size_type i = 0; i < N; ++i) {
+      elems_[i] = v;
+    }
+  }
+
+  constexpr void swap(array &other) noexcept
+  {
+    for (size_type i = 0; i < N; ++i) {
+      const T tmp = elems_[i];
+      elems_[i] = other.elems_[i];
+      other.elems_[i] = tmp;
+    }
+  }
+
+  friend constexpr bool operator==(const array &a, const array &b)
+  {
+    for (size_type i = 0; i < N; ++i) {
+      if (a.elems_[i] != b.elems_[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  friend constexpr bool operator!=(const array &a, const array &b)
+  {
+    return !(a == b);
+  }
+
+  friend constexpr bool operator<(const array &a, const array &b)
+  {
+    for (size_type i = 0; i < N; ++i) {
+      if (a.elems_[i] < b.elems_[i]) {
+        return true;
+      }
+      if (b.elems_[i] < a.elems_[i]) {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  friend constexpr bool operator>(const array &a, const array &b)
+  {
+    return b < a;
+  }
+
+  friend constexpr bool operator<=(const array &a, const array &b)
+  {
+    return !(b < a);
+  }
+
+  friend constexpr bool operator>=(const array &a, const array &b)
+  {
+    return !(a < b);
+  }
+};
+
+template <class T, size_t N>
+constexpr void swap(array<T, N> &a, array<T, N> &b) noexcept
+{
+  a.swap(b);
+}
+
+#endif // ARRAY_DATA_TYPE_H
