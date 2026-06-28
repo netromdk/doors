@@ -17,6 +17,12 @@ constexpr inline T max(T a, T b)
 }
 
 template <typename T>
+constexpr inline const T &clamp(const T &v, const T &low, const T &high)
+{
+  return v < low ? low : (high < v ? high : v);
+}
+
+template <typename T>
 inline void swap(T &a, T &b)
 {
   T tmp = b;
