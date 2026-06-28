@@ -161,6 +161,7 @@ doors_test_module(test_libcpp_numeric_header
 
 doors_test_module(test_libcpp_utility_header
   libc++/utility/exchange.cc
+  libc++/utility/pair.cc
 )
 
 doors_test_module(test_libcpp_optional
