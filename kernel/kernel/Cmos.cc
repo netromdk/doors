@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstring>
+#include <numeric>
 
 #include <kernel/Io.h>
 #include <kernel/Cmos.h>
@@ -123,11 +124,8 @@ uint64_t Cmos::unixTime()
 {
   readRtcValues();
 
-  uint64_t res = day;
   static constexpr int monthDays[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-  for (size_t i = 0; i < month - 1; i++) { // Don't count this month.
-    res += monthDays[i];
-  }
+  uint64_t res = accumulate(monthDays, monthDays + month - 1, uint64_t{day});
 
   static constexpr uint64_t HOUR = 3600, DAY = 86400, YEAR = 31536000;
   res *= DAY; // Days of this year to seconds.
