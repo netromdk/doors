@@ -1,0 +1,12 @@
+#ifndef UTILITY_H
+#define UTILITY_H
+
+template <typename T, typename U = T>
+constexpr T exchange(T &obj, U new_value) noexcept
+{
+  T old = static_cast<T>(obj);
+  obj = static_cast<T>(new_value);
+  return old;
+}
+
+#endif // UTILITY_H
