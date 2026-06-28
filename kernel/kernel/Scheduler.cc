@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <optional>
 
 #include <kernel/Heap.h>
 #include <kernel/Panic.h>
@@ -64,7 +65,7 @@ void Scheduler::init()
   initialized_ = true;
 }
 
-int Scheduler::addTask(const char *name, void (*entry)())
+optional<int> Scheduler::addTask(const char *name, void (*entry)())
 {
   // Disable interrupts while modifying the shared task table so the timer ISR, which calls
   // `tick()`, does not see a partially-initialized slot.
@@ -72,7 +73,7 @@ int Scheduler::addTask(const char *name, void (*entry)())
   __asm__("cli");
 #endif
 
-  const int id = addTaskImpl(name, entry);
+  const auto id = addTaskImpl(name, entry);
 
   // Re-enable interrupts after the new task slot is fully set up.
 #ifdef __IS_DOORS_KERNEL
@@ -82,7 +83,7 @@ int Scheduler::addTask(const char *name, void (*entry)())
   return id;
 }
 
-int Scheduler::findSlot()
+optional<int> Scheduler::findSlot()
 {
   const auto it = find_if(tasks_.begin(), tasks_.begin() + taskCount_,
                           [](const Task &t) { return t.state == TaskState::DEAD; });
@@ -90,7 +91,7 @@ int Scheduler::findSlot()
     return static_cast<int>(it - tasks_.begin());
   }
   if (taskCount_ >= MAX_TASKS) {
-    return -1;
+    return nullopt;
   }
   return taskCount_++;
 }
@@ -129,16 +130,17 @@ uint32_t Scheduler::initStackFrame(uint8_t *stack, void (*entry)())
   return static_cast<uint32_t>(reinterpret_cast<unsigned long long>(stackTop - 11));
 }
 
-int Scheduler::addTaskImpl(const char *name, void (*entry)())
+optional<int> Scheduler::addTaskImpl(const char *name, void (*entry)())
 {
   if (name == nullptr) {
-    return -1;
+    return nullopt;
   }
 
-  const int slot = findSlot();
-  if (slot < 0) {
-    return -1;
+  const auto slotOpt = findSlot();
+  if (!slotOpt) {
+    return nullopt;
   }
+  const int slot = *slotOpt;
 
   Task &t = tasks_[slot];
   if (t.stackBuf != nullptr) {
@@ -148,7 +150,7 @@ int Scheduler::addTaskImpl(const char *name, void (*entry)())
 
   auto *stack = static_cast<uint8_t *>(Heap::alloc(TASK_STACK_SIZE));
   if (stack == nullptr) {
-    return -1;
+    return nullopt;
   }
 
   t.esp = initStackFrame(stack, &Scheduler::taskWrapper);
@@ -209,15 +211,15 @@ uint32_t Scheduler::tick(uint32_t currentEsp)
   }
 
   // Quantum expired. Find the next READY task by round-robin approach.
-  const int next = findNext();
-  if (next < 0) {
+  const auto next = findNext();
+  if (!next) {
     // No other runnable task exists. Keep running with a fresh quantum.
     quantumRemaining_ = QUANTUM_TICKS;
     return 0;
   }
 
   // Switch to the chosen task and return its saved `esp`.
-  return switchTo(next);
+  return switchTo(*next);
 }
 
 uint32_t Scheduler::switchTo(int next)
@@ -234,18 +236,18 @@ uint32_t Scheduler::switchTo(int next)
   return tasks_[currentIdx_].esp;
 }
 
-int Scheduler::addTaskAndBlock(const char *name, void (*entry)())
+optional<int> Scheduler::addTaskAndBlock(const char *name, void (*entry)())
 {
 #ifdef __IS_DOORS_KERNEL
   __asm__("cli");
 #endif
 
-  const int id = addTaskImpl(name, entry);
-  if (id < 0) {
+  const auto id = addTaskImpl(name, entry);
+  if (!id) {
 #ifdef __IS_DOORS_KERNEL
     __asm__("sti");
 #endif
-    return -1;
+    return nullopt;
   }
 
   if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
@@ -286,10 +288,10 @@ int Scheduler::addTaskAndBlock(const char *name, void (*entry)())
 
   // Switch to the next READY task immediately instead of waiting for the next PIT tick to expire
   // the quantum, and thus eliminating up to ~20 ms of dead time.
-  const int next = findNext();
-  if (next >= 0) {
+  const auto next = findNext();
+  if (next) {
 #ifdef __IS_DOORS_KERNEL
-    const uint32_t esp = switchTo(next);
+    const uint32_t esp = switchTo(*next);
 
     // Unlike the timer ISR path (asmIntTick -> intTick -> tick -> switchTo -> %eax -> movl %esp),
     // there is no ISR frame or return chain from `exitCurrentTask()`. Switch to the new task's
@@ -352,74 +354,74 @@ int Scheduler::taskCount()
   return taskCount_;
 }
 
-const char *Scheduler::taskName(int id)
+optional<const char *> Scheduler::taskName(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return "";
+    return nullopt;
   }
   return tasks_[id].name.data();
 }
 
-TaskState Scheduler::taskState(int id)
+optional<TaskState> Scheduler::taskState(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return TaskState::DEAD;
+    return nullopt;
   }
   return tasks_[id].state;
 }
 
-uint8_t Scheduler::taskFlags(int id)
+optional<uint8_t> Scheduler::taskFlags(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return 0;
+    return nullopt;
   }
   return tasks_[id].flags;
 }
 
-uint32_t Scheduler::taskEsp(int id)
+optional<uint32_t> Scheduler::taskEsp(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return 0;
+    return nullopt;
   }
   return tasks_[id].esp;
 }
 
-const uint8_t *Scheduler::taskStackBuf(int id)
+optional<const uint8_t *> Scheduler::taskStackBuf(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return nullptr;
+    return nullopt;
   }
   return tasks_[id].stackBuf;
 }
 
-uint32_t Scheduler::taskStackSize(int id)
+optional<uint32_t> Scheduler::taskStackSize(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return 0;
+    return nullopt;
   }
   return tasks_[id].stackSize;
 }
 
-uint64_t Scheduler::taskEntryAddr(int id)
+optional<uint64_t> Scheduler::taskEntryAddr(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return 0;
+    return nullopt;
   }
   return reinterpret_cast<uint64_t>(tasks_[id].entry);
 }
 
-uint64_t Scheduler::taskWakeupMs(int id)
+optional<uint64_t> Scheduler::taskWakeupMs(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return 0;
+    return nullopt;
   }
   return tasks_[id].wakeupMs;
 }
 
-uint64_t Scheduler::taskRuntimeMs(int id)
+optional<uint64_t> Scheduler::taskRuntimeMs(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return 0;
+    return nullopt;
   }
   return tasks_[id].runtimeMs;
 }
@@ -499,7 +501,7 @@ void Scheduler::blockCurrentTask()
   tasks_[currentIdx_].state = TaskState::BLOCKED;
 }
 
-int Scheduler::findNext()
+optional<int> Scheduler::findNext()
 {
   if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
     panic("Scheduler::findNext: corrupted currentIdx");
@@ -508,7 +510,7 @@ int Scheduler::findNext()
     panic("Scheduler::findNext: corrupted taskCount");
   }
   if (taskCount_ <= 1) {
-    return -1;
+    return nullopt;
   }
   for (int i = 0; i < taskCount_ - 1; ++i) {
     const int idx = (currentIdx_ + 1 + i) % taskCount_;
@@ -516,7 +518,7 @@ int Scheduler::findNext()
       return idx;
     }
   }
-  return -1;
+  return nullopt;
 }
 
 #ifndef __IS_DOORS_KERNEL

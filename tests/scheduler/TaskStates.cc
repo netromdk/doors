@@ -15,7 +15,7 @@ TEST_CASE("unblockTask: BLOCKED task becomes READY and is found by round-robin")
   Scheduler::init();
 
   // `addTaskAndBlock()` adds task 1 and sets task 0 (the current task) to BLOCKED.
-  const int id = Scheduler::addTaskAndBlock("task1", nullptr);
+  const int id = *Scheduler::addTaskAndBlock("task1", nullptr);
   REQUIRE(id == 1);
 
   // Exhaust quantum on the current (BLOCKED) task. `findNext()` skips BLOCKED, finds task 1

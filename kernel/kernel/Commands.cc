@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 #include <kernel/Tty.h>
 
@@ -138,7 +139,7 @@ void cmdSnake(int, const string *)
   Snake::setShellTaskId(shellId);
 
   const auto id = Scheduler::addTaskAndBlock("snake", Snake::snakeMain);
-  if (id < 0) {
+  if (!id) {
     printf("snake: no task slots available\n");
   }
 }
@@ -177,19 +178,20 @@ void printTaskTable()
   Tty::puts("--  ---------------- ----------- -----\n");
 
   for (int i = 0; i < Scheduler::taskCount(); ++i) {
-    if (Scheduler::taskState(i) == TaskState::DEAD) {
+    const auto st = Scheduler::taskState(i);
+    if (!st || *st == TaskState::DEAD) {
       continue;
     }
 
-    const char *name = Scheduler::taskName(i);
-    const char *state = taskStateStr(Scheduler::taskState(i));
+    const char *name = *Scheduler::taskName(i);
+    const char *state = taskStateStr(*st);
 
     char buf[64];
     snprintf(buf, sizeof(buf), "%2u  %-16s %-11s ", static_cast<unsigned>(i), name, state);
     Tty::puts(buf);
 
     // Flags.
-    const uint8_t flags = Scheduler::taskFlags(i);
+    const uint8_t flags = *Scheduler::taskFlags(i);
     if (flags & Task::FLAG_SUPPRESS_TASKBAR) {
       Tty::puts("suppress");
     }
@@ -203,25 +205,29 @@ void printTaskTable()
 
 void printTaskDetail(int id)
 {
-  const char *name = Scheduler::taskName(id);
-  const TaskState state = Scheduler::taskState(id);
-  const uint8_t flags = Scheduler::taskFlags(id);
+  const auto nameOpt = Scheduler::taskName(id);
+  const auto stateOpt = Scheduler::taskState(id);
+  const auto flagsOpt = Scheduler::taskFlags(id);
+  if (!nameOpt || !stateOpt || !flagsOpt) {
+    printf("Task %u: does not exist\n", id);
+    return;
+  }
 
   printf("Task %u:\n", id);
-  printf("  Name:       %s\n", name);
-  printf("  State:      %s\n", taskStateStr(state));
-  printf("  Flags:      %s\n", (flags & Task::FLAG_SUPPRESS_TASKBAR) ? "suppress" : "-");
-  printf("  Entry:      0x%x\n", Scheduler::taskEntryAddr(id));
-  printf("  Stack buf:  0x%x\n", reinterpret_cast<uint64_t>(Scheduler::taskStackBuf(id)));
-  printf("  Stack size: %u bytes\n", Scheduler::taskStackSize(id));
-  printf("  Runtime:    %u ms\n", Scheduler::taskRuntimeMs(id));
+  printf("  Name:       %s\n", *nameOpt);
+  printf("  State:      %s\n", taskStateStr(*stateOpt));
+  printf("  Flags:      %s\n", (*flagsOpt & Task::FLAG_SUPPRESS_TASKBAR) ? "suppress" : "-");
+  printf("  Entry:      0x%x\n", *Scheduler::taskEntryAddr(id));
+  printf("  Stack buf:  0x%x\n", reinterpret_cast<uint64_t>(*Scheduler::taskStackBuf(id)));
+  printf("  Stack size: %u bytes\n", *Scheduler::taskStackSize(id));
+  printf("  Runtime:    %u ms\n", *Scheduler::taskRuntimeMs(id));
   printf("  Quantum:    %u/%u\n",
          id == Scheduler::currentTaskId() ? Scheduler::quantumRemaining()
                                           : Scheduler::QUANTUM_TICKS,
          Scheduler::QUANTUM_TICKS);
 
-  const uint32_t esp = Scheduler::taskEsp(id);
-  const uint8_t *stackBuf = Scheduler::taskStackBuf(id);
+  const uint32_t esp = *Scheduler::taskEsp(id);
+  const uint8_t *stackBuf = *Scheduler::taskStackBuf(id);
   if (stackBuf) {
     const uint32_t offset = esp - reinterpret_cast<uint32_t>(stackBuf);
     printf("  ESP:        0x%x (offset from base: %u bytes)\n", esp, offset);
@@ -230,10 +236,10 @@ void printTaskDetail(int id)
     printf("  ESP:        0x%x\n", esp);
   }
 
-  if (state == TaskState::BLOCKED) {
-    const uint64_t wakeup = Scheduler::taskWakeupMs(id);
-    if (wakeup > Pit::uptimeMs()) {
-      printf("  Wakeup:     in %u ms\n", static_cast<uint32_t>(wakeup - Pit::uptimeMs()));
+  if (*stateOpt == TaskState::BLOCKED) {
+    if (const auto wakeupOpt = Scheduler::taskWakeupMs(id);
+        wakeupOpt && *wakeupOpt > Pit::uptimeMs()) {
+      printf("  Wakeup:     in %u ms\n", static_cast<uint32_t>(*wakeupOpt - Pit::uptimeMs()));
     }
   }
 }
@@ -263,8 +269,9 @@ void cmdTasks(int argc, const string *argv)
     printf("tasks: task %u does not exist\n", id);
     return;
   }
-  if (Scheduler::taskState(id) == TaskState::DEAD) {
-    printf("tasks: task %u (%s) is dead\n", id, Scheduler::taskName(id));
+
+  if (const auto ts = Scheduler::taskState(id); !ts || *ts == TaskState::DEAD) {
+    printf("tasks: task %u (%s) is dead\n", id, Scheduler::taskName(id).value_or(""));
     return;
   }
 
@@ -298,8 +305,10 @@ void cmdKill(int argc, const string *argv)
     return;
   }
 
-  const char *name = Scheduler::taskName(id);
-  if (Scheduler::taskState(id) == TaskState::DEAD) {
+  const auto nameOpt = Scheduler::taskName(id);
+  const auto stateOpt = Scheduler::taskState(id);
+  const char *name = nameOpt.value_or("");
+  if (!stateOpt || *stateOpt == TaskState::DEAD) {
     printf("kill: task %u (%s) is already dead\n", id, name);
     return;
   }

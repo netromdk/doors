@@ -111,7 +111,7 @@ TEST_CASE("semaphore: FIFO waiter order")
   CHECK(s.testWaiter(0) == 0);
 
   // Add task 1 and make it current.
-  const int t1 = Scheduler::addTask("t1", nullptr);
+  const int t1 = *Scheduler::addTask("t1", nullptr);
   REQUIRE(t1 == 1);
   Scheduler::testSetCurrentIdx(1);
   Scheduler::testSetTaskState(1, TaskState::RUNNING);
