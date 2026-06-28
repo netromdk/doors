@@ -163,6 +163,9 @@ int Scheduler::addTaskImpl(const char *name, void (*entry)())
 
 void Scheduler::taskWrapper()
 {
+  if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
+    panic("Scheduler::taskWrapper: corrupted currentIdx");
+  }
   if (tasks_[currentIdx_].entry) {
     tasks_[currentIdx_].entry();
   }
@@ -173,6 +176,10 @@ uint32_t Scheduler::tick(uint32_t currentEsp)
 {
   if (!initialized_) {
     return 0;
+  }
+
+  if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
+    panic("Scheduler::tick: corrupted currentIdx");
   }
 
   // Save the interrupted task's register frame pointer (`esp`).
@@ -226,6 +233,10 @@ int Scheduler::addTaskAndBlock(const char *name, void (*entry)())
     return -1;
   }
 
+  if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
+    panic("Scheduler::addTaskAndBlock: corrupted currentIdx");
+  }
+
   tasks_[currentIdx_].state = TaskState::BLOCKED;
   while (tasks_[currentIdx_].state == TaskState::BLOCKED) {
 #ifdef __IS_DOORS_KERNEL
@@ -250,6 +261,11 @@ int Scheduler::addTaskAndBlock(const char *name, void (*entry)())
 #ifdef __IS_DOORS_KERNEL
   __asm__("cli");
 #endif
+
+  if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
+    panic("Scheduler::exitCurrentTask: corrupted currentIdx");
+  }
+
   tasks_[currentIdx_].state = TaskState::DEAD;
   ++totalExited_;
 
@@ -346,6 +362,9 @@ uint8_t Scheduler::taskFlags(int id)
 
 void Scheduler::suppressTaskbar()
 {
+  if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
+    panic("Scheduler::suppressTaskbar: corrupted currentIdx");
+  }
   tasks_[currentIdx_].flags |= Task::FLAG_SUPPRESS_TASKBAR;
 }
 
