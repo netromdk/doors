@@ -151,6 +151,10 @@ doors_test_module(test_libcpp_array_header
   libc++/array/array.cc
 )
 
+doors_test_module(test_libcpp_string_view
+  libc++/string_view/string_view.cc
+)
+
 doors_test_module(test_libcpp_numeric_header
   libc++/numeric/accumulate.cc
 )
