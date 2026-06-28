@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 
@@ -405,8 +406,7 @@ SnakeGame::Pos SnakeGame::boostZonePos(int i) const
 
 int SnakeGame::baseIntervalMs() const
 {
-  const int ms = 200 - length_ * 8;
-  return ms < 60 ? 60 : ms;
+  return clamp(200 - length_ * 8, 60, 200);
 }
 
 int SnakeGame::moveIntervalMs() const
