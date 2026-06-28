@@ -55,8 +55,8 @@ void Scheduler::init()
   tasks_[0].entry = nullptr;
   tasks_[0].stackBuf = nullptr;
   tasks_[0].stackSize = 0;
-  strncpy(tasks_[0].name, "shell", sizeof(tasks_[0].name) - 1);
-  tasks_[0].name[sizeof(tasks_[0].name) - 1] = '\0';
+  strncpy(tasks_[0].name.data(), "shell", tasks_[0].name.size() - 1);
+  tasks_[0].name[tasks_[0].name.size() - 1] = '\0';
   taskCount_ = 1;
   currentIdx_ = 0;
   quantumRemaining_ = QUANTUM_TICKS;
@@ -156,8 +156,8 @@ int Scheduler::addTaskImpl(const char *name, void (*entry)())
   t.id = static_cast<uint8_t>(slot);
   t.stackBuf = stack;
   t.stackSize = TASK_STACK_SIZE;
-  strncpy(t.name, name, sizeof(t.name) - 1);
-  t.name[sizeof(t.name) - 1] = '\0';
+  strncpy(t.name.data(), name, t.name.size() - 1);
+  t.name[t.name.size() - 1] = '\0';
 
   return slot;
 }
@@ -356,7 +356,7 @@ const char *Scheduler::taskName(int id)
   if (id < 0 || id >= taskCount_) {
     return "";
   }
-  return tasks_[id].name;
+  return tasks_[id].name.data();
 }
 
 TaskState Scheduler::taskState(int id)
