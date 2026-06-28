@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstring>
 
 #include <kernel/Tty.h>
 
@@ -146,6 +147,78 @@ void cmdPanic(int, const string *)
   panic("triggered from shell");
 }
 
+void cmdTasks(int, const string *)
+{
+  const int alive = Scheduler::aliveTaskCount();
+  const int runningReady = Scheduler::runningReadyCount();
+  const int blocked = Scheduler::blockedTaskCount();
+  const int dead = Scheduler::deadTaskCount();
+  const int exited = Scheduler::totalExited();
+
+  printf("%u alive (%u running/ready), %u blocked, %u dead, %u exited total\n\n", alive,
+         runningReady, blocked, dead, exited);
+
+  Tty::puts("ID  Name             State       Flags\n");
+  Tty::puts("--  ---------------- ----------- -----\n");
+
+  for (int i = 0; i < Scheduler::taskCount(); ++i) {
+    if (Scheduler::taskState(i) == TaskState::DEAD) {
+      continue;
+    }
+
+    // ID (right-aligned in 2).
+    if (i < 10) putchar(' ');
+    printf("%u", i);
+    Tty::puts("  ");
+
+    // Name (left-aligned in 16), then 1-space gap.
+    const char *name = Scheduler::taskName(i);
+    Tty::puts(name);
+    int pad = 16 - static_cast<int>(strlen(name));
+    for (int j = 0; j < pad; ++j) {
+      putchar(' ');
+    }
+    putchar(' ');
+
+    // State (left-aligned in 11), then 1-space gap.
+    const char *state;
+    switch (Scheduler::taskState(i)) {
+    case TaskState::RUNNING:
+      state = "RUNNING";
+      break;
+
+    case TaskState::READY:
+      state = "READY";
+      break;
+
+    case TaskState::BLOCKED:
+      state = "BLOCKED";
+      break;
+
+    default:
+      state = "?";
+      break;
+    }
+    Tty::puts(state);
+    pad = 11 - static_cast<int>(strlen(state));
+    for (int j = 0; j < pad; ++j) {
+      putchar(' ');
+    }
+    putchar(' ');
+
+    // Flags.
+    const uint8_t flags = Scheduler::taskFlags(i);
+    if (flags & Task::FLAG_SUPPRESS_TASKBAR) {
+      Tty::puts("suppress");
+    }
+    else {
+      putchar('-');
+    }
+
+    putchar('\n');
+  }
+}
+
 #ifdef __IS_DOORS_UBSAN
 void cmdUbsan(int argc, const string *)
 {
@@ -188,6 +261,7 @@ void initCommands()
     {.name = "testsched",
      .desc = "Test scheduler with two interleaved tasks",
      .handler = cmdTestScheduler},
+    {.name = "tasks", .desc = "Show task list with state and flags", .handler = cmdTasks},
     {.name = "panic", .desc = "Trigger a kernel panic", .handler = cmdPanic},
 #ifdef __IS_DOORS_UBSAN
     {.name = "ubsan", .desc = "Trigger UBSan overflow", .handler = cmdUbsan},

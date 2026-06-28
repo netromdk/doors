@@ -315,6 +315,35 @@ int Scheduler::totalExited()
   return totalExited_;
 }
 
+int Scheduler::taskCount()
+{
+  return taskCount_;
+}
+
+const char *Scheduler::taskName(int id)
+{
+  if (id < 0 || id >= taskCount_) {
+    return "";
+  }
+  return tasks_[id].name;
+}
+
+TaskState Scheduler::taskState(int id)
+{
+  if (id < 0 || id >= taskCount_) {
+    return TaskState::DEAD;
+  }
+  return tasks_[id].state;
+}
+
+uint8_t Scheduler::taskFlags(int id)
+{
+  if (id < 0 || id >= taskCount_) {
+    return 0;
+  }
+  return tasks_[id].flags;
+}
+
 void Scheduler::suppressTaskbar()
 {
   tasks_[currentIdx_].flags |= Task::FLAG_SUPPRESS_TASKBAR;

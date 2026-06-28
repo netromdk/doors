@@ -245,6 +245,7 @@ doors_test_module(test_kernel_scheduler
   scheduler/Init.cc
   scheduler/StackFrame.cc
   scheduler/RoundRobin.cc
+  scheduler/TaskInfo.cc
   scheduler/TaskStates.cc
   stubs.cc
   "${HEAP_SRC}"

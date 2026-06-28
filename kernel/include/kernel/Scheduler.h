@@ -30,6 +30,10 @@ public:
   static int blockedTaskCount();
   static int deadTaskCount();
   static int totalExited();
+  static int taskCount();
+  static const char *taskName(int id);
+  static TaskState taskState(int id);
+  static uint8_t taskFlags(int id);
   static void suppressTaskbar();
   static bool isTaskbarSuppressed();
 

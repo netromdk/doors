@@ -23,7 +23,7 @@ The name is the recursive acronym "Doors of Open Run-time Systems".
 ### Shell commands
 
 `uptime`, `cpuinfo`, `meminfo`, `clear`, `help`, `halt`, `reboot`, `datetime`, `echo`, `ticks`,
-`heap`, `snake`, `testsched`, `panic`, `ubsan`/`ubsanp` (only when `-DKERNEL_UBSAN=ON`)
+`heap`, `snake`, `testsched`, `tasks`, `panic`, `ubsan`/`ubsanp` (only when `-DKERNEL_UBSAN=ON`)
 
 ### Prerequisites
 
