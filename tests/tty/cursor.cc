@@ -10,8 +10,8 @@ TEST_CASE("cursorSetPos_updates_row_and_col")
 {
   Tty::cls();
   Tty::cursorSetPos(10, 20);
-  CHECK(Tty::getRow() == 10);
-  CHECK(Tty::getCol() == 20);
+  CHECK(Tty::getCursor().first == 10);
+  CHECK(Tty::getCursor().second == 20);
 }
 
 TEST_CASE("cursorSetPos_zero_zero")
@@ -19,16 +19,16 @@ TEST_CASE("cursorSetPos_zero_zero")
   Tty::cls();
   Tty::cursorSetPos(10, 10);
   Tty::cursorSetPos(0, 0);
-  CHECK(Tty::getRow() == 0);
-  CHECK(Tty::getCol() == 0);
+  CHECK(Tty::getCursor().first == 0);
+  CHECK(Tty::getCursor().second == 0);
 }
 
 TEST_CASE("cursorSetPos_max_bounds")
 {
   Tty::cls();
   Tty::cursorSetPos(24, 79);
-  CHECK(Tty::getRow() == 24);
-  CHECK(Tty::getCol() == 79);
+  CHECK(Tty::getCursor().first == 24);
+  CHECK(Tty::getCursor().second == 79);
 }
 
 TEST_CASE("cursorEnable_does_not_crash")
@@ -48,8 +48,8 @@ TEST_CASE("cursorEnable_then_cursorSetPos")
   Tty::cls();
   Tty::cursorEnable();
   Tty::cursorSetPos(5, 15);
-  CHECK(Tty::getRow() == 5);
-  CHECK(Tty::getCol() == 15);
+  CHECK(Tty::getCursor().first == 5);
+  CHECK(Tty::getCursor().second == 15);
 }
 
 TEST_CASE("cursorDisable_then_cursorSetPos")
@@ -57,6 +57,6 @@ TEST_CASE("cursorDisable_then_cursorSetPos")
   Tty::cls();
   Tty::cursorDisable();
   Tty::cursorSetPos(3, 7);
-  CHECK(Tty::getRow() == 3);
-  CHECK(Tty::getCol() == 7);
+  CHECK(Tty::getCursor().first == 3);
+  CHECK(Tty::getCursor().second == 7);
 }

@@ -11,8 +11,8 @@ TEST_CASE("backspace_moves_col_left")
   Tty::cls();
   Tty::puts("", 0, 5);
   Tty::putc('\b');
-  CHECK(Tty::getRow() == 0);
-  CHECK(Tty::getCol() == 4);
+  CHECK(Tty::getCursor().first == 0);
+  CHECK(Tty::getCursor().second == 4);
 }
 
 TEST_CASE("backspace_at_row_start_wraps_to_prev_row")
@@ -20,16 +20,16 @@ TEST_CASE("backspace_at_row_start_wraps_to_prev_row")
   Tty::cls();
   Tty::puts("", 1, 0);
   Tty::putc('\b');
-  CHECK(Tty::getRow() == 0);
-  CHECK(Tty::getCol() == 79);
+  CHECK(Tty::getCursor().first == 0);
+  CHECK(Tty::getCursor().second == 79);
 }
 
 TEST_CASE("backspace_at_top_left_does_nothing")
 {
   Tty::cls();
   Tty::putc('\b');
-  CHECK(Tty::getRow() == 0);
-  CHECK(Tty::getCol() == 0);
+  CHECK(Tty::getCursor().first == 0);
+  CHECK(Tty::getCursor().second == 0);
 }
 
 TEST_CASE("multiple_backspaces")
@@ -39,8 +39,8 @@ TEST_CASE("multiple_backspaces")
   Tty::putc('\b');
   Tty::putc('\b');
   Tty::putc('\b');
-  CHECK(Tty::getRow() == 3);
-  CHECK(Tty::getCol() == 7);
+  CHECK(Tty::getCursor().first == 3);
+  CHECK(Tty::getCursor().second == 7);
 }
 
 TEST_CASE("backspace_past_row_start_wraps_multiple_rows")
@@ -49,8 +49,8 @@ TEST_CASE("backspace_past_row_start_wraps_multiple_rows")
   Tty::puts("", 2, 1);
   Tty::putc('\b');
   Tty::putc('\b');
-  CHECK(Tty::getRow() == 1);
-  CHECK(Tty::getCol() == 79);
+  CHECK(Tty::getCursor().first == 1);
+  CHECK(Tty::getCursor().second == 79);
 }
 
 TEST_CASE("write_then_backspace_restores_position")
@@ -58,9 +58,9 @@ TEST_CASE("write_then_backspace_restores_position")
   Tty::cls();
   Tty::puts("", 0, 10);
   Tty::putc('A');
-  CHECK(Tty::getCol() == 11);
+  CHECK(Tty::getCursor().second == 11);
   Tty::putc('\b');
-  CHECK(Tty::getCol() == 10);
+  CHECK(Tty::getCursor().second == 10);
 }
 
 TEST_CASE("puts_backspace_moves_col_left")
@@ -68,8 +68,8 @@ TEST_CASE("puts_backspace_moves_col_left")
   Tty::cls();
   Tty::puts("", 0, 5);
   Tty::puts("\b");
-  CHECK(Tty::getRow() == 0);
-  CHECK(Tty::getCol() == 4);
+  CHECK(Tty::getCursor().first == 0);
+  CHECK(Tty::getCursor().second == 4);
 }
 
 TEST_CASE("puts_multiple_backspaces")
@@ -77,8 +77,8 @@ TEST_CASE("puts_multiple_backspaces")
   Tty::cls();
   Tty::puts("", 2, 10);
   Tty::puts("\b\b\b");
-  CHECK(Tty::getRow() == 2);
-  CHECK(Tty::getCol() == 7);
+  CHECK(Tty::getCursor().first == 2);
+  CHECK(Tty::getCursor().second == 7);
 }
 
 TEST_CASE("puts_backspace_does_not_write_to_vga")
@@ -87,6 +87,6 @@ TEST_CASE("puts_backspace_does_not_write_to_vga")
   Tty::puts("", 0, 0);
   Tty::puts("\b");
   // Backspace at (0,0) should be a no-op.
-  CHECK(Tty::getRow() == 0);
-  CHECK(Tty::getCol() == 0);
+  CHECK(Tty::getCursor().first == 0);
+  CHECK(Tty::getCursor().second == 0);
 }
