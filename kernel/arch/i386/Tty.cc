@@ -1,9 +1,9 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <string>
 
 #include <kernel/Io.h>
 #include <kernel/Kbd.h>
@@ -18,10 +18,6 @@ namespace {
 
 // Reserve row 0 for status indicator.
 constexpr int SCROLLBACK_VIEW_HEIGHT = Tty::ROWS - 1;
-
-static constexpr char STATUS_PREFIX[] = "-- SCROLLBACK (offset ";
-static constexpr char STATUS_MIDDLE[] = " of ";
-static constexpr char STATUS_SUFFIX[] = ") --";
 
 static constinit uint8_t termRow = 0, termCol = 0, termColor = Tty::DEFAULT_COLOR;
 static constinit bool scrolling = true;
@@ -451,33 +447,13 @@ void Tty::scrollbackShow(int offset)
   offset = bottom;
 
   // Build status indicator on row 0.
-  string buf;
-  buf += STATUS_PREFIX;
+  char buf[64];
+  snprintf(buf, sizeof(buf), "-- SCROLLBACK (offset %u of %u) --", static_cast<unsigned>(offset),
+           static_cast<unsigned>(scrollbackCount_));
 
-  // Append offset number.
-  if (offset >= 10000) buf.push_back('0' + (offset / 10000) % 10);
-  if (offset >= 1000) buf.push_back('0' + (offset / 1000) % 10);
-  if (offset >= 100) buf.push_back('0' + (offset / 100) % 10);
-  if (offset >= 10) buf.push_back('0' + (offset / 10) % 10);
-  buf.push_back('0' + offset % 10);
-
-  // Append middle indicator text.
-  buf += STATUS_MIDDLE;
-
-  // Append scrollbackCount_ number.
-  int total = scrollbackCount_;
-  if (total >= 10000) buf.push_back('0' + (total / 10000) % 10);
-  if (total >= 1000) buf.push_back('0' + (total / 1000) % 10);
-  if (total >= 100) buf.push_back('0' + (total / 100) % 10);
-  if (total >= 10) buf.push_back('0' + (total / 10) % 10);
-  buf.push_back('0' + total % 10);
-
-  // Append suffix indicator text.
-  buf += STATUS_SUFFIX;
-
-  // Display the indicator on VGA.
+  const size_t slen = strlen(buf);
   for (size_t col = 0; col < VGA_WIDTH; col++) {
-    char ch = col < buf.size() ? buf[col] : ' ';
+    const char ch = col < slen ? buf[col] : ' ';
     VGA_RAM[0 * VGA_WIDTH + col] = vgaEntry(ch, Tty::DEFAULT_COLOR);
   }
 

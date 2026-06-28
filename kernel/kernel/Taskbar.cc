@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <cstdio>
 
 #include <kernel/Cmos.h>
 #include <kernel/Pit.h>
@@ -9,68 +10,17 @@
 
 namespace {
 
-void appendTwoDigit(char *&p, uint8_t v)
-{
-  *p++ = '0' + v / 10;
-  *p++ = '0' + v % 10;
-}
-
-void appendUint(char *&p, uint64_t v)
-{
-  char rev[16];
-  int len = 0;
-  if (v == 0) {
-    rev[len++] = '0';
-  }
-  else {
-    while (v > 0) {
-      rev[len++] = '0' + (v % 10);
-      v /= 10;
-    }
-  }
-  for (int i = len - 1; i >= 0; --i) {
-    *p++ = rev[i];
-  }
-}
-
 int formatStatusBar(char *buf, uint64_t sec, int runningReady, int exited, int blocked, uint8_t h,
                     uint8_t m, uint8_t s)
 {
   char *p = buf;
-
-  *p++ = 'U';
-  *p++ = 'p';
-  *p++ = ' ';
+  p += sprintf(p, "Up ");
   if (sec >= 60) {
-    appendUint(p, sec / 60);
-    *p++ = 'm';
-    *p++ = ' ';
+    p += sprintf(p, "%um ", static_cast<unsigned>(sec / 60));
   }
-  appendUint(p, sec % 60);
-  *p++ = 's';
-
-  *p++ = ' ';
-  *p++ = '|';
-  *p++ = ' ';
-  appendUint(p, static_cast<uint64_t>(runningReady));
-  *p++ = 'r';
-  *p++ = ' ';
-  appendUint(p, static_cast<uint64_t>(exited));
-  *p++ = 'x';
-  *p++ = ' ';
-  appendUint(p, static_cast<uint64_t>(blocked));
-  *p++ = 'b';
-
-  *p++ = ' ';
-  *p++ = '|';
-  *p++ = ' ';
-  appendTwoDigit(p, h);
-  *p++ = ':';
-  appendTwoDigit(p, m);
-  *p++ = ':';
-  appendTwoDigit(p, s);
-  *p = '\0';
-
+  p += sprintf(p, "%us | %ur %ux %ub | %02u:%02u:%02u", static_cast<unsigned>(sec % 60),
+               static_cast<unsigned>(runningReady), static_cast<unsigned>(exited),
+               static_cast<unsigned>(blocked), h, m, s);
   return static_cast<int>(p - buf);
 }
 
