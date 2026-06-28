@@ -122,6 +122,11 @@ int rawPuts(const char *str)
 {
   size_t i = 0;
   while (str[i]) {
+#ifdef DEBUG_THROUGH_SERIAL_COM1
+    if (str[i] != '\b') {
+      Serial::write(str[i]);
+    }
+#endif
     if (str[i] == '\n') {
       advRow();
       termCol = 0;
@@ -146,6 +151,11 @@ int rawPuts(const string &str)
 {
   size_t i = 0;
   for (; i < str.size(); ++i) {
+#ifdef DEBUG_THROUGH_SERIAL_COM1
+    if (str[i] != '\b') {
+      Serial::write(str[i]);
+    }
+#endif
     if (str[i] == '\n') {
       advRow();
       termCol = 0;
