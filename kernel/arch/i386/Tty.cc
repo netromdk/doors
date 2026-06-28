@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -23,7 +24,7 @@ static constinit uint8_t termRow = 0, termCol = 0, termColor = Tty::DEFAULT_COLO
 static constinit bool scrolling = true;
 
 // Scrollback ring buffer.
-static constinit char scrollbackBuf_[Tty::SCROLLBACK_LINES][VGA_WIDTH + 1]{};
+static constinit array<array<char, VGA_WIDTH + 1>, Tty::SCROLLBACK_LINES> scrollbackBuf_{};
 static constinit int scrollbackHead_ = 0;
 static constinit int scrollbackCount_ = 0;
 
@@ -31,7 +32,7 @@ static constinit bool scrollbackActive_ = false;
 static constinit int scrollbackOffset_ = 0;
 
 // Saved VGA RAM for restoring after scrollback exit.
-static constinit uint16_t savedScreen_[Tty::ROWS][VGA_WIDTH]{};
+static constinit array<array<uint16_t, VGA_WIDTH>, Tty::ROWS> savedScreen_{};
 
 void clearRow(uint8_t row)
 {
@@ -407,7 +408,7 @@ const char *Tty::scrollbackLine(int n)
 {
   if (n < 0 || n >= scrollbackCount_) return nullptr;
   int idx = (scrollbackHead_ - 1 - n + SCROLLBACK_LINES) % SCROLLBACK_LINES;
-  return scrollbackBuf_[idx];
+  return scrollbackBuf_[idx].data();
 }
 
 void Tty::scrollbackShow(int offset)
@@ -424,7 +425,7 @@ void Tty::scrollbackShow(int offset)
 
   // Save the current VGA RAM when first entering scrollback mode.
   if (!scrollbackActive_) {
-    memcpy(savedScreen_, VGA_RAM, sizeof(savedScreen_));
+    memcpy(savedScreen_.data(), VGA_RAM, sizeof(savedScreen_));
   }
 
   cursorDisable();
@@ -468,7 +469,7 @@ void Tty::scrollbackShow(int offset)
     }
     else {
       int actualIdx = (scrollbackHead_ - lineFromEnd + SCROLLBACK_LINES) % SCROLLBACK_LINES;
-      const char *line = scrollbackBuf_[actualIdx];
+      const char *line = scrollbackBuf_[actualIdx].data();
       for (size_t col = 0; col < VGA_WIDTH; col++) {
         char ch = line[col] != '\0' ? line[col] : ' ';
         VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(ch, Tty::DEFAULT_COLOR);
@@ -492,7 +493,7 @@ void Tty::scrollbackExit()
   }
   scrollbackActive_ = false;
   scrollbackOffset_ = 0;
-  memcpy(VGA_RAM, savedScreen_, sizeof(savedScreen_));
+  memcpy(VGA_RAM, savedScreen_.data(), sizeof(savedScreen_));
   cursorEnable();
   Kbd::clearNavigation();
 
