@@ -12,6 +12,7 @@ constexpr uint8_t COLOR_FOOD = 0x0C;      // red on black
 constexpr uint8_t COLOR_BONUS = 0x0E;     // yellow on black
 constexpr uint8_t COLOR_WALL = 0x07;      // gray on black
 constexpr uint8_t COLOR_OBSTACLE = 0x08;  // dark grey on black
+constexpr uint8_t COLOR_BOOST = 0x0D;     // light magenta on black
 constexpr uint8_t COLOR_STATUS = 0x0F;    // white on black
 constexpr uint8_t COLOR_GAMEOVER = 0x04;  // red on black
 
@@ -79,10 +80,15 @@ void SnakeGame::init(uint32_t prngSeed, bool withObstacles)
   scoreHighlightRemainingMs_ = 0;
   obstacleCount_ = 0;
   eatsSinceObstacle_ = 0;
+  boostZoneCount_ = 0;
+  boostActive_ = false;
+  boostTimerMs_ = 0;
+  boostCooldownMs_ = 0;
   placeFood();
   if (withObstacles) {
     placeObstacles();
   }
+  placeBoostZones();
 }
 
 void SnakeGame::setDir(Dir d)
@@ -173,6 +179,16 @@ bool SnakeGame::step(uint64_t dtMs)
     eraseAt(bonusFood_);
   }
 
+  // Boost zone consumption.
+  for (int i = 0; i < boostZoneCount_; ++i) {
+    if (next.row == boostZones_[i].row && next.col == boostZones_[i].col) {
+      boostZones_[i] = boostZones_[--boostZoneCount_];
+      boostActive_ = true;
+      boostTimerMs_ = BOOST_DURATION_MS;
+      break;
+    }
+  }
+
   drawAt(next, CHAR_HEAD, COLOR_SNAKE);
   if (length_ > 1) {
     drawAt(curHead, CHAR_BODY, oldHeadIdx % 2 == 0 ? COLOR_SNAKE : COLOR_SNAKE_ALT);
@@ -182,6 +198,29 @@ bool SnakeGame::step(uint64_t dtMs)
   if (ate) {
     placeFood();
     drawAt(food_, CHAR_FOOD, COLOR_FOOD);
+  }
+
+  // Boost timer.
+  if (boostActive_) {
+    if (dtMs >= boostTimerMs_) {
+      boostActive_ = false;
+      boostTimerMs_ = 0;
+    }
+    else {
+      boostTimerMs_ -= dtMs;
+    }
+  }
+
+  // Boost zone respawn.
+  if (boostZoneCount_ == 0) {
+    boostCooldownMs_ += dtMs;
+    if (boostCooldownMs_ >= BOOST_RESPAWN_MS) {
+      placeBoostZones();
+      boostCooldownMs_ = 0;
+      for (int i = 0; i < boostZoneCount_; ++i) {
+        drawAt(boostZones_[i], CHAR_BOOST, COLOR_BOOST);
+      }
+    }
   }
 
   // Bonus food timer.
@@ -262,6 +301,9 @@ void SnakeGame::drawBoard() const
   }
   for (int i = 0; i < obstacleCount_; ++i) {
     drawAt(obstacles_[i], CHAR_OBSTACLE, COLOR_OBSTACLE);
+  }
+  for (int i = 0; i < boostZoneCount_; ++i) {
+    drawAt(boostZones_[i], CHAR_BOOST, COLOR_BOOST);
   }
   drawStatus();
 }
@@ -359,6 +401,24 @@ SnakeGame::Pos SnakeGame::obstaclePos(int i) const
   return obstacles_[i];
 }
 
+bool SnakeGame::boostActive() const
+{
+  return boostActive_;
+}
+
+int SnakeGame::boostZoneCount() const
+{
+  return boostZoneCount_;
+}
+
+SnakeGame::Pos SnakeGame::boostZonePos(int i) const
+{
+  if (i >= boostZoneCount_) {
+    __builtin_trap();
+  }
+  return boostZones_[i];
+}
+
 int SnakeGame::baseIntervalMs() const
 {
   const int ms = 200 - length_ * 8;
@@ -369,7 +429,10 @@ int SnakeGame::moveIntervalMs() const
 {
   // Make vertical movement slightly slower than horizontal. This is needed because there are fewer
   // vertical spaces.
-  const int ms = baseIntervalMs();
+  int ms = baseIntervalMs();
+  if (boostActive_) {
+    ms /= 2;
+  }
   if (dir_ == Dir::Up || dir_ == Dir::Down) {
     return (ms * 3 + 1) / 2;
   }
@@ -488,6 +551,66 @@ void SnakeGame::spawnObstacle()
       drawAt(p, CHAR_OBSTACLE, COLOR_OBSTACLE);
       return;
     }
+  }
+}
+
+void SnakeGame::placeBoostZones()
+{
+  const int maxCells = BOARD_ROWS * BOARD_COLS;
+  boostZoneCount_ = 0;
+  for (int attempt = 0; attempt < maxCells * 3 && boostZoneCount_ < MAX_BOOST_ZONES; ++attempt) {
+    const int r = static_cast<int>(lcgNext() % BOARD_ROWS) + 1;
+    const int c = static_cast<int>(lcgNext() % BOARD_COLS) + 1;
+    const Pos p{r, c};
+
+    // Skip snake body.
+    bool onBody = false;
+    for (int i = 0; i < length_; ++i) {
+      const int idx = (head_ - i + SNAKE_MAX) % SNAKE_MAX;
+      if (body_[idx].row == p.row && body_[idx].col == p.col) {
+        onBody = true;
+        break;
+      }
+    }
+    if (onBody) {
+      continue;
+    }
+
+    // Skip obstacles.
+    bool onObstacle = false;
+    for (int i = 0; i < obstacleCount_; ++i) {
+      if (obstacles_[i].row == p.row && obstacles_[i].col == p.col) {
+        onObstacle = true;
+        break;
+      }
+    }
+    if (onObstacle) {
+      continue;
+    }
+
+    // Skip food.
+    if (p.row == food_.row && p.col == food_.col) {
+      continue;
+    }
+
+    // Skip bonus food.
+    if (bonusActive_ && p.row == bonusFood_.row && p.col == bonusFood_.col) {
+      continue;
+    }
+
+    // Skip other boost zones.
+    bool onZone = false;
+    for (int i = 0; i < boostZoneCount_; ++i) {
+      if (boostZones_[i].row == p.row && boostZones_[i].col == p.col) {
+        onZone = true;
+        break;
+      }
+    }
+    if (onZone) {
+      continue;
+    }
+
+    boostZones_[boostZoneCount_++] = p;
   }
 }
 
@@ -621,4 +744,8 @@ void SnakeGame::drawStatus() const
     drawStr(STATUS_ROW, pos, "  Next wall: ", COLOR_STATUS);
     drawIntR(STATUS_ROW, pos, foodsLeft, COLOR_STATUS);
   }
+
+  // Boost indicator (always draw to erase on deactivation).
+  drawStr(STATUS_ROW, pos, boostActive_ ? "  BOOST" : "       ",
+          boostActive_ ? COLOR_BONUS : COLOR_STATUS);
 }

@@ -42,6 +42,12 @@ public:
   static constexpr int OBSTACLE_INIT_COUNT = 10;
   static constexpr int OBSTACLE_STEP_INTERVAL = 3;
 
+  // Boost zone constants.
+  static constexpr int MAX_BOOST_ZONES = 3;
+  static constexpr uint64_t BOOST_DURATION_MS = 4000;
+  static constexpr uint64_t BOOST_RESPAWN_MS = 8000;
+  static constexpr char CHAR_BOOST = '.';
+
   void init(uint32_t prngSeed, bool withObstacles = false);
   void setDir(Dir d);
   void setWrapMode(bool on);
@@ -57,6 +63,9 @@ public:
   Pos bonusPos() const;
   int obstacleCount() const;
   Pos obstaclePos(int i) const;
+  bool boostActive() const;
+  int boostZoneCount() const;
+  Pos boostZonePos(int i) const;
 
   static bool isOpposite(Dir cur, Dir next);
   static int highScore();
@@ -79,6 +88,11 @@ private:
   bool wrapMode_{false};
   bool started_{false};
   bool bonusActive_{false};
+  Pos boostZones_[MAX_BOOST_ZONES]{};
+  int boostZoneCount_{0};
+  bool boostActive_{false};
+  uint64_t boostTimerMs_{0};
+  uint64_t boostCooldownMs_{0};
 
   bool wallCollision(Pos p) const;
   bool selfCollision(Pos p) const;
@@ -87,6 +101,7 @@ private:
   void placeBonusFood();
   void placeObstacles();
   void spawnObstacle();
+  void placeBoostZones();
   uint64_t bonusDurationMs() const;
   int baseIntervalMs() const;
   uint32_t lcgNext();

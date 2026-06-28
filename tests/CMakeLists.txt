@@ -275,6 +275,7 @@ set(SNAKE_GAME_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/programs/snake/SnakeGa
 doors_test_module(test_kernel_snake
   snake/Direction.cc
   snake/Body.cc
+  snake/BoostZones.cc
   snake/Collision.cc
   snake/Food.cc
   snake/Prng.cc
