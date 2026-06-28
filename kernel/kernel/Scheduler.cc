@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstring>
 #include <optional>
+#include <volatile.h>
 
 #include <kernel/Heap.h>
 #include <kernel/Panic.h>
@@ -86,7 +87,9 @@ optional<int> Scheduler::findSlot()
   if (taskCount_ >= MAX_TASKS) {
     return nullopt;
   }
-  return taskCount_++;
+  const int n = volatileLoad(taskCount_);
+  volatileStore(taskCount_, n + 1);
+  return n;
 }
 
 uint32_t Scheduler::initStackFrame(uint8_t *stack, void (*entry)())
@@ -199,7 +202,9 @@ uint32_t Scheduler::tick(uint32_t currentEsp)
   }
 
   // Charge one tick against the current task's quantum. If quantum remains, stay.
-  if (--quantumRemaining_ > 0) {
+  const int q = volatileLoad(quantumRemaining_) - 1;
+  volatileStore(quantumRemaining_, q);
+  if (q > 0) {
     return 0;
   }
 
