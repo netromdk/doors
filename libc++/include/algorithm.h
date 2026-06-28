@@ -114,4 +114,22 @@ constexpr size_t count_if(InputIt first, InputIt last, Pred pred)
   return count;
 }
 
+template <typename InputIt, typename OutputIt>
+constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first)
+{
+  for (; first != last; ++first, ++d_first) {
+    *d_first = *first;
+  }
+  return d_first;
+}
+
+template <typename InputIt, typename N, typename OutputIt>
+constexpr OutputIt copy_n(InputIt first, N count, OutputIt result)
+{
+  for (N i = 0; i < count; ++i) {
+    *result++ = *first++;
+  }
+  return result;
+}
+
 #endif // ALGORITHM_H
