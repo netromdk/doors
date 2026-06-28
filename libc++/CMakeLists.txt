@@ -1,30 +1,30 @@
 set(LIBCPP_SOURCES
+  assert/assertFail.cc
   stdio/putchar.cc
   stdio/puts.cc
-  assert/assertFail.cc
   stdlib/abort.cc
-  stdlib/itos.cc
-  stdlib/utos.cc
-  stdlib/ltos.cc
-  stdlib/strtol.cc
-  stdlib/strtoul.cc
-  stdlib/strtoll.cc
-  stdlib/strtoull.cc
   stdlib/atoi.cc
   stdlib/atol.cc
+  stdlib/itos.cc
+  stdlib/ltos.cc
+  stdlib/strtol.cc
+  stdlib/strtoll.cc
+  stdlib/strtoul.cc
+  stdlib/strtoull.cc
+  stdlib/utos.cc
+  string/memchr.cc
+  string/memcmp.cc
   string/memcpy.cc
   string/memmove.cc
   string/memset.cc
-  string/memcmp.cc
-  string/memchr.cc
-  string/strlen.cc
-  string/strcpy.cc
-  string/strncpy.cc
-  string/strcmp.cc
-  string/strncmp.cc
   string/strchr.cc
-  string/strrchr.cc
+  string/strcmp.cc
+  string/strcpy.cc
   string/string.cc
+  string/strlen.cc
+  string/strncmp.cc
+  string/strncpy.cc
+  string/strrchr.cc
 )
 
 # Hosted userland library.

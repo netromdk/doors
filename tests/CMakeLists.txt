@@ -30,32 +30,32 @@ add_library(doctest::doctest ALIAS doctest)
 
 # Host-compiled libc++ for the test binaries.
 add_library(libc++test STATIC
+  ${DOORS_LIBC_SRC_DIR}/assert/assertFail.cc
   ${DOORS_LIBC_SRC_DIR}/stdio/putchar.cc
   ${DOORS_LIBC_SRC_DIR}/stdio/puts.cc
-  ${DOORS_LIBC_SRC_DIR}/assert/assertFail.cc
   ${DOORS_LIBC_SRC_DIR}/stdlib/abort.cc
-  ${DOORS_LIBC_SRC_DIR}/stdlib/itos.cc
-  ${DOORS_LIBC_SRC_DIR}/stdlib/utos.cc
-  ${DOORS_LIBC_SRC_DIR}/stdlib/ltos.cc
-  ${DOORS_LIBC_SRC_DIR}/stdlib/strtol.cc
-  ${DOORS_LIBC_SRC_DIR}/stdlib/strtoul.cc
-  ${DOORS_LIBC_SRC_DIR}/stdlib/strtoll.cc
-  ${DOORS_LIBC_SRC_DIR}/stdlib/strtoull.cc
   ${DOORS_LIBC_SRC_DIR}/stdlib/atoi.cc
   ${DOORS_LIBC_SRC_DIR}/stdlib/atol.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/itos.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/ltos.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/strtol.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/strtoll.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/strtoul.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/strtoull.cc
+  ${DOORS_LIBC_SRC_DIR}/stdlib/utos.cc
+  ${DOORS_LIBC_SRC_DIR}/string/memchr.cc
+  ${DOORS_LIBC_SRC_DIR}/string/memcmp.cc
   ${DOORS_LIBC_SRC_DIR}/string/memcpy.cc
   ${DOORS_LIBC_SRC_DIR}/string/memmove.cc
   ${DOORS_LIBC_SRC_DIR}/string/memset.cc
-  ${DOORS_LIBC_SRC_DIR}/string/memcmp.cc
-  ${DOORS_LIBC_SRC_DIR}/string/memchr.cc
-  ${DOORS_LIBC_SRC_DIR}/string/strlen.cc
-  ${DOORS_LIBC_SRC_DIR}/string/strcpy.cc
-  ${DOORS_LIBC_SRC_DIR}/string/strncpy.cc
-  ${DOORS_LIBC_SRC_DIR}/string/strcmp.cc
-  ${DOORS_LIBC_SRC_DIR}/string/strncmp.cc
   ${DOORS_LIBC_SRC_DIR}/string/strchr.cc
-  ${DOORS_LIBC_SRC_DIR}/string/strrchr.cc
+  ${DOORS_LIBC_SRC_DIR}/string/strcmp.cc
+  ${DOORS_LIBC_SRC_DIR}/string/strcpy.cc
   ${DOORS_LIBC_SRC_DIR}/string/string.cc
+  ${DOORS_LIBC_SRC_DIR}/string/strlen.cc
+  ${DOORS_LIBC_SRC_DIR}/string/strncmp.cc
+  ${DOORS_LIBC_SRC_DIR}/string/strncpy.cc
+  ${DOORS_LIBC_SRC_DIR}/string/strrchr.cc
 )
 target_compile_definitions(libc++test PRIVATE __IS_DOORS_LIBCPP __IS_DOORS_LIBCPPTEST)
 target_compile_options(libc++test PRIVATE -fno-builtin)
@@ -114,6 +114,7 @@ doors_test_module(test_libcpp_stdio_header
   libc++/stdio/putchar.cc
   libc++/stdio/puts.cc
   libc++/stdio/printf.cc
+  libc++/stdio/snprintf.cc
 )
 
 doors_test_module(test_libcpp_ctype_header
