@@ -102,4 +102,16 @@ constexpr It fill_n(It first, N count, const T &value)
   return first;
 }
 
+template <typename InputIt, typename Pred>
+constexpr size_t count_if(InputIt first, InputIt last, Pred pred)
+{
+  size_t count = 0;
+  for (; first != last; ++first) {
+    if (pred(*first)) {
+      ++count;
+    }
+  }
+  return count;
+}
+
 #endif // ALGORITHM_H

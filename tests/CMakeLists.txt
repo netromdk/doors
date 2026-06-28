@@ -144,6 +144,7 @@ doors_test_module(test_libcpp_algorithm_header
   libc++/algorithm/any_of.cc
   libc++/algorithm/none_of.cc
   libc++/algorithm/fill.cc
+  libc++/algorithm/count_if.cc
 )
 
 doors_test_module(test_libcpp_array_header
