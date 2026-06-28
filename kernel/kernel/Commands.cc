@@ -148,7 +148,21 @@ void cmdPanic(int, const string *)
   panic("triggered from shell");
 }
 
-void cmdTasks(int, const string *)
+const char *taskStateStr(TaskState s)
+{
+  switch (s) {
+  case TaskState::RUNNING:
+    return "RUNNING";
+  case TaskState::READY:
+    return "READY";
+  case TaskState::BLOCKED:
+    return "BLOCKED";
+  default:
+    return "DEAD";
+  }
+}
+
+void printTaskTable()
 {
   const int alive = Scheduler::aliveTaskCount();
   const int runningReady = Scheduler::runningReadyCount();
@@ -182,24 +196,7 @@ void cmdTasks(int, const string *)
     putchar(' ');
 
     // State (left-aligned in 11), then 1-space gap.
-    const char *state;
-    switch (Scheduler::taskState(i)) {
-    case TaskState::RUNNING:
-      state = "RUNNING";
-      break;
-
-    case TaskState::READY:
-      state = "READY";
-      break;
-
-    case TaskState::BLOCKED:
-      state = "BLOCKED";
-      break;
-
-    default:
-      state = "?";
-      break;
-    }
+    const char *state = taskStateStr(Scheduler::taskState(i));
     Tty::puts(state);
     pad = 11 - static_cast<int>(strlen(state));
     for (int j = 0; j < pad; ++j) {
@@ -218,6 +215,76 @@ void cmdTasks(int, const string *)
 
     putchar('\n');
   }
+}
+
+void printTaskDetail(int id)
+{
+  const char *name = Scheduler::taskName(id);
+  const TaskState state = Scheduler::taskState(id);
+  const uint8_t flags = Scheduler::taskFlags(id);
+
+  printf("Task %u:\n", id);
+  printf("  Name:       %s\n", name);
+  printf("  State:      %s\n", taskStateStr(state));
+  printf("  Flags:      %s\n", (flags & Task::FLAG_SUPPRESS_TASKBAR) ? "suppress" : "-");
+  printf("  Entry:      0x%x\n", Scheduler::taskEntryAddr(id));
+  printf("  Stack buf:  0x%x\n", reinterpret_cast<uint64_t>(Scheduler::taskStackBuf(id)));
+  printf("  Stack size: %u bytes\n", Scheduler::taskStackSize(id));
+  printf("  Runtime:    %u ms\n", Scheduler::taskRuntimeMs(id));
+  printf("  Quantum:    %u/%u\n",
+         id == Scheduler::currentTaskId() ? Scheduler::quantumRemaining()
+                                          : Scheduler::QUANTUM_TICKS,
+         Scheduler::QUANTUM_TICKS);
+
+  const uint32_t esp = Scheduler::taskEsp(id);
+  const uint8_t *stackBuf = Scheduler::taskStackBuf(id);
+  if (stackBuf) {
+    const uint32_t offset = esp - reinterpret_cast<uint32_t>(stackBuf);
+    printf("  ESP:        0x%x (offset from base: %u bytes)\n", esp, offset);
+  }
+  else {
+    printf("  ESP:        0x%x\n", esp);
+  }
+
+  if (state == TaskState::BLOCKED) {
+    const uint64_t wakeup = Scheduler::taskWakeupMs(id);
+    if (wakeup > Pit::uptimeMs()) {
+      printf("  Wakeup:     in %u ms\n", static_cast<uint32_t>(wakeup - Pit::uptimeMs()));
+    }
+  }
+}
+
+void cmdTasks(int argc, const string *argv)
+{
+  if (argc < 2) {
+    printTaskTable();
+    return;
+  }
+
+  // Validate numeric argument.
+  const char *s = argv[1].c_str();
+  if (*s == '\0') {
+    printf("tasks: invalid task id\n");
+    return;
+  }
+  for (const char *p = s; *p; ++p) {
+    if (*p < '0' || *p > '9') {
+      printf("tasks: invalid task id\n");
+      return;
+    }
+  }
+
+  const int id = atoi(s);
+  if (id < 0 || id >= Scheduler::taskCount()) {
+    printf("tasks: task %u does not exist\n", id);
+    return;
+  }
+  if (Scheduler::taskState(id) == TaskState::DEAD) {
+    printf("tasks: task %u (%s) is dead\n", id, Scheduler::taskName(id));
+    return;
+  }
+
+  printTaskDetail(id);
 }
 
 void cmdKill(int argc, const string *argv)
@@ -303,7 +370,9 @@ void initCommands()
     {.name = "testsched",
      .desc = "Test scheduler with two interleaved tasks",
      .handler = cmdTestScheduler},
-    {.name = "tasks", .desc = "Show task list with state and flags", .handler = cmdTasks},
+    {.name = "tasks",
+     .desc = "Show task list (no args) or task detail (<id>)",
+     .handler = cmdTasks},
     {.name = "kill", .desc = "Kill a task by ID", .handler = cmdKill},
     {.name = "panic", .desc = "Trigger a kernel panic", .handler = cmdPanic},
 #ifdef __IS_DOORS_UBSAN

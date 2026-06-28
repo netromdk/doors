@@ -81,3 +81,153 @@ TEST_CASE("taskFlags: returns 0 for added task, sets suppress correctly")
   Scheduler::suppressTaskbar();
   CHECK((Scheduler::taskFlags(0) & Task::FLAG_SUPPRESS_TASKBAR) != 0);
 }
+
+TEST_CASE("taskEsp: returns saved esp for task 0")
+{
+  Scheduler::init();
+  CHECK(Scheduler::taskEsp(0) == 0);
+}
+
+TEST_CASE("taskEsp: returns 0 for invalid id")
+{
+  Scheduler::init();
+  CHECK(Scheduler::taskEsp(-1) == 0);
+  CHECK(Scheduler::taskEsp(99) == 0);
+}
+
+TEST_CASE("taskStackBuf: nullptr for shell, non-null for added task")
+{
+  Heap::init(testPool, sizeof(testPool));
+  Scheduler::init();
+  CHECK(Scheduler::taskStackBuf(0) == nullptr);
+
+  Scheduler::addTask("t", nullptr);
+  CHECK(Scheduler::taskStackBuf(1) != nullptr);
+}
+
+TEST_CASE("taskStackBuf: returns nullptr for invalid id")
+{
+  Scheduler::init();
+  CHECK(Scheduler::taskStackBuf(-1) == nullptr);
+  CHECK(Scheduler::taskStackBuf(99) == nullptr);
+}
+
+TEST_CASE("taskStackSize: 0 for shell, TASK_STACK_SIZE for added task")
+{
+  Heap::init(testPool, sizeof(testPool));
+  Scheduler::init();
+  CHECK(Scheduler::taskStackSize(0) == 0);
+
+  Scheduler::addTask("t", nullptr);
+  CHECK(Scheduler::taskStackSize(1) == Scheduler::TASK_STACK_SIZE);
+}
+
+// Only used by the next test case.
+static void taskEntryTestDummy()
+{
+}
+
+TEST_CASE("taskEntryAddr: 0 for shell, non-zero for added task")
+{
+  Heap::init(testPool, sizeof(testPool));
+  Scheduler::init();
+  CHECK(Scheduler::taskEntryAddr(0) == 0);
+
+  Scheduler::addTask("t", taskEntryTestDummy);
+  CHECK(Scheduler::taskEntryAddr(1) != 0);
+}
+
+TEST_CASE("taskEntryAddr: returns 0 for invalid id")
+{
+  Scheduler::init();
+  CHECK(Scheduler::taskEntryAddr(-1) == 0);
+  CHECK(Scheduler::taskEntryAddr(99) == 0);
+}
+
+TEST_CASE("taskWakeupMs: returns 0 initially")
+{
+  Scheduler::init();
+  CHECK(Scheduler::taskWakeupMs(0) == 0);
+}
+
+TEST_CASE("taskWakeupMs: reflects sleep value")
+{
+  extern volatile uint64_t pitTicks;
+  pitTicks = 5000;
+  Scheduler::init();
+
+  Scheduler::sleep(333);
+
+  // In test mode, `sleep()` sets `wakeupMs = pitTicks + 333 = 5333`, then breaks the hlt loop
+  // immediately so state stays BLOCKED.
+  CHECK(Scheduler::taskWakeupMs(0) == 5333);
+}
+
+TEST_CASE("taskWakeupMs: cleared by tick after deadline")
+{
+  extern volatile uint64_t pitTicks;
+  pitTicks = 2000;
+
+  Scheduler::init();
+  Scheduler::sleep(100);
+  CHECK(Scheduler::taskWakeupMs(0) == 2100);
+
+  pitTicks = 2200;
+  Scheduler::tick(0);
+  CHECK(Scheduler::taskWakeupMs(0) == 0);
+}
+
+TEST_CASE("taskWakeupMs: returns 0 for invalid id")
+{
+  Scheduler::init();
+  CHECK(Scheduler::taskWakeupMs(-1) == 0);
+  CHECK(Scheduler::taskWakeupMs(99) == 0);
+}
+
+TEST_CASE("taskRuntimeMs: starts at 0")
+{
+  Scheduler::init();
+  CHECK(Scheduler::taskRuntimeMs(0) == 0);
+}
+
+TEST_CASE("taskRuntimeMs: tick increments running task")
+{
+  Scheduler::init();
+  Scheduler::tick(0);
+  CHECK(Scheduler::taskRuntimeMs(0) == 1);
+  Scheduler::tick(0);
+  CHECK(Scheduler::taskRuntimeMs(0) == 2);
+}
+
+TEST_CASE("taskRuntimeMs: different tasks accumulate independently")
+{
+  Heap::init(testPool, sizeof(testPool));
+  Scheduler::init();
+  Scheduler::tick(0);
+  CHECK(Scheduler::taskRuntimeMs(0) == 1);
+
+  Scheduler::addTask("t", nullptr);
+  Scheduler::tick(0);
+  CHECK(Scheduler::taskRuntimeMs(0) == 2);
+  CHECK(Scheduler::taskRuntimeMs(1) == 0);
+}
+
+TEST_CASE("taskRuntimeMs: returns 0 for invalid id")
+{
+  Scheduler::init();
+  CHECK(Scheduler::taskRuntimeMs(-1) == 0);
+  CHECK(Scheduler::taskRuntimeMs(99) == 0);
+}
+
+TEST_CASE("quantumRemaining: starts at QUANTUM_TICKS")
+{
+  Scheduler::init();
+  CHECK(Scheduler::quantumRemaining() == Scheduler::QUANTUM_TICKS);
+}
+
+TEST_CASE("quantumRemaining: decrements on tick")
+{
+  Scheduler::init();
+  Scheduler::tick(0);
+  CHECK(Scheduler::quantumRemaining() == Scheduler::QUANTUM_TICKS - 1);
+}

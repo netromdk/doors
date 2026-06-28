@@ -189,6 +189,9 @@ uint32_t Scheduler::tick(uint32_t currentEsp)
   // Detect stack overflow before it corrupts the saved frame.
   checkCanary(tasks_[currentIdx_]);
 
+  // Charge one tick of CPU time to the running task (1 ms per PIT tick at 1000 Hz).
+  ++tasks_[currentIdx_].runtimeMs;
+
   // Wake up BLOCKED tasks whose sleep deadline has passed.
   const uint64_t now = Pit::uptimeMs();
   for (int i = 0; i < taskCount_; ++i) {
@@ -370,6 +373,59 @@ uint8_t Scheduler::taskFlags(int id)
     return 0;
   }
   return tasks_[id].flags;
+}
+
+uint32_t Scheduler::taskEsp(int id)
+{
+  if (id < 0 || id >= taskCount_) {
+    return 0;
+  }
+  return tasks_[id].esp;
+}
+
+const uint8_t *Scheduler::taskStackBuf(int id)
+{
+  if (id < 0 || id >= taskCount_) {
+    return nullptr;
+  }
+  return tasks_[id].stackBuf;
+}
+
+uint32_t Scheduler::taskStackSize(int id)
+{
+  if (id < 0 || id >= taskCount_) {
+    return 0;
+  }
+  return tasks_[id].stackSize;
+}
+
+uint64_t Scheduler::taskEntryAddr(int id)
+{
+  if (id < 0 || id >= taskCount_) {
+    return 0;
+  }
+  return reinterpret_cast<uint64_t>(tasks_[id].entry);
+}
+
+uint64_t Scheduler::taskWakeupMs(int id)
+{
+  if (id < 0 || id >= taskCount_) {
+    return 0;
+  }
+  return tasks_[id].wakeupMs;
+}
+
+uint64_t Scheduler::taskRuntimeMs(int id)
+{
+  if (id < 0 || id >= taskCount_) {
+    return 0;
+  }
+  return tasks_[id].runtimeMs;
+}
+
+int Scheduler::quantumRemaining()
+{
+  return quantumRemaining_;
 }
 
 void Scheduler::killTask(int id)
