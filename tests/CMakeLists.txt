@@ -140,6 +140,9 @@ doors_test_module(test_libcpp_algorithm_header
   libc++/algorithm/clamp.cc
   libc++/algorithm/swap.cc
   libc++/algorithm/find.cc
+  libc++/algorithm/all_of.cc
+  libc++/algorithm/any_of.cc
+  libc++/algorithm/none_of.cc
 )
 
 doors_test_module(test_libcpp_array_header

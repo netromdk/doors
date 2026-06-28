@@ -52,4 +52,37 @@ constexpr InputIt find_if(InputIt first, InputIt last, Pred pred)
   return last;
 }
 
+template <typename InputIt, typename Pred>
+constexpr bool all_of(InputIt first, InputIt last, Pred pred)
+{
+  for (; first != last; ++first) {
+    if (!pred(*first)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template <typename InputIt, typename Pred>
+constexpr bool any_of(InputIt first, InputIt last, Pred pred)
+{
+  for (; first != last; ++first) {
+    if (pred(*first)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+template <typename InputIt, typename Pred>
+constexpr bool none_of(InputIt first, InputIt last, Pred pred)
+{
+  for (; first != last; ++first) {
+    if (pred(*first)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 #endif // ALGORITHM_H
