@@ -1,6 +1,18 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 
+template <typename T1, typename T2>
+struct pair {
+  T1 first;
+  T2 second;
+
+  pair() = default;
+
+  constexpr pair(T1 a, T2 b) : first(a), second(b)
+  {
+  }
+};
+
 template <typename T, typename U = T>
 constexpr T exchange(T &obj, U new_value) noexcept
 {
