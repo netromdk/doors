@@ -104,10 +104,8 @@ constexpr bool fmtIsBool(char fmt)
 }
 
 template <typename T>
-inline void formatRaw(SnprintfBuf &buf, T value, char fmt)
+inline void formatRaw(SnprintfBuf & /*buf*/, T /*value*/, char /*fmt*/)
 {
-  (void) value;
-  (void) fmt;
   assert(false);
 }
 
