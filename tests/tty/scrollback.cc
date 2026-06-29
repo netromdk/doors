@@ -1,22 +1,15 @@
+#include <cstring>
+
+#include "TtyFixture.h"
 #include <doctest/doctest.h>
-#include <stdint.h>
-#include <string.h>
 
-#include <kernel/Tty.h>
-#include <kernel/Vga.h>
-
-// VGA_RAM defined in vga_ram.cc.
-
-TEST_CASE("scrollback_empty_initially")
+TEST_CASE_FIXTURE(TtyFixture, "scrollback_empty_initially")
 {
-  Tty::cls();
   CHECK(Tty::scrollbackSize() == 0);
 }
 
-TEST_CASE("scrollback_captures_scrolled_lines")
+TEST_CASE_FIXTURE(TtyFixture, "scrollback_captures_scrolled_lines")
 {
-  Tty::cls();
-  Tty::setScrolling(true);
 
   // Write 30 newline-terminated lines: 25 to fill the screen and 5 to scroll off.
   for (int i = 0; i < 30; i++) {
@@ -31,10 +24,8 @@ TEST_CASE("scrollback_captures_scrolled_lines")
   CHECK(Tty::scrollbackLine(0)[0] == 'x');
 }
 
-TEST_CASE("scrollback_multiple_lines")
+TEST_CASE_FIXTURE(TtyFixture, "scrollback_multiple_lines")
 {
-  Tty::cls();
-  Tty::setScrolling(true);
   for (int i = 0; i < 30; i++) {
     Tty::puts("ab\n");
   }
@@ -45,19 +36,16 @@ TEST_CASE("scrollback_multiple_lines")
   CHECK(Tty::scrollbackLine(0)[1] == 'b');
 }
 
-TEST_CASE("scrollbackLine_returns_null_for_invalid")
+TEST_CASE_FIXTURE(TtyFixture, "scrollbackLine_returns_null_for_invalid")
 {
-  Tty::cls();
   const int size = Tty::scrollbackSize();
   CHECK(Tty::scrollbackLine(size) == nullptr); // one past end
   CHECK(Tty::scrollbackLine(size + 9999) == nullptr);
   CHECK(Tty::scrollbackLine(-1) == nullptr);
 }
 
-TEST_CASE("scrollback_show_and_exit")
+TEST_CASE_FIXTURE(TtyFixture, "scrollback_show_and_exit")
 {
-  Tty::cls();
-  Tty::setScrolling(true);
   for (int i = 0; i < 30; i++) {
     Tty::puts("x\n");
   }
@@ -70,10 +58,8 @@ TEST_CASE("scrollback_show_and_exit")
   CHECK(!Tty::scrollbackActive());
 }
 
-TEST_CASE("scrollback_show_zero_does_nothing")
+TEST_CASE_FIXTURE(TtyFixture, "scrollback_show_zero_does_nothing")
 {
-  Tty::cls();
-  Tty::setScrolling(true);
   for (int i = 0; i < 30; i++) {
     Tty::puts("x\n");
   }
@@ -83,10 +69,8 @@ TEST_CASE("scrollback_show_zero_does_nothing")
   CHECK(!Tty::scrollbackActive());
 }
 
-TEST_CASE("scrollback_putc_exits_view")
+TEST_CASE_FIXTURE(TtyFixture, "scrollback_putc_exits_view")
 {
-  Tty::cls();
-  Tty::setScrolling(true);
   for (int i = 0; i < 30; i++) {
     Tty::puts("x\n");
   }
@@ -99,16 +83,13 @@ TEST_CASE("scrollback_putc_exits_view")
   CHECK(!Tty::scrollbackActive());
 }
 
-TEST_CASE("scrollbackOffset_returns_zero_inactive")
+TEST_CASE_FIXTURE(TtyFixture, "scrollbackOffset_returns_zero_inactive")
 {
-  Tty::cls();
   CHECK(Tty::scrollbackOffset() == 0);
 }
 
-TEST_CASE("scrollbackOffset_after_show")
+TEST_CASE_FIXTURE(TtyFixture, "scrollbackOffset_after_show")
 {
-  Tty::cls();
-  Tty::setScrolling(true);
 
   // Generate enough scrollback so that `offset=3` stays unadjusted since it needs
   // `scrollbackCount_ >= 3 + SCROLLBACK_VIEW_HEIGHT - 1` = 26.
@@ -125,10 +106,8 @@ TEST_CASE("scrollbackOffset_after_show")
   CHECK(Tty::scrollbackOffset() == 0);
 }
 
-TEST_CASE("scrollbackOffset_after_pageUp_pageDown")
+TEST_CASE_FIXTURE(TtyFixture, "scrollbackOffset_after_pageUp_pageDown")
 {
-  Tty::cls();
-  Tty::setScrolling(true);
   for (int i = 0; i < 30; i++) {
     Tty::puts("x\n");
   }
@@ -152,10 +131,8 @@ TEST_CASE("scrollbackOffset_after_pageUp_pageDown")
   CHECK(Tty::scrollbackOffset() == 0);
 }
 
-TEST_CASE("scrollback_home_goes_to_beginning")
+TEST_CASE_FIXTURE(TtyFixture, "scrollback_home_goes_to_beginning")
 {
-  Tty::cls();
-  Tty::setScrolling(true);
 
   // Generate 3 pages of scrollback.
   for (size_t i = 0; i < 3 * VGA_HEIGHT + 5; i++) {
@@ -179,10 +156,8 @@ TEST_CASE("scrollback_home_goes_to_beginning")
   CHECK(Tty::scrollbackOffset() < afterHome);
 }
 
-TEST_CASE("scrollback_end_exits_view")
+TEST_CASE_FIXTURE(TtyFixture, "scrollback_end_exits_view")
 {
-  Tty::cls();
-  Tty::setScrolling(true);
   for (int i = 0; i < 30; i++) {
     Tty::puts("x\n");
   }
@@ -196,10 +171,8 @@ TEST_CASE("scrollback_end_exits_view")
   CHECK(!Tty::scrollbackActive());
 }
 
-TEST_CASE("scrollback_status_indicator")
+TEST_CASE_FIXTURE(TtyFixture, "scrollback_status_indicator")
 {
-  Tty::cls();
-  Tty::setScrolling(true);
   for (int i = 0; i < 60; i++) {
     Tty::puts("x\n");
   }
@@ -218,10 +191,8 @@ TEST_CASE("scrollback_status_indicator")
   Tty::scrollbackExit();
 }
 
-TEST_CASE("scrollback_line_up_down")
+TEST_CASE_FIXTURE(TtyFixture, "scrollback_line_up_down")
 {
-  Tty::cls();
-  Tty::setScrolling(true);
   for (int i = 0; i < 60; i++) {
     Tty::puts("x\n");
   }
@@ -248,10 +219,8 @@ TEST_CASE("scrollback_line_up_down")
   CHECK(Tty::scrollbackOffset() == 0);
 }
 
-TEST_CASE("scrollback_show_saves_and_restores_screen")
+TEST_CASE_FIXTURE(TtyFixture, "scrollback_show_saves_and_restores_screen")
 {
-  Tty::cls();
-  Tty::setScrolling(true);
 
   // Generate some scrollback so that `scrollbackShow()` has content to display.
   for (size_t i = 0; i < VGA_HEIGHT + 5; i++) {

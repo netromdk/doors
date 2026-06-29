@@ -1,16 +1,9 @@
-#include <cstddef>
-#include <doctest/doctest.h>
-#include <stdint.h>
 #include <string>
 
-#include <kernel/Tty.h>
-#include <kernel/Vga.h>
+#include "TtyFixture.h"
 
-// VGA_RAM defined in vga_ram.cc.
-
-TEST_CASE("puts_string_writes_to_VGA_RAM_at_row_col")
+TEST_CASE_FIXTURE(TtyFixture, "puts_string_writes_to_VGA_RAM_at_row_col")
 {
-  Tty::cls();
   Tty::setColor(vgaColor(COLOR_WHITE, COLOR_BLACK));
   Tty::puts(string("ab"), 2, 3);
 
@@ -18,18 +11,16 @@ TEST_CASE("puts_string_writes_to_VGA_RAM_at_row_col")
   CHECK(VGA_RAM[2 * VGA_WIDTH + 4] == vgaEntry('b', vgaColor(COLOR_WHITE, COLOR_BLACK)));
 }
 
-TEST_CASE("puts_string_with_row_col_positions_cursor")
+TEST_CASE_FIXTURE(TtyFixture, "puts_string_with_row_col_positions_cursor")
 {
-  Tty::cls();
   Tty::puts(string("hello"), 5, 10);
 
   CHECK(Tty::getCursor().first == 5);
   CHECK(Tty::getCursor().second == 15);
 }
 
-TEST_CASE("puts_string_advances_cursor")
+TEST_CASE_FIXTURE(TtyFixture, "puts_string_advances_cursor")
 {
-  Tty::cls();
   Tty::cursorSetPos(3, 7);
   Tty::puts(string("xyz"));
 
@@ -37,9 +28,8 @@ TEST_CASE("puts_string_advances_cursor")
   CHECK(Tty::getCursor().second == 10);
 }
 
-TEST_CASE("puts_string_returns_length")
+TEST_CASE_FIXTURE(TtyFixture, "puts_string_returns_length")
 {
-  Tty::cls();
 
   int r = Tty::puts(string(""), 0, 0);
   CHECK(r == 0);
@@ -51,18 +41,16 @@ TEST_CASE("puts_string_returns_length")
   CHECK(r == 11);
 }
 
-TEST_CASE("puts_string_with_row_col_uses_termColor")
+TEST_CASE_FIXTURE(TtyFixture, "puts_string_with_row_col_uses_termColor")
 {
-  Tty::cls();
   Tty::setColor(vgaColor(COLOR_RED, COLOR_BLUE));
   Tty::puts(string("X"), 1, 1);
 
   CHECK(VGA_RAM[1 * VGA_WIDTH + 1] == vgaEntry('X', vgaColor(COLOR_RED, COLOR_BLUE)));
 }
 
-TEST_CASE("puts_string_empty_does_nothing")
+TEST_CASE_FIXTURE(TtyFixture, "puts_string_empty_does_nothing")
 {
-  Tty::cls();
   Tty::cursorSetPos(4, 5);
   Tty::puts(string(""), 7, 3);
 
@@ -70,9 +58,8 @@ TEST_CASE("puts_string_empty_does_nothing")
   CHECK(Tty::getCursor().second == 3);
 }
 
-TEST_CASE("putLine_fills_entire_row")
+TEST_CASE_FIXTURE(TtyFixture, "putLine_fills_entire_row")
 {
-  Tty::cls();
   Tty::setColor(vgaColor(COLOR_WHITE, COLOR_RED));
   Tty::putLine(string("ab"), 2);
 
@@ -84,18 +71,16 @@ TEST_CASE("putLine_fills_entire_row")
   }
 }
 
-TEST_CASE("putLine_sets_cursor_to_end")
+TEST_CASE_FIXTURE(TtyFixture, "putLine_sets_cursor_to_end")
 {
-  Tty::cls();
   Tty::putLine(string("hello"), 5);
 
   CHECK(Tty::getCursor().first == 5);
   CHECK(Tty::getCursor().second == 5);
 }
 
-TEST_CASE("putLine_empty_row_clears_row")
+TEST_CASE_FIXTURE(TtyFixture, "putLine_empty_row_clears_row")
 {
-  Tty::cls();
   Tty::setColor(vgaColor(COLOR_LIGHT_GREEN, COLOR_BLACK));
   Tty::putLine(string(""), 0);
 
@@ -104,9 +89,8 @@ TEST_CASE("putLine_empty_row_clears_row")
   }
 }
 
-TEST_CASE("putLine_uses_termColor")
+TEST_CASE_FIXTURE(TtyFixture, "putLine_uses_termColor")
 {
-  Tty::cls();
   Tty::setColor(vgaColor(COLOR_RED, COLOR_BLUE));
   Tty::putLine(string("X"), 3);
 
