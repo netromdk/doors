@@ -17,6 +17,11 @@ struct SchedulerTestAccess {
   {
     return &Scheduler::currentIdx_;
   }
+
+  static void resetTotalExited()
+  {
+    Scheduler::totalExited_ = 0;
+  }
 };
 
 #endif // TESTS_SCHEDULER_SCHEDULERTESTACCESS_H

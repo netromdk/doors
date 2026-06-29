@@ -1,18 +1,10 @@
+#include "SchedulerFixture.h"
 #include <doctest/doctest.h>
-#include <kernel/Heap.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
 
-namespace {
-
-alignas(16) uint8_t testPool[262144];
-
-} // namespace
-
-TEST_CASE("init: task 0 is RUNNING, all others DEAD")
+TEST_CASE_FIXTURE(SchedulerFixture, "init: task 0 is RUNNING, all others DEAD")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
   CHECK(Scheduler::currentTaskId() == 0);
 
   // All remaining `MAX_TASKS-1` slots must be available (DEAD).
@@ -25,9 +17,8 @@ TEST_CASE("init: task 0 is RUNNING, all others DEAD")
   CHECK(!Scheduler::addTask("full", nullptr));
 }
 
-TEST_CASE("init: taskCount is 1, currentIdx is 0")
+TEST_CASE_FIXTURE(SchedulerFixture, "init: taskCount is 1, currentIdx is 0")
 {
-  Scheduler::init();
   CHECK(Scheduler::currentTaskId() == 0);
 
   // With only one task, `tick()` returns 0 (no switch possible).
@@ -38,10 +29,8 @@ TEST_CASE("init: taskCount is 1, currentIdx is 0")
   CHECK(Scheduler::currentTaskId() == 0);
 }
 
-TEST_CASE("init: re-init resets state from a previous run")
+TEST_CASE_FIXTURE(SchedulerFixture, "init: re-init resets state from a previous run")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
 
   Scheduler::addTask("a", nullptr);
   Scheduler::addTask("b", nullptr);

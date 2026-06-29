@@ -1,16 +1,13 @@
-#include "SchedulerTestAccess.h"
+#include "SchedulerFixture.h"
 #include <doctest/doctest.h>
 #include <kernel/Pit.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
 
-// Direct access to the PIT tick counter so tests can advance simulated time without going through
-// `Pit::uptimeMs()`, which computes from `pitTicks` internally.
 extern volatile uint64_t pitTicks;
 
-TEST_CASE("sleep: sets BLOCKED state and wakeupMs")
+TEST_CASE_FIXTURE(SchedulerFixture, "sleep: sets BLOCKED state and wakeupMs")
 {
-  Scheduler::init();
 
   pitTicks = 1000;
   Scheduler::sleep(500);
@@ -24,9 +21,8 @@ TEST_CASE("sleep: sets BLOCKED state and wakeupMs")
   CHECK(t->wakeupMs == 1500);
 }
 
-TEST_CASE("sleep: tick does not wake task before deadline")
+TEST_CASE_FIXTURE(SchedulerFixture, "sleep: tick does not wake task before deadline")
 {
-  Scheduler::init();
 
   pitTicks = 1000;
   Scheduler::sleep(100);
@@ -38,9 +34,8 @@ TEST_CASE("sleep: tick does not wake task before deadline")
   CHECK(Scheduler::taskState(0) == TaskState::BLOCKED);
 }
 
-TEST_CASE("sleep: tick wakes task after deadline")
+TEST_CASE_FIXTURE(SchedulerFixture, "sleep: tick wakes task after deadline")
 {
-  Scheduler::init();
 
   pitTicks = 1000;
   Scheduler::sleep(100);
@@ -55,9 +50,8 @@ TEST_CASE("sleep: tick wakes task after deadline")
   CHECK(t->wakeupMs == 0);
 }
 
-TEST_CASE("sleep: unblockTask clears wakeupMs")
+TEST_CASE_FIXTURE(SchedulerFixture, "sleep: unblockTask clears wakeupMs")
 {
-  Scheduler::init();
 
   pitTicks = 1000;
   Scheduler::sleep(999);
@@ -70,9 +64,8 @@ TEST_CASE("sleep: unblockTask clears wakeupMs")
   CHECK(t->wakeupMs == 0);
 }
 
-TEST_CASE("sleep: sleep(0) wakes on next tick")
+TEST_CASE_FIXTURE(SchedulerFixture, "sleep: sleep(0) wakes on next tick")
 {
-  Scheduler::init();
 
   pitTicks = 42;
 
