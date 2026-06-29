@@ -1,3 +1,4 @@
+#include "SchedulerTestAccess.h"
 #include <doctest/doctest.h>
 #include <kernel/Heap.h>
 #include <kernel/Scheduler.h>
@@ -85,7 +86,7 @@ TEST_CASE("unblockTask: no-op if DEAD")
   Scheduler::addTask("willDie", nullptr); // task 2 = READY
 
   // Set task 2 DEAD.
-  Scheduler::testSetTaskState(2, TaskState::DEAD);
+  SchedulerTestAccess::getTask(2)->state = TaskState::DEAD;
 
   // unblockTask on a DEAD task must be a no-op.
   Scheduler::unblockTask(2);

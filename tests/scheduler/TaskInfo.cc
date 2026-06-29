@@ -1,5 +1,6 @@
-#include <string.h>
+#include <cstring>
 
+#include "SchedulerTestAccess.h"
 #include <doctest/doctest.h>
 #include <kernel/Heap.h>
 #include <kernel/Scheduler.h>
@@ -64,7 +65,7 @@ TEST_CASE("taskState: added task starts READY, becomes DEAD after exit")
   CHECK(Scheduler::taskState(1) == TaskState::READY);
 
   // Simulate exit by setting DEAD via test helper (test-only API).
-  Scheduler::testSetTaskState(1, TaskState::DEAD);
+  SchedulerTestAccess::getTask(1)->state = TaskState::DEAD;
   CHECK(Scheduler::taskState(1) == TaskState::DEAD);
 }
 

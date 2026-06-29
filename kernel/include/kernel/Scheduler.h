@@ -53,14 +53,7 @@ public:
   static void setOnKill(void (*handler)());
 
 #ifndef __IS_DOORS_KERNEL
-  // Test helpers. These expose state that kernel builds reach only through internal transitions.
-  static void testSetTaskState(int id, TaskState s);
-  static void testSetCurrentIdx(int id);
-  static const Task *testGetTask(int id);
-  static void testSetTaskFlags(int id, uint8_t f);
-  static void testSetTaskWakeupMs(int id, uint64_t ms);
-  static void testSetTaskRuntimeMs(int id, uint64_t ms);
-  static void testSetOnKill(int id, void (*handler)());
+  friend struct SchedulerTestAccess;
 #endif
 
 private:

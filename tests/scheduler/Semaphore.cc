@@ -1,3 +1,4 @@
+#include "SchedulerTestAccess.h"
 #include <doctest/doctest.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Semaphore.h>
@@ -113,8 +114,8 @@ TEST_CASE("semaphore: FIFO waiter order")
   // Add task 1 and make it current.
   const int t1 = *Scheduler::addTask("t1", nullptr);
   REQUIRE(t1 == 1);
-  Scheduler::testSetCurrentIdx(1);
-  Scheduler::testSetTaskState(1, TaskState::RUNNING);
+  *SchedulerTestAccess::getCurrentIdxPtr() = 1;
+  SchedulerTestAccess::getTask(1)->state = TaskState::RUNNING;
 
   // Second waiter — task 1.
   s.wait();
@@ -134,8 +135,8 @@ TEST_CASE("semaphore: FIFO waiter order")
   CHECK(Scheduler::taskState(1) == TaskState::READY);
 
   // Restore current idx for subsequent tests.
-  Scheduler::testSetCurrentIdx(0);
-  Scheduler::testSetTaskState(0, TaskState::RUNNING);
+  *SchedulerTestAccess::getCurrentIdxPtr() = 0;
+  SchedulerTestAccess::getTask(0)->state = TaskState::RUNNING;
 }
 
 TEST_CASE("semaphore: before scheduler init does not crash")
