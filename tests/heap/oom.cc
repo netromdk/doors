@@ -1,12 +1,9 @@
+#include "HeapFixture.h"
 #include <doctest/doctest.h>
-#include <kernel/Heap.h>
 #include <stdint.h>
 
-TEST_CASE("exhaust heap then alloc fails")
+TEST_CASE_FIXTURE(HeapFixture, "exhaust heap then alloc fails")
 {
-  alignas(16) static uint8_t pool[4096];
-  Heap::init({pool, sizeof(pool)});
-
   size_t freeMem = Heap::freeMem();
   REQUIRE(freeMem > 0);
 
@@ -19,11 +16,8 @@ TEST_CASE("exhaust heap then alloc fails")
   CHECK(q == nullptr);
 }
 
-TEST_CASE("alloc after free succeeds after OOM")
+TEST_CASE_FIXTURE(HeapFixture, "alloc after free succeeds after OOM")
 {
-  alignas(16) static uint8_t pool[2048];
-  Heap::init({pool, sizeof(pool)});
-
   // Allocate largest free block - min block (for header).
   size_t largest = Heap::largestFreeBlock();
   void *p = Heap::alloc(largest - Heap::MIN_BLOCK);

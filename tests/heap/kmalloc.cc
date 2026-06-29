@@ -1,12 +1,9 @@
+#include "HeapFixture.h"
 #include <doctest/doctest.h>
-#include <kernel/Heap.h>
 #include <string.h>
 
-TEST_CASE("kmalloc basic alloc")
+TEST_CASE_FIXTURE(HeapFixture, "kmalloc basic alloc")
 {
-  alignas(16) static uint8_t pool[4096];
-  Heap::init({pool, sizeof(pool)});
-
   void *p = Heap::alloc(32);
   REQUIRE(p != nullptr);
 
@@ -17,11 +14,8 @@ TEST_CASE("kmalloc basic alloc")
   }
 }
 
-TEST_CASE("kmalloc multi alloc no overlap")
+TEST_CASE_FIXTURE(HeapFixture, "kmalloc multi alloc no overlap")
 {
-  alignas(16) static uint8_t pool[4096];
-  Heap::init({pool, sizeof(pool)});
-
   void *a = Heap::alloc(16);
   void *b = Heap::alloc(32);
   void *c = Heap::alloc(64);
@@ -48,20 +42,14 @@ TEST_CASE("kmalloc multi alloc no overlap")
   }
 }
 
-TEST_CASE("kmalloc zero size")
+TEST_CASE_FIXTURE(HeapFixture, "kmalloc zero size")
 {
-  alignas(16) static uint8_t pool[256];
-  Heap::init({pool, sizeof(pool)});
-
   void *p = Heap::alloc(0);
   CHECK(p == nullptr);
 }
 
-TEST_CASE("kmalloc max size")
+TEST_CASE_FIXTURE(HeapFixture, "kmalloc max size")
 {
-  alignas(16) static uint8_t pool[4096];
-  Heap::init({pool, sizeof(pool)});
-
   size_t freeMem = Heap::freeMem();
   REQUIRE(freeMem > Heap::MIN_BLOCK);
 

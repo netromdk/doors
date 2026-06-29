@@ -1,11 +1,8 @@
+#include "HeapFixture.h"
 #include <doctest/doctest.h>
-#include <kernel/Heap.h>
 
-TEST_CASE("kfree reuse")
+TEST_CASE_FIXTURE(HeapFixture, "kfree reuse")
 {
-  alignas(16) static uint8_t pool[4096];
-  Heap::init({pool, sizeof(pool)});
-
   void *p = Heap::alloc(64);
   REQUIRE(p != nullptr);
 
@@ -15,19 +12,13 @@ TEST_CASE("kfree reuse")
   CHECK(q == p);
 }
 
-TEST_CASE("kfree nullptr")
+TEST_CASE_FIXTURE(HeapFixture, "kfree nullptr")
 {
-  alignas(16) static uint8_t pool[256];
-  Heap::init({pool, sizeof(pool)});
-
   CHECK_NOTHROW(Heap::free(nullptr));
 }
 
-TEST_CASE("kfree then smaller alloc")
+TEST_CASE_FIXTURE(HeapFixture, "kfree then smaller alloc")
 {
-  alignas(16) static uint8_t pool[4096];
-  Heap::init({pool, sizeof(pool)});
-
   void *p = Heap::alloc(128);
   REQUIRE(p != nullptr);
 
@@ -43,11 +34,8 @@ TEST_CASE("kfree then smaller alloc")
   CHECK(addr < end);
 }
 
-TEST_CASE("kfree double free")
+TEST_CASE_FIXTURE(HeapFixture, "kfree double free")
 {
-  alignas(16) static uint8_t pool[4096];
-  Heap::init({pool, sizeof(pool)});
-
   void *p = Heap::alloc(64);
   REQUIRE(p != nullptr);
 
@@ -55,11 +43,8 @@ TEST_CASE("kfree double free")
   CHECK_NOTHROW(Heap::free(p));
 }
 
-TEST_CASE("kfree then alloc larger")
+TEST_CASE_FIXTURE(HeapFixture, "kfree then alloc larger")
 {
-  alignas(16) static uint8_t pool[4096];
-  Heap::init({pool, sizeof(pool)});
-
   void *p = Heap::alloc(64);
   REQUIRE(p != nullptr);
 
