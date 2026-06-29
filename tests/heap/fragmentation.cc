@@ -1,11 +1,8 @@
+#include "HeapFixture.h"
 #include <doctest/doctest.h>
-#include <kernel/Heap.h>
 
-TEST_CASE("coalesce adjacent blocks")
+TEST_CASE_FIXTURE(HeapFixture, "coalesce adjacent blocks")
 {
-  alignas(16) static uint8_t pool[4096];
-  Heap::init({pool, sizeof(pool)});
-
   void *a = Heap::alloc(32);
   void *b = Heap::alloc(32);
   void *c = Heap::alloc(32);
@@ -20,11 +17,8 @@ TEST_CASE("coalesce adjacent blocks")
   CHECK(d != nullptr);
 }
 
-TEST_CASE("coalesce chain of three")
+TEST_CASE_FIXTURE(HeapFixture, "coalesce chain of three")
 {
-  alignas(16) static uint8_t pool[8192];
-  Heap::init({pool, sizeof(pool)});
-
   void *blocks[5];
   for (int i = 0; i < 5; i++) {
     blocks[i] = Heap::alloc(32);
@@ -39,11 +33,8 @@ TEST_CASE("coalesce chain of three")
   CHECK(combined != nullptr);
 }
 
-TEST_CASE("alloc after coalesce fills correct spot")
+TEST_CASE_FIXTURE(HeapFixture, "alloc after coalesce fills correct spot")
 {
-  alignas(16) static uint8_t pool[4096];
-  Heap::init({pool, sizeof(pool)});
-
   void *a = Heap::alloc(16);
   void *b = Heap::alloc(64);
   void *c = Heap::alloc(16);
