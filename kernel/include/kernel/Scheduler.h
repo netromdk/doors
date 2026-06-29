@@ -56,6 +56,9 @@ public:
   static void testSetTaskState(int id, TaskState s);
   static void testSetCurrentIdx(int id);
   static const Task *testGetTask(int id);
+  static void testSetTaskFlags(int id, uint8_t f);
+  static void testSetTaskWakeupMs(int id, uint64_t ms);
+  static void testSetTaskRuntimeMs(int id, uint64_t ms);
 #endif
 
 private:

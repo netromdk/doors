@@ -79,3 +79,26 @@ TEST_CASE("killTask: invalid id is no-op")
   Scheduler::killTask(99);
   CHECK(Scheduler::taskCount() == 1);
 }
+
+TEST_CASE("killTask: addTask resets flags, wakeupMs, runtimeMs on slot reuse")
+{
+  Heap::init({testPool, sizeof(testPool)});
+  Scheduler::init();
+
+  Scheduler::addTask("first", nullptr); // slot 1
+
+  // Set non-zero values on slot 1 that could leak on reuse.
+  Scheduler::testSetTaskFlags(1, 0xFF);
+  Scheduler::testSetTaskWakeupMs(1, 9999);
+  Scheduler::testSetTaskRuntimeMs(1, 8888);
+
+  Scheduler::killTask(1); // slot 1 is now DEAD with non-zero stale fields
+  REQUIRE(Scheduler::taskState(1) == TaskState::DEAD);
+
+  // Reuse slot 1. addTaskImpl must clear the stale fields.
+  Scheduler::addTask("second", nullptr);
+
+  CHECK(*Scheduler::taskFlags(1) == 0);
+  CHECK(*Scheduler::taskWakeupMs(1) == 0);
+  CHECK(*Scheduler::taskRuntimeMs(1) == 0);
+}
