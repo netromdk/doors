@@ -1,11 +1,13 @@
 #ifndef KERNEL_TTY_H
 #define KERNEL_TTY_H
 
+#include <array>
+#include <cstddef>
 #include <cstdint>
-#include <utility>
 #include <kernel/Semaphore.h>
 #include <kernel/Vga.h>
 #include <string_view>
+#include <utility>
 
 class Tty {
 public:
@@ -21,11 +23,6 @@ public:
 
   static void lock();
   static void unlock();
-
-#ifndef __IS_DOORS_KERNEL
-  // Reset the internal semaphore to a clean binary state (used by tests).
-  static void resetLock();
-#endif
 
   static void cls();
 
@@ -57,7 +54,31 @@ public:
   static int scrollbackOffset();
 
 private:
+  static constexpr int SCROLLBACK_VIEW_HEIGHT = ROWS - 1;
+
   static Semaphore lock_;
+  static uint8_t termRow_;
+  static uint8_t termCol_;
+  static uint8_t termColor_;
+  static bool scrolling_;
+  static array<array<char, VGA_WIDTH + 1>, SCROLLBACK_LINES> scrollbackBuf_;
+  static int scrollbackHead_;
+  static int scrollbackCount_;
+  static bool scrollbackActive_;
+  static int scrollbackOffset_;
+  static array<array<uint16_t, VGA_WIDTH>, ROWS> savedScreen_;
+
+  static void clearRow(uint8_t row);
+  static void swapRows(uint8_t row1, uint8_t row2);
+  static void advRow();
+  static void advCol();
+  static void decCol();
+  static void cursorUpdate();
+  static int rawPuts(string_view sv);
+
+#ifndef __IS_DOORS_KERNEL
+  friend struct TtyTestAccess;
+#endif
 };
 
 #endif // KERNEL_TTY_H
