@@ -143,6 +143,9 @@ optional<int> Scheduler::addTaskImpl(string_view name, void (*entry)())
     Heap::free(t.stackBuf);
     t.stackBuf = nullptr;
   }
+  t.flags = 0;
+  t.wakeupMs = 0;
+  t.runtimeMs = 0;
 
   auto *stack = static_cast<uint8_t *>(Heap::alloc(TASK_STACK_SIZE));
   if (stack == nullptr) {
@@ -539,6 +542,27 @@ void Scheduler::testSetCurrentIdx(int id)
 {
   if (id >= 0 && id < MAX_TASKS) {
     currentIdx_ = id;
+  }
+}
+
+void Scheduler::testSetTaskFlags(int id, uint8_t f)
+{
+  if (id >= 0 && id < MAX_TASKS) {
+    tasks_[id].flags = f;
+  }
+}
+
+void Scheduler::testSetTaskWakeupMs(int id, uint64_t ms)
+{
+  if (id >= 0 && id < MAX_TASKS) {
+    tasks_[id].wakeupMs = ms;
+  }
+}
+
+void Scheduler::testSetTaskRuntimeMs(int id, uint64_t ms)
+{
+  if (id >= 0 && id < MAX_TASKS) {
+    tasks_[id].runtimeMs = ms;
   }
 }
 #endif
