@@ -1,11 +1,10 @@
+#include "KbdFixture.h"
 #include <doctest/doctest.h>
-#include <kernel/Kbd.h>
 #include <kernel/Keymap.h>
 #include <string.h>
 
-TEST_CASE("simple")
+TEST_CASE_FIXTURE(KbdFixture, "simple")
 {
-  Kbd::init();
   string buf;
   Kbd::pushChar('h');
   Kbd::pushChar('e');
@@ -17,9 +16,8 @@ TEST_CASE("simple")
   CHECK(buf == "hello");
 }
 
-TEST_CASE("backspace")
+TEST_CASE_FIXTURE(KbdFixture, "backspace")
 {
-  Kbd::init();
   string buf;
   Kbd::pushChar('a');
   Kbd::pushChar('b');
@@ -31,18 +29,16 @@ TEST_CASE("backspace")
   CHECK(buf == "acd");
 }
 
-TEST_CASE("empty")
+TEST_CASE_FIXTURE(KbdFixture, "empty")
 {
-  Kbd::init();
   string buf;
   Kbd::pushChar('\n');
   Kbd::readLine(buf);
   CHECK(buf == "");
 }
 
-TEST_CASE("many_chars")
+TEST_CASE_FIXTURE(KbdFixture, "many_chars")
 {
-  Kbd::init();
   string buf;
   for (int i = 0; i < 100; i++) {
     Kbd::pushChar('x');
@@ -55,9 +51,8 @@ TEST_CASE("many_chars")
   }
 }
 
-TEST_CASE("whitespace")
+TEST_CASE_FIXTURE(KbdFixture, "whitespace")
 {
-  Kbd::init();
   string buf;
   string input = "  hello world  \n";
   for (size_t i = 0; i < input.size(); i++) {
@@ -67,9 +62,8 @@ TEST_CASE("whitespace")
   CHECK(buf == "  hello world  ");
 }
 
-TEST_CASE("ctrl_u")
+TEST_CASE_FIXTURE(KbdFixture, "ctrl_u")
 {
-  Kbd::init();
   string buf;
   Kbd::pushChar('a');
   Kbd::pushChar('b');
@@ -83,9 +77,8 @@ TEST_CASE("ctrl_u")
   CHECK(buf == "def");
 }
 
-TEST_CASE("multi_backspace")
+TEST_CASE_FIXTURE(KbdFixture, "multi_backspace")
 {
-  Kbd::init();
   string buf;
   Kbd::pushChar('a');
   Kbd::pushChar('b');
@@ -101,9 +94,8 @@ TEST_CASE("multi_backspace")
   CHECK(buf == "");
 }
 
-TEST_CASE("ctrl_a_goes_to_start")
+TEST_CASE_FIXTURE(KbdFixture, "ctrl_a_goes_to_start")
 {
-  Kbd::init();
   string buf;
   Kbd::pushChar('a');
   Kbd::pushChar('b');
@@ -115,9 +107,8 @@ TEST_CASE("ctrl_a_goes_to_start")
   CHECK(buf == "Xabc");
 }
 
-TEST_CASE("ctrl_e_goes_to_end")
+TEST_CASE_FIXTURE(KbdFixture, "ctrl_e_goes_to_end")
 {
-  Kbd::init();
   string buf;
   Kbd::pushChar('a');
   Kbd::pushChar('b');
@@ -130,9 +121,8 @@ TEST_CASE("ctrl_e_goes_to_end")
   CHECK(buf == "abcX");
 }
 
-TEST_CASE("ctrl_b_moves_left")
+TEST_CASE_FIXTURE(KbdFixture, "ctrl_b_moves_left")
 {
-  Kbd::init();
   string buf;
   Kbd::pushChar('a');
   Kbd::pushChar('b');
@@ -144,9 +134,8 @@ TEST_CASE("ctrl_b_moves_left")
   CHECK(buf == "abXc");
 }
 
-TEST_CASE("ctrl_f_moves_right")
+TEST_CASE_FIXTURE(KbdFixture, "ctrl_f_moves_right")
 {
-  Kbd::init();
   string buf;
   Kbd::pushChar('a');
   Kbd::pushChar('b');
@@ -159,9 +148,8 @@ TEST_CASE("ctrl_f_moves_right")
   CHECK(buf == "aXbc");
 }
 
-TEST_CASE("ctrl_d_deletes_under_cursor")
+TEST_CASE_FIXTURE(KbdFixture, "ctrl_d_deletes_under_cursor")
 {
-  Kbd::init();
   string buf;
   Kbd::pushChar('a');
   Kbd::pushChar('b');
@@ -176,9 +164,8 @@ TEST_CASE("ctrl_d_deletes_under_cursor")
   CHECK(buf == "abce");
 }
 
-TEST_CASE("ctrl_k_kills_to_end")
+TEST_CASE_FIXTURE(KbdFixture, "ctrl_k_kills_to_end")
 {
-  Kbd::init();
   string buf;
   Kbd::pushChar('a');
   Kbd::pushChar('b');
@@ -193,9 +180,8 @@ TEST_CASE("ctrl_k_kills_to_end")
   CHECK(buf == "abc");
 }
 
-TEST_CASE("backspace_in_middle")
+TEST_CASE_FIXTURE(KbdFixture, "backspace_in_middle")
 {
-  Kbd::init();
   string buf;
   Kbd::pushChar('a');
   Kbd::pushChar('b');
@@ -210,9 +196,8 @@ TEST_CASE("backspace_in_middle")
   CHECK(buf == "abde");
 }
 
-TEST_CASE("insert_in_middle")
+TEST_CASE_FIXTURE(KbdFixture, "insert_in_middle")
 {
-  Kbd::init();
   string buf;
   Kbd::pushChar('a');
   Kbd::pushChar('c');
@@ -223,9 +208,8 @@ TEST_CASE("insert_in_middle")
   CHECK(buf == "abc");
 }
 
-TEST_CASE("ctrl_c_cancels")
+TEST_CASE_FIXTURE(KbdFixture, "ctrl_c_cancels")
 {
-  Kbd::init();
   string buf;
   Kbd::pushChar('h');
   Kbd::pushChar('e');

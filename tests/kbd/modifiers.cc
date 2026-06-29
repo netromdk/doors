@@ -1,11 +1,9 @@
+#include "KbdFixture.h"
 #include <doctest/doctest.h>
-#include <kernel/Kbd.h>
 #include <kernel/Keymap.h>
 
-TEST_CASE("shift_make_and_type")
+TEST_CASE_FIXTURE(KbdFixture, "shift_make_and_type")
 {
-  Kbd::init();
-
   // LShift make
   Kbd::processScancode(0x2A, false);
   CHECK(Kbd::isShiftPressed() == true);
@@ -15,10 +13,8 @@ TEST_CASE("shift_make_and_type")
   CHECK(Kbd::getChar() == 'A');
 }
 
-TEST_CASE("shift_break")
+TEST_CASE_FIXTURE(KbdFixture, "shift_break")
 {
-  Kbd::init();
-
   // LShift make + break
   Kbd::processScancode(0x2A, false);
   Kbd::processScancode(0xAA, false); // 0x2A | 0x80 = break
@@ -29,10 +25,8 @@ TEST_CASE("shift_break")
   CHECK(Kbd::getChar() == 'a');
 }
 
-TEST_CASE("caps_toggle")
+TEST_CASE_FIXTURE(KbdFixture, "caps_toggle")
 {
-  Kbd::init();
-
   // Caps make (0x3A)
   Kbd::processScancode(0x3A, false);
   CHECK(Kbd::isCapsLock() == true);
@@ -46,10 +40,8 @@ TEST_CASE("caps_toggle")
   CHECK(Kbd::getChar() == 'a');
 }
 
-TEST_CASE("both_shifts")
+TEST_CASE_FIXTURE(KbdFixture, "both_shifts")
 {
-  Kbd::init();
-
   // Both shifts make
   Kbd::processScancode(0x2A, false); // LShift
   Kbd::processScancode(0x36, false); // RShift
