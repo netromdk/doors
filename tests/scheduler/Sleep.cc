@@ -1,3 +1,4 @@
+#include "SchedulerTestAccess.h"
 #include <doctest/doctest.h>
 #include <kernel/Pit.h>
 #include <kernel/Scheduler.h>
@@ -16,7 +17,7 @@ TEST_CASE("sleep: sets BLOCKED state and wakeupMs")
 
   CHECK(Scheduler::taskState(0) == TaskState::BLOCKED);
 
-  const Task *t = Scheduler::testGetTask(0);
+  const Task *t = SchedulerTestAccess::getTask(0);
   REQUIRE(t != nullptr);
 
   // `sleep(500)` sets `wakeupMs = pitTicks(1000) + 500 = 1500`.
@@ -49,7 +50,7 @@ TEST_CASE("sleep: tick wakes task after deadline")
   Scheduler::tick(0);
   CHECK(Scheduler::taskState(0) == TaskState::READY);
 
-  const Task *t = Scheduler::testGetTask(0);
+  const Task *t = SchedulerTestAccess::getTask(0);
   REQUIRE(t != nullptr);
   CHECK(t->wakeupMs == 0);
 }
@@ -64,7 +65,7 @@ TEST_CASE("sleep: unblockTask clears wakeupMs")
   Scheduler::unblockTask(0);
   CHECK(Scheduler::taskState(0) == TaskState::READY);
 
-  const Task *t = Scheduler::testGetTask(0);
+  const Task *t = SchedulerTestAccess::getTask(0);
   REQUIRE(t != nullptr);
   CHECK(t->wakeupMs == 0);
 }

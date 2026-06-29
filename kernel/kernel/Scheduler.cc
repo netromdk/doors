@@ -539,58 +539,6 @@ optional<int> Scheduler::findNext()
   return nullopt;
 }
 
-#ifndef __IS_DOORS_KERNEL
-void Scheduler::testSetTaskState(int id, TaskState s)
-{
-  if (id >= 0 && id < MAX_TASKS) {
-    tasks_[id].state = s;
-  }
-}
-
-const Task *Scheduler::testGetTask(int id)
-{
-  if (id >= 0 && id < MAX_TASKS) {
-    return &tasks_[id];
-  }
-  return nullptr;
-}
-
-void Scheduler::testSetCurrentIdx(int id)
-{
-  if (id >= 0 && id < MAX_TASKS) {
-    currentIdx_ = id;
-  }
-}
-
-void Scheduler::testSetTaskFlags(int id, uint8_t f)
-{
-  if (id >= 0 && id < MAX_TASKS) {
-    tasks_[id].flags = f;
-  }
-}
-
-void Scheduler::testSetTaskWakeupMs(int id, uint64_t ms)
-{
-  if (id >= 0 && id < MAX_TASKS) {
-    tasks_[id].wakeupMs = ms;
-  }
-}
-
-void Scheduler::testSetTaskRuntimeMs(int id, uint64_t ms)
-{
-  if (id >= 0 && id < MAX_TASKS) {
-    tasks_[id].runtimeMs = ms;
-  }
-}
-
-void Scheduler::testSetOnKill(int id, void (*handler)())
-{
-  if (id >= 0 && id < MAX_TASKS) {
-    tasks_[id].onKill = handler;
-  }
-}
-#endif
-
 void Scheduler::checkCanary(const Task &t)
 {
   if (t.stackBuf == nullptr) {

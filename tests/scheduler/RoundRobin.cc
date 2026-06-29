@@ -1,3 +1,4 @@
+#include "SchedulerTestAccess.h"
 #include <doctest/doctest.h>
 #include <kernel/Heap.h>
 #include <kernel/Scheduler.h>
@@ -116,7 +117,7 @@ TEST_CASE("tick: skips DEAD tasks")
   CHECK(Scheduler::currentTaskId() == 2);
 
   // Mark task 2 DEAD.
-  Scheduler::testSetTaskState(2, TaskState::DEAD);
+  SchedulerTestAccess::getTask(2)->state = TaskState::DEAD;
 
   // Exhaust quantum on the dead task 2. `findNext()` must skip DEAD task 2 and the current
   // (RUNNING/DEAD) task, finding only the still-READY task 0 or 1.

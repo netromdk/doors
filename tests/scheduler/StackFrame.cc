@@ -1,3 +1,4 @@
+#include "SchedulerTestAccess.h"
 #include <doctest/doctest.h>
 #include <kernel/Heap.h>
 #include <kernel/Scheduler.h>
@@ -34,7 +35,7 @@ TEST_CASE("addTask: stack canary written at stackBuf[0]")
   REQUIRE(esp != 0);
   CHECK(Scheduler::currentTaskId() == 1);
 
-  const Task *t = Scheduler::testGetTask(1);
+  const Task *t = SchedulerTestAccess::getTask(1);
   REQUIRE(t != nullptr);
   REQUIRE(t->stackBuf != nullptr);
   CHECK(reinterpret_cast<const uint32_t *>(t->stackBuf)[0] == Task::STACK_CANARY);
@@ -49,7 +50,7 @@ TEST_CASE("addTask: initial EFLAGS has IF set (0x202)")
   const uint32_t esp = exhaustAndSwitch();
   REQUIRE(esp != 0);
 
-  const Task *t = Scheduler::testGetTask(1);
+  const Task *t = SchedulerTestAccess::getTask(1);
   REQUIRE(t != nullptr);
   REQUIRE(t->stackBuf != nullptr);
 
@@ -67,7 +68,7 @@ TEST_CASE("addTask: initial CS is 0x08")
   const uint32_t esp = exhaustAndSwitch();
   REQUIRE(esp != 0);
 
-  const Task *t = Scheduler::testGetTask(1);
+  const Task *t = SchedulerTestAccess::getTask(1);
   REQUIRE(t != nullptr);
   REQUIRE(t->stackBuf != nullptr);
 
@@ -85,7 +86,7 @@ TEST_CASE("addTask: initial EIP is non-zero (taskWrapper)")
   const uint32_t esp = exhaustAndSwitch();
   REQUIRE(esp != 0);
 
-  const Task *t = Scheduler::testGetTask(1);
+  const Task *t = SchedulerTestAccess::getTask(1);
   REQUIRE(t != nullptr);
   REQUIRE(t->stackBuf != nullptr);
 
@@ -103,7 +104,7 @@ TEST_CASE("addTask: GP registers in frame are zeroed")
   const uint32_t esp = exhaustAndSwitch();
   REQUIRE(esp != 0);
 
-  const Task *t = Scheduler::testGetTask(1);
+  const Task *t = SchedulerTestAccess::getTask(1);
   REQUIRE(t != nullptr);
   REQUIRE(t->stackBuf != nullptr);
 
@@ -123,7 +124,7 @@ TEST_CASE("addTask: task.esp points to correct offset within stackBuf")
   const uint32_t esp = exhaustAndSwitch();
   REQUIRE(esp != 0);
 
-  const Task *t = Scheduler::testGetTask(1);
+  const Task *t = SchedulerTestAccess::getTask(1);
   REQUIRE(t != nullptr);
   REQUIRE(t->stackBuf != nullptr);
 
@@ -161,7 +162,7 @@ TEST_CASE("addTask: reuses a DEAD slot")
   const uint32_t esp = exhaustAndSwitch();
   REQUIRE(esp != 0);
   REQUIRE(Scheduler::currentTaskId() == 1);
-  Scheduler::testSetTaskState(1, TaskState::DEAD);
+  SchedulerTestAccess::getTask(1)->state = TaskState::DEAD;
 
   // Switch back to task 0 and verify the DEAD task 1 slot is reused.
   for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
