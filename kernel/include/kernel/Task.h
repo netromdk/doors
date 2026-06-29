@@ -22,6 +22,7 @@ struct Task {
   uint8_t flags{};        // Task behaviour flags (see FLAG_* constants).
   uint64_t wakeupMs{};    // System uptime (ms) at which BLOCKED task should wake. 0 = not sleeping.
   uint64_t runtimeMs{};   // Cumulative CPU runtime in PIT ticks (milliseconds).
+  void (*onKill)(){};     // Called when this task is killed/exits. Used for cleanup.
 
   // When set, the taskbar task should not display while this task is alive.
   static constexpr uint8_t FLAG_SUPPRESS_TASKBAR = 1;
