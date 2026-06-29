@@ -1,5 +1,5 @@
+#include "KbdFixture.h"
 #include <doctest/doctest.h>
-#include <kernel/Kbd.h>
 #include <kernel/Scancodes.h>
 
 namespace {
@@ -8,19 +8,15 @@ constexpr uint8_t SCANCODE_CAPS_BREAK = SCANCODE_CAPS_LOCK | 0x80;
 
 } // namespace
 
-TEST_CASE("caps_lock_make_sets_ctrl")
+TEST_CASE_FIXTURE(KbdFixture, "caps_lock_make_sets_ctrl")
 {
-  Kbd::init();
-
   Kbd::processScancode(SCANCODE_CAPS_LOCK, false);
   CHECK(Kbd::isCtrlPressed() == true);
   CHECK(Kbd::isCapsLock() == false);
 }
 
-TEST_CASE("caps_lock_break_clears_ctrl")
+TEST_CASE_FIXTURE(KbdFixture, "caps_lock_break_clears_ctrl")
 {
-  Kbd::init();
-
   Kbd::processScancode(SCANCODE_CAPS_LOCK, false);
   CHECK(Kbd::isCtrlPressed() == true);
 
@@ -28,10 +24,8 @@ TEST_CASE("caps_lock_break_clears_ctrl")
   CHECK(Kbd::isCtrlPressed() == false);
 }
 
-TEST_CASE("caps_lock_does_not_toggle_under_ctrl_remap")
+TEST_CASE_FIXTURE(KbdFixture, "caps_lock_does_not_toggle_under_ctrl_remap")
 {
-  Kbd::init();
-
   Kbd::processScancode(SCANCODE_CAPS_LOCK, false);
   CHECK(Kbd::isCapsLock() == false);
 
@@ -46,10 +40,8 @@ TEST_CASE("caps_lock_does_not_toggle_under_ctrl_remap")
   CHECK(Kbd::isCapsLock() == false);
 }
 
-TEST_CASE("type_a_while_caps_is_ctrl_yields_ctrl_a")
+TEST_CASE_FIXTURE(KbdFixture, "type_a_while_caps_is_ctrl_yields_ctrl_a")
 {
-  Kbd::init();
-
   Kbd::processScancode(SCANCODE_CAPS_LOCK, false);
 
   Kbd::processScancode(SCANCODE_A, false);
