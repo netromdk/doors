@@ -1,5 +1,5 @@
+#include "ShellFixture.h"
 #include <doctest/doctest.h>
-#include <kernel/Shell.h>
 
 #include "TestHelpers.h"
 
@@ -22,7 +22,7 @@ void testHandler(int argc, const string *argv)
 
 } // namespace
 
-TEST_CASE("match")
+TEST_CASE_FIXTURE(ShellFixture, "match")
 {
   handlerCalled = false;
   Command cmd{"test", "a test command", testHandler};
@@ -38,7 +38,7 @@ TEST_CASE("match")
   CHECK(handlerArgv0 == "test");
 }
 
-TEST_CASE("match_with_arg")
+TEST_CASE_FIXTURE(ShellFixture, "match_with_arg")
 {
   handlerCalled = false;
   Command cmd{"test", "a test command", testHandler};
@@ -55,7 +55,7 @@ TEST_CASE("match_with_arg")
   CHECK(handlerArgv1 == "arg1");
 }
 
-TEST_CASE("no_match")
+TEST_CASE_FIXTURE(ShellFixture, "no_match")
 {
   Command cmd{"test", "a test command", testHandler};
   Shell::registerCmd(cmd);
@@ -67,13 +67,13 @@ TEST_CASE("no_match")
   CHECK(result == false);
 }
 
-TEST_CASE("empty")
+TEST_CASE_FIXTURE(ShellFixture, "empty")
 {
   const bool result = Shell::dispatch({});
   CHECK(result == true);
 }
 
-TEST_CASE("case_sensitive")
+TEST_CASE_FIXTURE(ShellFixture, "case_sensitive")
 {
   Command cmd{"uptime", "show uptime", testHandler};
   Shell::registerCmd(cmd);

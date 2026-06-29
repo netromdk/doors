@@ -1,8 +1,8 @@
+#include <cstdint>
+#include <cstring>
 #include <doctest/doctest.h>
-#include <stdint.h>
-#include <string.h>
 
-#include <kernel/Kbd.h>
+#include "ShellFixture.h"
 
 namespace {
 
@@ -10,7 +10,7 @@ constexpr int HISTORY_SIZE = 3;
 
 } // namespace
 
-TEST_CASE("arrow_up_loads_most_recent")
+TEST_CASE_FIXTURE(ShellFixture, "arrow_up_loads_most_recent")
 {
   string hbuf[HISTORY_SIZE];
   hbuf[0] = "cmd0";
@@ -29,7 +29,7 @@ TEST_CASE("arrow_up_loads_most_recent")
   CHECK(line == "cmd2");
 }
 
-TEST_CASE("arrow_up_twice_goes_older")
+TEST_CASE_FIXTURE(ShellFixture, "arrow_up_twice_goes_older")
 {
   string hbuf[HISTORY_SIZE];
   hbuf[0] = "cmd0";
@@ -48,7 +48,7 @@ TEST_CASE("arrow_up_twice_goes_older")
   CHECK(line == "cmd1");
 }
 
-TEST_CASE("arrow_down_at_end_stays_empty")
+TEST_CASE_FIXTURE(ShellFixture, "arrow_down_at_end_stays_empty")
 {
   string hbuf[HISTORY_SIZE];
   hbuf[0] = "cmd0";
@@ -67,7 +67,7 @@ TEST_CASE("arrow_down_at_end_stays_empty")
   CHECK(line == "");
 }
 
-TEST_CASE("arrow_down_after_up_returns_to_empty")
+TEST_CASE_FIXTURE(ShellFixture, "arrow_down_after_up_returns_to_empty")
 {
   string hbuf[HISTORY_SIZE];
   hbuf[0] = "cmd0";
@@ -90,7 +90,7 @@ TEST_CASE("arrow_down_after_up_returns_to_empty")
   CHECK(line == "");
 }
 
-TEST_CASE("ctrLP_loads_most_recent")
+TEST_CASE_FIXTURE(ShellFixture, "ctrLP_loads_most_recent")
 {
   string hbuf[HISTORY_SIZE];
   hbuf[0] = "cmd0";
@@ -109,7 +109,7 @@ TEST_CASE("ctrLP_loads_most_recent")
   CHECK(line == "cmd2");
 }
 
-TEST_CASE("ctrLN_after_up_goes_forward")
+TEST_CASE_FIXTURE(ShellFixture, "ctrLN_after_up_goes_forward")
 {
   string hbuf[HISTORY_SIZE];
   hbuf[0] = "cmd0";
@@ -129,7 +129,7 @@ TEST_CASE("ctrLN_after_up_goes_forward")
   CHECK(line == "");
 }
 
-TEST_CASE("arrow_up_empty_history")
+TEST_CASE_FIXTURE(ShellFixture, "arrow_up_empty_history")
 {
   string hbuf[HISTORY_SIZE];
   int count = 0;
@@ -145,7 +145,7 @@ TEST_CASE("arrow_up_empty_history")
   CHECK(line == "");
 }
 
-TEST_CASE("history_arrow_echoes_command")
+TEST_CASE_FIXTURE(ShellFixture, "history_arrow_echoes_command")
 {
   string hbuf[HISTORY_SIZE];
   hbuf[0] = "hello";

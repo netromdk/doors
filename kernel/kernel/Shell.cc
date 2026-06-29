@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <array>
 #include <cctype>
 #include <cstdio>
 
@@ -10,10 +9,6 @@
 
 namespace {
 
-constexpr int MAX_CMDS = 32;
-array<Command, MAX_CMDS> cmdTable;
-int numCmds = 0;
-
 // Command history ring buffer.
 constexpr int HISTORY_MAX = 100;
 static array<string, HISTORY_MAX> historyBuf_;
@@ -21,6 +16,9 @@ static constinit int historyCount_ = 0;
 static constinit int historyHead_ = 0;
 
 } // namespace
+
+array<Command, Shell::MAX_CMDS> Shell::cmdTable;
+int Shell::numCmds = 0;
 
 void Shell::run()
 {
