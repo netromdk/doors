@@ -1,12 +1,9 @@
-#include "SchedulerTestAccess.h"
+#include "SchedulerFixture.h"
 #include <doctest/doctest.h>
-#include <kernel/Heap.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
 
 namespace {
-
-alignas(16) uint8_t testPool[65536];
 
 // Exhaust the current task's quantum so a switch occurs. After `QUANTUM_TICKS` calls, `tick()`
 // returns the switched-to task's saved esp. Returns that esp, or 0 if no switch occurred (only one
@@ -24,10 +21,8 @@ uint32_t exhaustAndSwitch()
 
 } // namespace
 
-TEST_CASE("addTask: stack canary written at stackBuf[0]")
+TEST_CASE_FIXTURE(SchedulerFixture, "addTask: stack canary written at stackBuf[0]")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
   REQUIRE(Scheduler::addTask("test", nullptr));
 
   // Exhaust quantum to trigger a switch to task 1.
@@ -41,10 +36,8 @@ TEST_CASE("addTask: stack canary written at stackBuf[0]")
   CHECK(reinterpret_cast<const uint32_t *>(t->stackBuf)[0] == Task::STACK_CANARY);
 }
 
-TEST_CASE("addTask: initial EFLAGS has IF set (0x202)")
+TEST_CASE_FIXTURE(SchedulerFixture, "addTask: initial EFLAGS has IF set (0x202)")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
   REQUIRE(Scheduler::addTask("test", nullptr));
 
   const uint32_t esp = exhaustAndSwitch();
@@ -59,10 +52,8 @@ TEST_CASE("addTask: initial EFLAGS has IF set (0x202)")
   CHECK(frame[10] == 0x00000202);
 }
 
-TEST_CASE("addTask: initial CS is 0x08")
+TEST_CASE_FIXTURE(SchedulerFixture, "addTask: initial CS is 0x08")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
   REQUIRE(Scheduler::addTask("test", nullptr));
 
   const uint32_t esp = exhaustAndSwitch();
@@ -77,10 +68,8 @@ TEST_CASE("addTask: initial CS is 0x08")
   CHECK(frame[9] == 0x08);
 }
 
-TEST_CASE("addTask: initial EIP is non-zero (taskWrapper)")
+TEST_CASE_FIXTURE(SchedulerFixture, "addTask: initial EIP is non-zero (taskWrapper)")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
   REQUIRE(Scheduler::addTask("test", nullptr));
 
   const uint32_t esp = exhaustAndSwitch();
@@ -95,10 +84,8 @@ TEST_CASE("addTask: initial EIP is non-zero (taskWrapper)")
   CHECK(frame[8] != 0);
 }
 
-TEST_CASE("addTask: GP registers in frame are zeroed")
+TEST_CASE_FIXTURE(SchedulerFixture, "addTask: GP registers in frame are zeroed")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
   REQUIRE(Scheduler::addTask("test", nullptr));
 
   const uint32_t esp = exhaustAndSwitch();
@@ -115,10 +102,8 @@ TEST_CASE("addTask: GP registers in frame are zeroed")
   }
 }
 
-TEST_CASE("addTask: task.esp points to correct offset within stackBuf")
+TEST_CASE_FIXTURE(SchedulerFixture, "addTask: task.esp points to correct offset within stackBuf")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
   REQUIRE(Scheduler::addTask("test", nullptr));
 
   const uint32_t esp = exhaustAndSwitch();
@@ -136,10 +121,8 @@ TEST_CASE("addTask: task.esp points to correct offset within stackBuf")
   CHECK(t->esp == expected);
 }
 
-TEST_CASE("addTask: returns -1 when all MAX_TASKS slots are occupied")
+TEST_CASE_FIXTURE(SchedulerFixture, "addTask: returns -1 when all MAX_TASKS slots are occupied")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
 
   for (int i = 0; i < Scheduler::MAX_TASKS - 1; ++i) {
     const int id = *Scheduler::addTask("t", nullptr);
@@ -149,10 +132,8 @@ TEST_CASE("addTask: returns -1 when all MAX_TASKS slots are occupied")
   CHECK(!Scheduler::addTask("full", nullptr));
 }
 
-TEST_CASE("addTask: reuses a DEAD slot")
+TEST_CASE_FIXTURE(SchedulerFixture, "addTask: reuses a DEAD slot")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
 
   const int first = *Scheduler::addTask("a", nullptr);
   REQUIRE(first >= 0);

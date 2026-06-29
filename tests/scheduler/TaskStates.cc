@@ -1,19 +1,11 @@
-#include "SchedulerTestAccess.h"
+#include "SchedulerFixture.h"
 #include <doctest/doctest.h>
-#include <kernel/Heap.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
 
-namespace {
-
-alignas(16) uint8_t testPool[65536];
-
-} // namespace
-
-TEST_CASE("unblockTask: BLOCKED task becomes READY and is found by round-robin")
+TEST_CASE_FIXTURE(SchedulerFixture,
+                  "unblockTask: BLOCKED task becomes READY and is found by round-robin")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
 
   // `addTaskAndBlock()` adds task 1 and sets task 0 (the current task) to BLOCKED.
   const int id = *Scheduler::addTaskAndBlock("task1", nullptr);
@@ -36,10 +28,8 @@ TEST_CASE("unblockTask: BLOCKED task becomes READY and is found by round-robin")
   CHECK(Scheduler::currentTaskId() == 0);
 }
 
-TEST_CASE("unblockTask: no-op if already READY")
+TEST_CASE_FIXTURE(SchedulerFixture, "unblockTask: no-op if already READY")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
 
   Scheduler::addTask("task1", nullptr);
   Scheduler::addTask("task2", nullptr);
@@ -63,9 +53,8 @@ TEST_CASE("unblockTask: no-op if already READY")
   CHECK(Scheduler::currentTaskId() == 0);
 }
 
-TEST_CASE("unblockTask: no-op if RUNNING")
+TEST_CASE_FIXTURE(SchedulerFixture, "unblockTask: no-op if RUNNING")
 {
-  Scheduler::init();
 
   // Task 0 is RUNNING. `unblockTask()` should not change its state.
   Scheduler::unblockTask(0);
@@ -77,10 +66,8 @@ TEST_CASE("unblockTask: no-op if RUNNING")
   CHECK(Scheduler::currentTaskId() == 0);
 }
 
-TEST_CASE("unblockTask: no-op if DEAD")
+TEST_CASE_FIXTURE(SchedulerFixture, "unblockTask: no-op if DEAD")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
 
   Scheduler::addTask("alive", nullptr);   // task 1 = READY
   Scheduler::addTask("willDie", nullptr); // task 2 = READY
@@ -105,9 +92,8 @@ TEST_CASE("unblockTask: no-op if DEAD")
   CHECK(Scheduler::currentTaskId() == 0);
 }
 
-TEST_CASE("unblockTask: bounds check on invalid id")
+TEST_CASE_FIXTURE(SchedulerFixture, "unblockTask: bounds check on invalid id")
 {
-  Scheduler::init();
 
   // Invalid ids must not crash or corrupt state.
   Scheduler::unblockTask(-1);

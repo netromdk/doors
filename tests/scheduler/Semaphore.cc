@@ -1,4 +1,4 @@
-#include "SchedulerTestAccess.h"
+#include "SchedulerFixture.h"
 #include <doctest/doctest.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Semaphore.h>
@@ -74,9 +74,8 @@ TEST_CASE("semaphore: signal with no waiters increments count")
   CHECK(s.testCount() == 2);
 }
 
-TEST_CASE("semaphore: wait blocks when count is zero")
+TEST_CASE_FIXTURE(SchedulerFixture, "semaphore: wait blocks when count is zero")
 {
-  Scheduler::init();
   Sema s(0);
 
   s.wait();
@@ -86,9 +85,8 @@ TEST_CASE("semaphore: wait blocks when count is zero")
   CHECK(s.testWaiter(0) == 0);
 }
 
-TEST_CASE("semaphore: signal wakes waiter")
+TEST_CASE_FIXTURE(SchedulerFixture, "semaphore: signal wakes waiter")
 {
-  Scheduler::init();
   Sema s(0);
 
   s.wait();
@@ -101,9 +99,8 @@ TEST_CASE("semaphore: signal wakes waiter")
   CHECK(Scheduler::taskState(0) == TaskState::READY);
 }
 
-TEST_CASE("semaphore: FIFO waiter order")
+TEST_CASE_FIXTURE(SchedulerFixture, "semaphore: FIFO waiter order")
 {
-  Scheduler::init();
   Sema s(0);
 
   // First waiter — task 0.
@@ -133,13 +130,9 @@ TEST_CASE("semaphore: FIFO waiter order")
   s.signal();
   CHECK(s.testWaitCount() == 0);
   CHECK(Scheduler::taskState(1) == TaskState::READY);
-
-  // Restore current idx for subsequent tests.
-  *SchedulerTestAccess::getCurrentIdxPtr() = 0;
-  SchedulerTestAccess::getTask(0)->state = TaskState::RUNNING;
 }
 
-TEST_CASE("semaphore: before scheduler init does not crash")
+TEST_CASE_FIXTURE(SchedulerFixture, "semaphore: before scheduler init does not crash")
 {
   // No Scheduler::init() — early boot fallback path.
   Sema s(1);
@@ -150,9 +143,8 @@ TEST_CASE("semaphore: before scheduler init does not crash")
   CHECK(s.testCount() == 1);
 }
 
-TEST_CASE("semaphore: blockCurrentTask sets state to BLOCKED")
+TEST_CASE_FIXTURE(SchedulerFixture, "semaphore: blockCurrentTask sets state to BLOCKED")
 {
-  Scheduler::init();
   CHECK(Scheduler::taskState(0) == TaskState::RUNNING);
   Scheduler::blockCurrentTask();
   CHECK(Scheduler::taskState(0) == TaskState::BLOCKED);

@@ -1,12 +1,9 @@
-#include "SchedulerTestAccess.h"
+#include "SchedulerFixture.h"
 #include <doctest/doctest.h>
-#include <kernel/Heap.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
 
 namespace {
-
-alignas(16) uint8_t testPool[262144];
 
 static int onKillCalls_ = 0;
 
@@ -17,10 +14,8 @@ void incOnKill()
 
 } // namespace
 
-TEST_CASE("killTask: marks READY task as DEAD")
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: marks READY task as DEAD")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
 
   Scheduler::addTask("t", nullptr);
   REQUIRE(Scheduler::taskState(1) == TaskState::READY);
@@ -32,10 +27,8 @@ TEST_CASE("killTask: marks READY task as DEAD")
   CHECK(Scheduler::deadTaskCount() >= 1);
 }
 
-TEST_CASE("killTask: frees stack buffer")
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: frees stack buffer")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
 
   const size_t before = Heap::freeMem();
   Scheduler::addTask("t", nullptr);
@@ -55,10 +48,8 @@ TEST_CASE("killTask: frees stack buffer")
   CHECK(t->stackSize == 0);
 }
 
-TEST_CASE("killTask: already DEAD is no-op")
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: already DEAD is no-op")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
 
   Scheduler::addTask("t", nullptr);
   Scheduler::killTask(1);
@@ -71,27 +62,24 @@ TEST_CASE("killTask: already DEAD is no-op")
   CHECK(Scheduler::deadTaskCount() == 1);
 }
 
-TEST_CASE("killTask: self-kill rejected")
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: self-kill rejected")
 {
-  Scheduler::init();
 
   // current task is 0 (shell).
   Scheduler::killTask(0);
   CHECK(Scheduler::taskState(0) == TaskState::RUNNING);
 }
 
-TEST_CASE("killTask: invalid id is no-op")
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: invalid id is no-op")
 {
-  Scheduler::init();
   Scheduler::killTask(-1);
   Scheduler::killTask(99);
   CHECK(Scheduler::taskCount() == 1);
 }
 
-TEST_CASE("killTask: addTask resets flags, wakeupMs, runtimeMs on slot reuse")
+TEST_CASE_FIXTURE(SchedulerFixture,
+                  "killTask: addTask resets flags, wakeupMs, runtimeMs on slot reuse")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
 
   Scheduler::addTask("first", nullptr); // slot 1
 
@@ -111,10 +99,8 @@ TEST_CASE("killTask: addTask resets flags, wakeupMs, runtimeMs on slot reuse")
   CHECK(*Scheduler::taskRuntimeMs(1) == 0);
 }
 
-TEST_CASE("killTask: calls onKill handler when killing READY task")
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: calls onKill handler when killing READY task")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
 
   onKillCalls_ = 0;
   Scheduler::addTask("t", nullptr);
@@ -124,10 +110,8 @@ TEST_CASE("killTask: calls onKill handler when killing READY task")
   CHECK(onKillCalls_ == 1);
 }
 
-TEST_CASE("killTask: does not call onKill for already-DEAD task")
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: does not call onKill for already-DEAD task")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
 
   onKillCalls_ = 0;
   Scheduler::addTask("t", nullptr);
@@ -139,9 +123,8 @@ TEST_CASE("killTask: does not call onKill for already-DEAD task")
   CHECK(onKillCalls_ == 1);
 }
 
-TEST_CASE("killTask: does not call onKill for self-kill")
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: does not call onKill for self-kill")
 {
-  Scheduler::init();
 
   onKillCalls_ = 0;
   SchedulerTestAccess::getTask(0)->onKill = incOnKill;
@@ -149,9 +132,8 @@ TEST_CASE("killTask: does not call onKill for self-kill")
   CHECK(onKillCalls_ == 0);
 }
 
-TEST_CASE("killTask: does not call onKill for invalid id")
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: does not call onKill for invalid id")
 {
-  Scheduler::init();
 
   onKillCalls_ = 0;
   Scheduler::killTask(-1);
@@ -159,10 +141,8 @@ TEST_CASE("killTask: does not call onKill for invalid id")
   CHECK(onKillCalls_ == 0);
 }
 
-TEST_CASE("killTask: onKill reset to nullptr on slot reuse")
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: onKill reset to nullptr on slot reuse")
 {
-  Heap::init({testPool, sizeof(testPool)});
-  Scheduler::init();
 
   Scheduler::addTask("first", nullptr); // slot 1
   SchedulerTestAccess::getTask(1)->onKill = incOnKill;
