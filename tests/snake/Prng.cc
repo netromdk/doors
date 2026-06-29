@@ -1,16 +1,16 @@
+#include "SnakeFixture.h"
 #include <doctest/doctest.h>
-#include <programs/snake/SnakeGame.h>
 
 #include "TestLcg.h"
 
-TEST_CASE("lcg: known seed produces known first value")
+TEST_CASE_FIXTURE(SnakeFixture, "lcg: known seed produces known first value")
 {
   CHECK(lcgStep(0u) == 1013904223u);
   CHECK(lcgStep(1013904223u) == 1196435762u);
   CHECK(lcgStep(1196435762u) == 3519870697u);
 }
 
-TEST_CASE("lcg: sequence is deterministic")
+TEST_CASE_FIXTURE(SnakeFixture, "lcg: sequence is deterministic")
 {
   // Two games with same seed should behave identically.
   SnakeGame a;
@@ -27,7 +27,7 @@ TEST_CASE("lcg: sequence is deterministic")
   }
 }
 
-TEST_CASE("lcg: different seeds give deterministic runs")
+TEST_CASE_FIXTURE(SnakeFixture, "lcg: different seeds give deterministic runs")
 {
   SnakeGame a;
   a.init(1);
