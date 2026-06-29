@@ -7,6 +7,13 @@ namespace {
 
 alignas(16) uint8_t testPool[262144];
 
+static int onKillCalls_ = 0;
+
+void incOnKill()
+{
+  ++onKillCalls_;
+}
+
 } // namespace
 
 TEST_CASE("killTask: marks READY task as DEAD")
@@ -95,10 +102,75 @@ TEST_CASE("killTask: addTask resets flags, wakeupMs, runtimeMs on slot reuse")
   Scheduler::killTask(1); // slot 1 is now DEAD with non-zero stale fields
   REQUIRE(Scheduler::taskState(1) == TaskState::DEAD);
 
-  // Reuse slot 1. addTaskImpl must clear the stale fields.
+  // Reuse slot 1. `addTaskImpl()` must clear the stale fields.
   Scheduler::addTask("second", nullptr);
 
   CHECK(*Scheduler::taskFlags(1) == 0);
   CHECK(*Scheduler::taskWakeupMs(1) == 0);
   CHECK(*Scheduler::taskRuntimeMs(1) == 0);
+}
+
+TEST_CASE("killTask: calls onKill handler when killing READY task")
+{
+  Heap::init({testPool, sizeof(testPool)});
+  Scheduler::init();
+
+  onKillCalls_ = 0;
+  Scheduler::addTask("t", nullptr);
+  Scheduler::testSetOnKill(1, incOnKill);
+
+  Scheduler::killTask(1);
+  CHECK(onKillCalls_ == 1);
+}
+
+TEST_CASE("killTask: does not call onKill for already-DEAD task")
+{
+  Heap::init({testPool, sizeof(testPool)});
+  Scheduler::init();
+
+  onKillCalls_ = 0;
+  Scheduler::addTask("t", nullptr);
+  Scheduler::testSetOnKill(1, incOnKill);
+  Scheduler::killTask(1); // first kill fires handler
+  CHECK(onKillCalls_ == 1);
+
+  Scheduler::killTask(1); // second kill is no-op
+  CHECK(onKillCalls_ == 1);
+}
+
+TEST_CASE("killTask: does not call onKill for self-kill")
+{
+  Scheduler::init();
+
+  onKillCalls_ = 0;
+  Scheduler::testSetOnKill(0, incOnKill);
+  Scheduler::killTask(0); // self-kill rejected
+  CHECK(onKillCalls_ == 0);
+}
+
+TEST_CASE("killTask: does not call onKill for invalid id")
+{
+  Scheduler::init();
+
+  onKillCalls_ = 0;
+  Scheduler::killTask(-1);
+  Scheduler::killTask(99);
+  CHECK(onKillCalls_ == 0);
+}
+
+TEST_CASE("killTask: onKill reset to nullptr on slot reuse")
+{
+  Heap::init({testPool, sizeof(testPool)});
+  Scheduler::init();
+
+  Scheduler::addTask("first", nullptr); // slot 1
+  Scheduler::testSetOnKill(1, incOnKill);
+  REQUIRE(Scheduler::testGetTask(1)->onKill != nullptr);
+
+  Scheduler::killTask(1);
+
+  // Reuse slot 1. `addTaskImpl()` must clear `onKill()`.
+  Scheduler::addTask("second", nullptr);
+
+  CHECK(Scheduler::testGetTask(1)->onKill == nullptr);
 }

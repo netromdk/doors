@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
 
@@ -9,6 +10,8 @@
 #include <kernel/Vga.h>
 
 namespace {
+
+static constexpr int ROW = 24;
 
 int formatStatusBar(char *buf, uint64_t sec, int runningReady, int exited, int blocked, uint8_t h,
                     uint8_t m, uint8_t s)
@@ -24,11 +27,18 @@ int formatStatusBar(char *buf, uint64_t sec, int runningReady, int exited, int b
   return static_cast<int>(p - buf);
 }
 
+void clearTaskbarRow()
+{
+  const auto entry = vgaEntry(' ', vgaColor(COLOR_BLACK, COLOR_BLACK));
+  fill_n(&VGA_RAM[ROW * VGA_WIDTH], VGA_WIDTH, entry);
+}
+
 } // namespace
 
 void taskbarMain()
 {
-  static constexpr int ROW = 24;
+  Scheduler::setOnKill(clearTaskbarRow);
+
   static constexpr uint8_t COLOR = vgaColor(COLOR_DARK_GREY, COLOR_BLACK);
 
   while (true) {

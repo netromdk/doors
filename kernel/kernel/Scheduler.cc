@@ -146,6 +146,7 @@ optional<int> Scheduler::addTaskImpl(string_view name, void (*entry)())
   t.flags = 0;
   t.wakeupMs = 0;
   t.runtimeMs = 0;
+  t.onKill = nullptr;
 
   auto *stack = static_cast<uint8_t *>(Heap::alloc(TASK_STACK_SIZE));
   if (stack == nullptr) {
@@ -282,6 +283,10 @@ optional<int> Scheduler::addTaskAndBlock(string_view name, void (*entry)())
 
   if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
     panic("Scheduler::exitCurrentTask: corrupted currentIdx");
+  }
+
+  if (tasks_[currentIdx_].onKill) {
+    tasks_[currentIdx_].onKill();
   }
 
   tasks_[currentIdx_].state = TaskState::DEAD;
@@ -448,6 +453,10 @@ void Scheduler::killTask(int id)
     return;
   }
 
+  if (tasks_[id].onKill) {
+    tasks_[id].onKill();
+  }
+
   tasks_[id].state = TaskState::DEAD;
   ++totalExited_;
 
@@ -485,6 +494,14 @@ void Scheduler::suppressTaskbar()
     panic("Scheduler::suppressTaskbar: corrupted currentIdx");
   }
   tasks_[currentIdx_].flags |= Task::FLAG_SUPPRESS_TASKBAR;
+}
+
+void Scheduler::setOnKill(void (*handler)())
+{
+  if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
+    panic("Scheduler::setOnKill: corrupted currentIdx");
+  }
+  tasks_[currentIdx_].onKill = handler;
 }
 
 bool Scheduler::isTaskbarSuppressed()
@@ -563,6 +580,13 @@ void Scheduler::testSetTaskRuntimeMs(int id, uint64_t ms)
 {
   if (id >= 0 && id < MAX_TASKS) {
     tasks_[id].runtimeMs = ms;
+  }
+}
+
+void Scheduler::testSetOnKill(int id, void (*handler)())
+{
+  if (id >= 0 && id < MAX_TASKS) {
+    tasks_[id].onKill = handler;
   }
 }
 #endif
