@@ -1,6 +1,6 @@
+#include "SnakeFixture.h"
 #include <cstdio>
 #include <doctest/doctest.h>
-#include <programs/snake/SnakeGame.h>
 
 #include "TestLcg.h"
 
@@ -51,16 +51,14 @@ static int navigateTo(SnakeGame &g, int curRow, int curCol, int targetRow, int t
   return steps;
 }
 
-TEST_CASE("obstacles: initial count at init")
+TEST_CASE_FIXTURE(SnakeFixture, "obstacles: initial count at init")
 {
-  SnakeGame g;
   g.init(0, true);
   CHECK(g.obstacleCount() == SnakeGame::OBSTACLE_INIT_COUNT);
 }
 
-TEST_CASE("obstacles: within playable bounds")
+TEST_CASE_FIXTURE(SnakeFixture, "obstacles: within playable bounds")
 {
-  SnakeGame g;
   g.init(0, true);
   for (int i = 0; i < g.obstacleCount(); ++i) {
     const auto p = g.obstaclePos(i);
@@ -71,18 +69,15 @@ TEST_CASE("obstacles: within playable bounds")
   }
 }
 
-TEST_CASE("obstacles: withObstacles=false gives zero count")
+TEST_CASE_FIXTURE(SnakeFixture, "obstacles: withObstacles=false gives zero count")
 {
-  SnakeGame g;
-  g.init(0);
   CHECK(g.obstacleCount() == 0);
 }
 
-TEST_CASE("obstacles: rightward movement cannot exceed wall limit")
+TEST_CASE_FIXTURE(SnakeFixture, "obstacles: rightward movement cannot exceed wall limit")
 {
   // Without obstacles, moving right from center (12,40) hits wall at step 38.
   // With obstacles, the snake must still die by step 38 (either obstacle or wall).
-  SnakeGame g;
   g.init(0, true);
   int steps = 0;
   while (g.step()) {
@@ -91,9 +86,8 @@ TEST_CASE("obstacles: rightward movement cannot exceed wall limit")
   CHECK(steps <= 38);
 }
 
-TEST_CASE("obstacles: obstacle count never decreases during play")
+TEST_CASE_FIXTURE(SnakeFixture, "obstacles: obstacle count never decreases during play")
 {
-  SnakeGame g;
   g.init(0, true);
   int prevCount = g.obstacleCount();
   REQUIRE(prevCount > 0);
@@ -105,7 +99,7 @@ TEST_CASE("obstacles: obstacle count never decreases during play")
   }
 }
 
-TEST_CASE("obstacles: spawn triggered by eating without obstacles")
+TEST_CASE_FIXTURE(SnakeFixture, "obstacles: spawn triggered by eating without obstacles")
 {
   SnakeGame g;
   g.init(0); // no obstacles

@@ -1,39 +1,31 @@
+#include "SnakeFixture.h"
 #include <doctest/doctest.h>
-#include <programs/snake/SnakeGame.h>
 
-TEST_CASE("no bonus when dtMs is 0")
+TEST_CASE_FIXTURE(SnakeFixture, "no bonus when dtMs is 0")
 {
-  SnakeGame g;
-  g.init(0);
   for (int i = 0; i < 100; ++i) {
     g.step(0);
   }
   CHECK_FALSE(g.bonusActive());
 }
 
-TEST_CASE("bonus spawns after BONUS_INTERVAL_MS elapses")
+TEST_CASE_FIXTURE(SnakeFixture, "bonus spawns after BONUS_INTERVAL_MS elapses")
 {
-  SnakeGame g;
-  g.init(0);
   CHECK_FALSE(g.bonusActive());
   g.step(SnakeGame::BONUS_INTERVAL_MS);
   CHECK(g.bonusActive());
 }
 
-TEST_CASE("bonus despawns after its duration elapses")
+TEST_CASE_FIXTURE(SnakeFixture, "bonus despawns after its duration elapses")
 {
-  SnakeGame g;
-  g.init(0);
   g.step(SnakeGame::BONUS_INTERVAL_MS);
   REQUIRE(g.bonusActive());
   g.step(10000);
   CHECK_FALSE(g.bonusActive());
 }
 
-TEST_CASE("bonus position is inside playable area")
+TEST_CASE_FIXTURE(SnakeFixture, "bonus position is inside playable area")
 {
-  SnakeGame g;
-  g.init(0);
   g.step(SnakeGame::BONUS_INTERVAL_MS);
   REQUIRE(g.bonusActive());
   auto p = g.bonusPos();
@@ -43,10 +35,8 @@ TEST_CASE("bonus position is inside playable area")
   CHECK(p.col <= SnakeGame::BOARD_COLS);
 }
 
-TEST_CASE("score unchanged by bonus lifecycle")
+TEST_CASE_FIXTURE(SnakeFixture, "score unchanged by bonus lifecycle")
 {
-  SnakeGame g;
-  g.init(0);
   CHECK(g.score() == 0);
   g.step(SnakeGame::BONUS_INTERVAL_MS);
   CHECK(g.score() == 0);
@@ -54,11 +44,8 @@ TEST_CASE("score unchanged by bonus lifecycle")
   CHECK(g.score() == 0);
 }
 
-TEST_CASE("eating bonus adds BONUS_POINTS")
+TEST_CASE_FIXTURE(SnakeFixture, "eating bonus adds BONUS_POINTS")
 {
-  SnakeGame g;
-  g.init(0);
-
   // Spawn bonus.
   g.step(SnakeGame::BONUS_INTERVAL_MS);
   REQUIRE(g.bonusActive());
@@ -104,11 +91,8 @@ TEST_CASE("eating bonus adds BONUS_POINTS")
   CHECK(g.score() >= SnakeGame::BONUS_POINTS);
 }
 
-TEST_CASE("bonus respawns after another cycle")
+TEST_CASE_FIXTURE(SnakeFixture, "bonus respawns after another cycle")
 {
-  SnakeGame g;
-  g.init(0);
-
   g.step(SnakeGame::BONUS_INTERVAL_MS);
   REQUIRE(g.bonusActive());
   g.step(10000);

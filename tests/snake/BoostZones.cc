@@ -1,25 +1,20 @@
+#include "SnakeFixture.h"
 #include <doctest/doctest.h>
-#include <programs/snake/SnakeGame.h>
 
-TEST_CASE("boost: not active initially")
+TEST_CASE_FIXTURE(SnakeFixture, "boost: not active initially")
 {
-  SnakeGame g;
   g.init(0, true);
   CHECK_FALSE(g.boostActive());
 }
 
-TEST_CASE("boost: zones placed at init")
+TEST_CASE_FIXTURE(SnakeFixture, "boost: zones placed at init")
 {
-  SnakeGame g;
-  g.init(0);
   CHECK(g.boostZoneCount() > 0);
   CHECK(g.boostZoneCount() <= SnakeGame::MAX_BOOST_ZONES);
 }
 
-TEST_CASE("boost: zones within playable bounds")
+TEST_CASE_FIXTURE(SnakeFixture, "boost: zones within playable bounds")
 {
-  SnakeGame g;
-  g.init(0);
   for (int i = 0; i < g.boostZoneCount(); ++i) {
     auto p = g.boostZonePos(i);
     CHECK(p.row >= 1);
@@ -29,9 +24,8 @@ TEST_CASE("boost: zones within playable bounds")
   }
 }
 
-TEST_CASE("boost: zones avoid obstacles")
+TEST_CASE_FIXTURE(SnakeFixture, "boost: zones avoid obstacles")
 {
-  SnakeGame g;
   g.init(0, true);
   for (int bi = 0; bi < g.boostZoneCount(); ++bi) {
     auto bp = g.boostZonePos(bi);
@@ -43,9 +37,8 @@ TEST_CASE("boost: zones avoid obstacles")
   }
 }
 
-TEST_CASE("boost: zones avoid snake head")
+TEST_CASE_FIXTURE(SnakeFixture, "boost: zones avoid snake head")
 {
-  SnakeGame g;
   g.init(0, true);
   for (int i = 0; i < g.boostZoneCount(); ++i) {
     auto p = g.boostZonePos(i);
@@ -54,10 +47,8 @@ TEST_CASE("boost: zones avoid snake head")
   }
 }
 
-TEST_CASE("boost: consuming a zone activates boost")
+TEST_CASE_FIXTURE(SnakeFixture, "boost: consuming a zone activates boost")
 {
-  SnakeGame g;
-  g.init(0);
   auto zone = g.boostZonePos(0);
 
   // Step once: head moves from (12, 40) to (12, 41).
@@ -97,10 +88,8 @@ TEST_CASE("boost: consuming a zone activates boost")
   CHECK(g.boostActive());
 }
 
-TEST_CASE("boost: zone count decreases after consumption")
+TEST_CASE_FIXTURE(SnakeFixture, "boost: zone count decreases after consumption")
 {
-  SnakeGame g;
-  g.init(0);
   const int initialCount = g.boostZoneCount();
   REQUIRE(initialCount > 0);
 
@@ -140,10 +129,8 @@ TEST_CASE("boost: zone count decreases after consumption")
   }
 }
 
-TEST_CASE("boost: moveIntervalMs unchanged before any boost")
+TEST_CASE_FIXTURE(SnakeFixture, "boost: moveIntervalMs unchanged before any boost")
 {
-  SnakeGame g;
-  g.init(0);
   const int normal = g.moveIntervalMs();
 
   // Step multiple times without direction changes. Since boost zones are passive (no collision),
@@ -157,10 +144,8 @@ TEST_CASE("boost: moveIntervalMs unchanged before any boost")
   }
 }
 
-TEST_CASE("boost: moveIntervalMs decreases when boost active")
+TEST_CASE_FIXTURE(SnakeFixture, "boost: moveIntervalMs decreases when boost active")
 {
-  SnakeGame g;
-  g.init(0);
   const int normal = g.moveIntervalMs();
 
   auto zone = g.boostZonePos(0);
@@ -199,10 +184,8 @@ TEST_CASE("boost: moveIntervalMs decreases when boost active")
   }
 }
 
-TEST_CASE("boost: boost timer counts down with dtMs")
+TEST_CASE_FIXTURE(SnakeFixture, "boost: boost timer counts down with dtMs")
 {
-  SnakeGame g;
-  g.init(0);
   auto zone = g.boostZonePos(0);
   int r = 12, c = 41;
   g.step(0);
