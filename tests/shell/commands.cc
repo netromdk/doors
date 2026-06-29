@@ -1,5 +1,5 @@
+#include "ShellFixture.h"
 #include <doctest/doctest.h>
-#include <kernel/Shell.h>
 
 #include "TestHelpers.h"
 
@@ -18,7 +18,7 @@ void testHandler(int argc, const string *)
 
 } // namespace
 
-TEST_CASE("help_registered")
+TEST_CASE_FIXTURE(ShellFixture, "help_registered")
 {
   handlerCalled = false;
   Command cmd{"help", "show help", testHandler};
@@ -33,7 +33,7 @@ TEST_CASE("help_registered")
   CHECK(handlerArgc == 1);
 }
 
-TEST_CASE("echo_registered")
+TEST_CASE_FIXTURE(ShellFixture, "echo_registered")
 {
   handlerCalled = false;
   Command cmd{"echo", "echo test", testHandler};
@@ -48,7 +48,7 @@ TEST_CASE("echo_registered")
   CHECK(handlerArgc == 2);
 }
 
-TEST_CASE("panic_registered")
+TEST_CASE_FIXTURE(ShellFixture, "panic_registered")
 {
   handlerCalled = false;
   Command cmd{"panic", "trigger panic", testHandler};
@@ -63,7 +63,7 @@ TEST_CASE("panic_registered")
   CHECK(handlerArgc == 1);
 }
 
-TEST_CASE("panic_with_args")
+TEST_CASE_FIXTURE(ShellFixture, "panic_with_args")
 {
   handlerCalled = false;
   Command cmd{"panic", "trigger panic", testHandler};
