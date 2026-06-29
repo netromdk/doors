@@ -2,7 +2,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_compile_options(-O0 -Wall -Wextra -Wpedantic)
+add_compile_options(-O0 -Wall -Wextra -Wpedantic -Werror)
 
 if (VERBOSE_BUILD)
   set(CMAKE_VERBOSE_MAKEFILE ON)
