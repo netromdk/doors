@@ -152,6 +152,7 @@ doors_test_module(test_libcpp_algorithm_header
   libc++/algorithm/count_if.cc
   libc++/algorithm/copy.cc
   libc++/algorithm/swap_ranges.cc
+  libc++/algorithm/concepts.cc
 )
 
 doors_test_module(test_libcpp_array_header
