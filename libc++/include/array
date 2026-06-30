@@ -16,7 +16,8 @@ struct array {
   using iterator = T *;
   using const_iterator = const T *;
 
-  T elems_[N];
+  // Avoid a zero-length C array when `N==0` which Clang rejects at `-Wpedantic`.
+  T elems_[N ? N : 1];
 
   constexpr reference at(size_type i)
   {
@@ -50,12 +51,12 @@ struct array {
 
   constexpr reference back() noexcept
   {
-    return elems_[N - 1];
+    return elems_[N == 0 ? 0 : N - 1];
   }
 
   constexpr const_reference back() const noexcept
   {
-    return elems_[N - 1];
+    return elems_[N == 0 ? 0 : N - 1];
   }
 
   [[nodiscard]] constexpr pointer data() noexcept
