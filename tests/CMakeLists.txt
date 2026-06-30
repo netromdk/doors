@@ -33,6 +33,7 @@ add_library(libc++test STATIC
   ${DOORS_LIBC_SRC_DIR}/assert/assertFail.cc
   ${DOORS_LIBC_SRC_DIR}/stdio/putchar.cc
   ${DOORS_LIBC_SRC_DIR}/stdio/puts.cc
+  ${DOORS_LIBC_SRC_DIR}/stdio/format.cc
   ${DOORS_LIBC_SRC_DIR}/stdlib/abort.cc
   ${DOORS_LIBC_SRC_DIR}/stdlib/atoi.cc
   ${DOORS_LIBC_SRC_DIR}/stdlib/atol.cc
