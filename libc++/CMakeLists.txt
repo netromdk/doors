@@ -2,6 +2,7 @@ set(LIBCPP_SOURCES
   assert/assertFail.cc
   stdio/putchar.cc
   stdio/puts.cc
+  stdio/format.cc
   stdlib/abort.cc
   stdlib/atoi.cc
   stdlib/atol.cc

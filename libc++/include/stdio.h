@@ -184,74 +184,15 @@ inline void formatRaw(SnprintfBuf &buf, T value, char fmt)
   }
 }
 
-inline void formatRaw(SnprintfBuf &buf, const char *value, char)
-{
-  buf.writestr(value);
-}
-
-inline void formatRaw(SnprintfBuf &buf, char *value, char fmt)
-{
-  formatRaw(buf, (const char *) value, fmt);
-}
-
-inline void formatRaw(SnprintfBuf &buf, unsigned char value, char fmt)
-{
-  if (fmtIsChar(fmt)) {
-    buf.put(value);
-    return;
-  }
-  formatRaw(buf, static_cast<uint32_t>(value), fmt);
-}
-
-inline void formatRaw(SnprintfBuf &buf, char value, char fmt)
-{
-  if (fmtIsUnsigned(fmt)) {
-    formatRaw(buf, static_cast<unsigned char>(value), fmt);
-  }
-  else if (fmtIsChar(fmt)) {
-    buf.put(value);
-  }
-  else {
-    formatRaw(buf, static_cast<int>(value), fmt);
-  }
-}
-
-inline void formatRaw(SnprintfBuf &buf, bool value, char fmt)
-{
-  if (fmtIsBool(fmt)) {
-    buf.writestr(value ? "true" : "false");
-  }
-  else {
-    buf.writestr(value ? "1" : "0");
-  }
-}
-
-inline void formatRaw(SnprintfBuf &buf, const void *value, char)
-{
-  buf.put('0');
-  buf.put('x');
-  const unsigned long addr = reinterpret_cast<unsigned long>(value);
-  char tmp[65];
-  ltos(addr, tmp, 16, false);
-  for (char *p = tmp; *p; p++) {
-    buf.put(*p);
-  }
-}
-
-inline void formatRaw(SnprintfBuf &buf, const int *value, char fmt)
-{
-  formatRaw(buf, (const void *) value, fmt);
-}
-
-inline void formatRaw(SnprintfBuf &buf, int *value, char fmt)
-{
-  formatRaw(buf, (const void *) value, fmt);
-}
-
-inline void formatRaw(SnprintfBuf &buf, decltype(nullptr), char fmt)
-{
-  formatRaw(buf, (const void *) nullptr, fmt);
-}
+void formatRaw(SnprintfBuf &buf, const char *value, char);
+void formatRaw(SnprintfBuf &buf, char *value, char fmt);
+void formatRaw(SnprintfBuf &buf, unsigned char value, char fmt);
+void formatRaw(SnprintfBuf &buf, char value, char fmt);
+void formatRaw(SnprintfBuf &buf, bool value, char fmt);
+void formatRaw(SnprintfBuf &buf, const void *value, char);
+void formatRaw(SnprintfBuf &buf, const int *value, char fmt);
+void formatRaw(SnprintfBuf &buf, int *value, char fmt);
+void formatRaw(SnprintfBuf &buf, decltype(nullptr), char fmt);
 
 template <typename T>
 inline void formatPut(SnprintfBuf &buf, T value, char fmt, int width, bool left, char pad)
@@ -365,13 +306,7 @@ inline int sprintf(char *s, const char *format, Args... args)
   return snprintf(s, static_cast<size_t>(-1), format, args...);
 }
 
-inline int printf(const char *format)
-{
-  char buf[2048];
-  const int n = snprintf(buf, sizeof(buf), format);
-  puts(buf);
-  return n;
-}
+int printf(const char *format);
 
 template <typename T, typename... Args>
 inline int printf(const char *format, T value, Args... args)
