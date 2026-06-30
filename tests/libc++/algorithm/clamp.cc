@@ -65,3 +65,9 @@ TEST_CASE("clamp returns reference to value when hi equals v")
   const int v = 5, a = 1;
   CHECK(&clamp(v, a, v) == &v);
 }
+
+TEST_CASE("clamp constexpr")
+{
+  constexpr int result = clamp(5, 1, 10);
+  CHECK(result == 5);
+}
