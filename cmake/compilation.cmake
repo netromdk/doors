@@ -2,7 +2,31 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_compile_options(-O0 -Wall -Wextra -Wpedantic -Werror)
+# Build-type-specific flags.
+if (DOORS_BUILD_TYPE STREQUAL "Release")
+  add_compile_options(
+    -O2 -DNDEBUG
+
+    # Keep EBP frame pointer. Doors' Backtrace unwinder walks the saved-EBP chain. Without this flag
+    # GCC uses EBP as a general-purpose register and the backtrace becomes unreliable or silent.
+    -fno-omit-frame-pointer
+
+    # Signed integer overflow wraps in two's complement instead of being UB. GCC otherwise assumes
+    # signed overflow never happens, which can silently remove overflow-dependent logic at -O2.
+    -fwrapv
+
+    # Disable type-based alias analysis. Doors dereferences hardware registers through pointers of
+    # different types, like VGA RAM, which violates strict aliasing. Without this flag those
+    # accesses may be miscompiled at -O2.
+    -fno-strict-aliasing
+  )
+  message(STATUS "Build type: Release (-O2)")
+else()
+  add_compile_options(-O0 -g)
+  message(STATUS "Build type: Debug (-O0)")
+endif()
+
+add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 
 if (VERBOSE_BUILD)
   set(CMAKE_VERBOSE_MAKEFILE ON)

@@ -41,4 +41,4 @@ ninja test
 ninja run
 ```
 
-Other presets: `serial-debug`, `sanitize` (see `cmake --list-presets`).
+Other presets: `release`, `serial-debug`, `sanitize` (see `cmake --list-presets`).
