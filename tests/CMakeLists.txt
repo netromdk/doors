@@ -11,7 +11,7 @@ else()
   add_compile_options(-O0 -g)
 endif()
 
-add_compile_options(-Wall -Wextra)
+add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 
 if (SANITIZERS)
   string(REPLACE ";" "," _san_flag "${SANITIZERS}")
