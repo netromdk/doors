@@ -5,6 +5,20 @@
 #include <sys/cdefs.h>
 
 template <typename T>
+concept InputIterator = requires(T it, const T cit) {
+  *it;
+  *cit;
+  ++it;
+  it != it;
+};
+
+template <typename T>
+concept ForwardIterator = InputIterator<T> && requires(T it) { it++; };
+
+template <typename F, typename T>
+concept Predicate = requires(F f, T t) { f(t); };
+
+template <typename T>
 constexpr inline const T &min(const T &a, const T &b)
 {
   return a < b ? a : b;
@@ -30,7 +44,7 @@ constexpr inline void swap(T &a, T &b)
   a = tmp;
 }
 
-template <typename ForwardIt1, typename ForwardIt2>
+template <ForwardIterator ForwardIt1, ForwardIterator ForwardIt2>
 constexpr ForwardIt2 swap_ranges(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2)
 {
   for (; first1 != last1; ++first1, ++first2) {
@@ -39,7 +53,7 @@ constexpr ForwardIt2 swap_ranges(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2
   return first2;
 }
 
-template <typename InputIt, typename T>
+template <InputIterator InputIt, typename T>
 constexpr InputIt find(InputIt first, InputIt last, const T &value)
 {
   for (; first != last; ++first) {
@@ -50,7 +64,7 @@ constexpr InputIt find(InputIt first, InputIt last, const T &value)
   return last;
 }
 
-template <typename InputIt, typename Pred>
+template <InputIterator InputIt, Predicate<decltype(*InputIt{})> Pred>
 constexpr InputIt find_if(InputIt first, InputIt last, Pred pred)
 {
   for (; first != last; ++first) {
@@ -61,7 +75,7 @@ constexpr InputIt find_if(InputIt first, InputIt last, Pred pred)
   return last;
 }
 
-template <typename InputIt, typename Pred>
+template <InputIterator InputIt, Predicate<decltype(*InputIt{})> Pred>
 constexpr bool all_of(InputIt first, InputIt last, Pred pred)
 {
   for (; first != last; ++first) {
@@ -72,7 +86,7 @@ constexpr bool all_of(InputIt first, InputIt last, Pred pred)
   return true;
 }
 
-template <typename InputIt, typename Pred>
+template <InputIterator InputIt, Predicate<decltype(*InputIt{})> Pred>
 constexpr bool any_of(InputIt first, InputIt last, Pred pred)
 {
   for (; first != last; ++first) {
@@ -83,7 +97,7 @@ constexpr bool any_of(InputIt first, InputIt last, Pred pred)
   return false;
 }
 
-template <typename InputIt, typename Pred>
+template <InputIterator InputIt, Predicate<decltype(*InputIt{})> Pred>
 constexpr bool none_of(InputIt first, InputIt last, Pred pred)
 {
   for (; first != last; ++first) {
@@ -94,7 +108,7 @@ constexpr bool none_of(InputIt first, InputIt last, Pred pred)
   return true;
 }
 
-template <typename It, typename T>
+template <ForwardIterator It, typename T>
 constexpr void fill(It first, It last, const T &value)
 {
   for (; first != last; ++first) {
@@ -102,7 +116,7 @@ constexpr void fill(It first, It last, const T &value)
   }
 }
 
-template <typename It, typename N, typename T>
+template <ForwardIterator It, typename N, typename T>
 constexpr It fill_n(It first, N count, const T &value)
 {
   for (N i = 0; i < count; ++i) {
@@ -111,7 +125,7 @@ constexpr It fill_n(It first, N count, const T &value)
   return first;
 }
 
-template <typename InputIt, typename Pred>
+template <InputIterator InputIt, Predicate<decltype(*InputIt{})> Pred>
 constexpr size_t count_if(InputIt first, InputIt last, Pred pred)
 {
   size_t count = 0;
@@ -123,7 +137,7 @@ constexpr size_t count_if(InputIt first, InputIt last, Pred pred)
   return count;
 }
 
-template <typename InputIt, typename OutputIt>
+template <InputIterator InputIt, InputIterator OutputIt>
 constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first)
 {
   for (; first != last; ++first, ++d_first) {
@@ -132,7 +146,7 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first)
   return d_first;
 }
 
-template <typename InputIt, typename N, typename OutputIt>
+template <InputIterator InputIt, typename N, InputIterator OutputIt>
 constexpr OutputIt copy_n(InputIt first, N count, OutputIt result)
 {
   for (N i = 0; i < count; ++i) {
