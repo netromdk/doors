@@ -18,3 +18,12 @@ TEST_CASE("any_of empty")
   int arr[] = {1, 2, 3};
   CHECK(!any_of(arr, arr, [](int) { return true; }));
 }
+
+TEST_CASE("any_of constexpr")
+{
+  constexpr auto result = [] {
+    const int arr[] = {1, 3, 5, 6, 7};
+    return any_of(arr, arr + 5, [](int x) { return x % 2 == 0; });
+  }();
+  CHECK(result);
+}

@@ -87,3 +87,23 @@ TEST_CASE("fill_n structs")
   CHECK(pts[1].x == 0);
   CHECK(pts[2].y == 0);
 }
+
+TEST_CASE("fill constexpr")
+{
+  constexpr auto result = [] {
+    int arr[4] = {1, 2, 3, 4};
+    fill(arr, arr + 4, 99);
+    return arr[0] + arr[1] + arr[2] + arr[3];
+  }();
+  CHECK(result == 396);
+}
+
+TEST_CASE("fill_n constexpr")
+{
+  constexpr auto result = [] {
+    int arr[4] = {};
+    fill_n(arr, 4, 42);
+    return arr[0] + arr[3];
+  }();
+  CHECK(result == 84);
+}

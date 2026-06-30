@@ -99,3 +99,13 @@ TEST_CASE("find_if pointer to member")
   auto notFound = find_if(pts, pts + 3, [](const Point &p) { return p.x == 99; });
   CHECK(notFound == pts + 3);
 }
+
+TEST_CASE("find constexpr")
+{
+  constexpr auto result = [] {
+    const int arr[] = {10, 20, 30, 40};
+    const auto it = find(arr, arr + 4, 30);
+    return *it;
+  }();
+  CHECK(result == 30);
+}
