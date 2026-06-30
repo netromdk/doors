@@ -52,8 +52,8 @@ struct SnprintfBuf {
 
 namespace {
 
-inline void emitPadded(SnprintfBuf &buf, const char *str, size_t len,
-                       int width, bool left, char pad)
+inline void emitPadded(SnprintfBuf &buf, const char *str, size_t len, int width, bool left,
+                       char pad)
 {
   if (width > 0 && static_cast<size_t>(width) > len) {
     const size_t plen = static_cast<size_t>(width) - len;
@@ -103,121 +103,119 @@ constexpr bool fmtIsBool(char fmt)
   return fmt == 'b';
 }
 
+} // anonymous namespace
+
+// The following concepts work in `-ffreestanding` and rely on operand semantics rather than
+// compiler built-in type traits. And they require no <type_traits>, which has not been implemented
+// yet.
+
+// `a % b` is valid for integral and enum types. It is rejected for pointer/float/string types.
 template <typename T>
-inline void formatRaw(SnprintfBuf & /*buf*/, T /*value*/, char /*fmt*/)
+concept Integer = requires(T a, T b) { a % b; };
+
+// For unsigned types, `T(-1)` wraps to the maximum representable value (> 0).
+// And for signed types, `T(-1)` is -1 (< 0).
+
+template <typename T>
+concept UnsignedInteger = Integer<T> && requires(T a) { requires T(-1) > T(0); };
+
+template <typename T>
+concept SignedInteger = Integer<T> && requires(T a) { requires T(-1) < T(0); };
+
+// Catches all integer types (signed and unsigned, any size) in one template, eliminating 12+
+// explicit specializations. Implicit conversion overloads would be ambiguous across 32- (OS) /
+// 64-bit (host) and require nearly as many overloads as before. Non-integer types (char, bool,
+// pointers, strings) are rejected by the `requires` clause and fall through to their non-template
+// overloads.
+template <typename T>
+  requires UnsignedInteger<T> || SignedInteger<T>
+inline void formatRaw(SnprintfBuf &buf, T value, char fmt)
 {
-  assert(false);
+  // Unsigned integer
+  if constexpr (T(-1) > T(0)) {
+    if constexpr (sizeof(T) <= sizeof(uint32_t)) {
+      char tmp[65];
+      utos(static_cast<uint32_t>(value), tmp, fmtToBase(fmt), isupper(fmt));
+      for (char *p = tmp; *p; p++) {
+        buf.put(*p);
+      }
+    }
+    else {
+      char tmp[65];
+      ltos(value, tmp, fmtToBase(fmt), isupper(fmt));
+      for (char *p = tmp; *p; p++) {
+        buf.put(*p);
+      }
+    }
+  }
+
+  // Signed integer.
+  else {
+    if (fmtIsUnsigned(fmt)) {
+      if constexpr (sizeof(T) <= sizeof(uint32_t)) {
+        formatRaw(buf, static_cast<uint32_t>(value), fmt);
+      }
+      else {
+        formatRaw(buf, static_cast<uint64_t>(value), fmt);
+      }
+      return;
+    }
+    if constexpr (sizeof(T) <= sizeof(int)) {
+      char tmp[65];
+      itos(static_cast<int>(value), tmp, fmtToBase(fmt), isupper(fmt));
+      for (char *p = tmp; *p; p++) {
+        buf.put(*p);
+      }
+    }
+    else {
+      // 64-bit signed: handle negative sign manually since `ltos` takes `uint64_t`.
+      bool negative = value < T(0);
+      uint64_t abs_val = negative ? -static_cast<uint64_t>(value) : static_cast<uint64_t>(value);
+      char tmp[65];
+      char *out = tmp;
+      if (negative) {
+        *out++ = '-';
+      }
+      ltos(abs_val, out, fmtToBase(fmt), isupper(fmt));
+      for (char *p = tmp; *p; p++) {
+        buf.put(*p);
+      }
+    }
+  }
 }
 
-template <>
 inline void formatRaw(SnprintfBuf &buf, const char *value, char)
 {
   buf.writestr(value);
 }
 
-template <>
 inline void formatRaw(SnprintfBuf &buf, char *value, char fmt)
 {
   formatRaw(buf, (const char *) value, fmt);
 }
 
-template <>
-inline void formatRaw(SnprintfBuf &buf, uint32_t value, char fmt)
-{
-  char tmp[65];
-  utos(value, tmp, fmtToBase(fmt), isupper(fmt));
-  for (char *p = tmp; *p; p++) {
-    buf.put(*p);
-  }
-}
-
-template <>
-inline void formatRaw(SnprintfBuf &buf, int value, char fmt)
-{
-  if (fmtIsUnsigned(fmt)) {
-    formatRaw(buf, (uint32_t) value, fmt);
-    return;
-  }
-  char tmp[65];
-  itos(value, tmp, fmtToBase(fmt), isupper(fmt));
-  for (char *p = tmp; *p; p++) {
-    buf.put(*p);
-  }
-}
-
-template <>
 inline void formatRaw(SnprintfBuf &buf, unsigned char value, char fmt)
 {
   if (fmtIsChar(fmt)) {
     buf.put(value);
     return;
   }
-  formatRaw(buf, (uint32_t) value, fmt);
+  formatRaw(buf, static_cast<uint32_t>(value), fmt);
 }
 
-template <>
 inline void formatRaw(SnprintfBuf &buf, char value, char fmt)
 {
   if (fmtIsUnsigned(fmt)) {
-    formatRaw(buf, (unsigned char) value, fmt);
+    formatRaw(buf, static_cast<unsigned char>(value), fmt);
   }
   else if (fmtIsChar(fmt)) {
     buf.put(value);
   }
   else {
-    formatRaw(buf, (int) value, fmt);
+    formatRaw(buf, static_cast<int>(value), fmt);
   }
 }
 
-template <>
-inline void formatRaw(SnprintfBuf &buf, int16_t value, char fmt)
-{
-  formatRaw(buf, (int) value, fmt);
-}
-
-template <>
-inline void formatRaw(SnprintfBuf &buf, uint16_t value, char fmt)
-{
-  formatRaw(buf, (uint32_t) value, fmt);
-}
-
-template <>
-inline void formatRaw(SnprintfBuf &buf, unsigned long value, char fmt)
-{
-  formatRaw(buf, (uint32_t) value, fmt);
-}
-
-template <>
-inline void formatRaw(SnprintfBuf &buf, long value, char fmt)
-{
-  formatRaw(buf, (int) value, fmt);
-}
-
-template <>
-inline void formatRaw(SnprintfBuf &buf, uint64_t value, char fmt)
-{
-  char tmp[65];
-  ltos(value, tmp, fmtToBase(fmt), isupper(fmt));
-  for (char *p = tmp; *p; p++) {
-    buf.put(*p);
-  }
-}
-
-template <>
-inline void formatRaw(SnprintfBuf &buf, int64_t value, char fmt)
-{
-  if (fmtIsUnsigned(fmt)) {
-    formatRaw(buf, (uint64_t) value, fmt);
-    return;
-  }
-  char tmp[65];
-  ltos(value, tmp, fmtToBase(fmt), isupper(fmt));
-  for (char *p = tmp; *p; p++) {
-    buf.put(*p);
-  }
-}
-
-template <>
 inline void formatRaw(SnprintfBuf &buf, bool value, char fmt)
 {
   if (fmtIsBool(fmt)) {
@@ -228,7 +226,6 @@ inline void formatRaw(SnprintfBuf &buf, bool value, char fmt)
   }
 }
 
-template <>
 inline void formatRaw(SnprintfBuf &buf, const void *value, char)
 {
   buf.put('0');
@@ -241,20 +238,16 @@ inline void formatRaw(SnprintfBuf &buf, const void *value, char)
   }
 }
 
-// Pointer types used with `%p`, delegate to `const void*` handler.
-template <>
 inline void formatRaw(SnprintfBuf &buf, const int *value, char fmt)
 {
   formatRaw(buf, (const void *) value, fmt);
 }
 
-template <>
 inline void formatRaw(SnprintfBuf &buf, int *value, char fmt)
 {
   formatRaw(buf, (const void *) value, fmt);
 }
 
-template <>
 inline void formatRaw(SnprintfBuf &buf, decltype(nullptr), char fmt)
 {
   formatRaw(buf, (const void *) nullptr, fmt);
@@ -280,8 +273,6 @@ inline void formatPut(SnprintfBuf &buf, const char *value, char, int width, bool
   }
   emitPadded(buf, value, len, width, left, ' ');
 }
-
-} // anonymous namespace
 
 inline void walkFormat(SnprintfBuf &buf, const char *format)
 {
