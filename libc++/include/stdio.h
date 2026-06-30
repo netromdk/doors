@@ -303,7 +303,14 @@ inline int snprintf(char *s, size_t n, const char *format, Args... args)
 template <typename... Args>
 inline int sprintf(char *s, const char *format, Args... args)
 {
-  return snprintf(s, static_cast<size_t>(-1), format, args...);
+  // Call `walkFormat()` directly instead of delegating to `snprintf()` with `SIZE_MAX`
+  // (-1). `snprintf`'s overflow branch uses `s[n-1]` which triggers `-Warray-bounds` at -O2 when
+  // `n` is `SIZE_MAX`, even though that branch is unreachable (`SnprintfBuf` with unlimited
+  // capacity never overflows).
+  detail::SnprintfBuf buf{s, static_cast<size_t>(-1)};
+  detail::walkFormat(buf, format, args...);
+  s[buf.pos_] = '\0';
+  return static_cast<int>(buf.pos_);
 }
 
 int printf(const char *format);
