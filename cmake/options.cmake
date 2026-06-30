@@ -25,3 +25,6 @@ option(KERNEL_UBSAN
 option(CAPS_LOCK_IS_CTRL
   "Remap Caps Lock to Left Control (compile-time)"
   OFF)
+
+set(DOORS_BUILD_TYPE "Debug" CACHE STRING
+  "Build type: Debug or Release")
