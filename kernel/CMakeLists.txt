@@ -114,7 +114,7 @@ function(add_kernel_target TARGET_NAME SYMBOL_TABLE_FILE)
 
   target_link_options(${TARGET_NAME} PRIVATE
     -T "${LINKER_SCRIPT}"
-    -O0 -ffreestanding -fno-exceptions -fno-rtti -nostdlib
+    -ffreestanding -fno-exceptions -fno-rtti -nostdlib
     "${CRTI_OBJ}"
     "${CRTBEGIN_OBJ}")
 
