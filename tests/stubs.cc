@@ -87,6 +87,7 @@ __attribute__((weak)) void Kbd::clearNavigation()
 }
 
 // Empty symbol table for test builds that link kernel/Panic.cc.
+// Avoid a zero-length C array which Clang rejects at `-Wpedantic`.
 #include <kernel/Symbols.h>
-const SymbolEntry symbol_table[] = {};
+const SymbolEntry symbol_table[1] = {};
 const int symbol_table_count = 0;
