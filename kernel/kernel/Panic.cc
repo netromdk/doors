@@ -97,7 +97,7 @@ void readCpuState(CpuState *state)
   sp->ss = ss_v;
 #endif // !__x86_64__
 
-#ifdef __IS_DOORS_KERNEL
+#if defined(__IS_DOORS_KERNEL) && defined(__i386__)
   // CPU control registers require ring 0, and would otherwise raise a General Protection Fault.
   uint32_t cr0_v, cr2_v, cr3_v;
   __asm__ __volatile__("mov %%cr0, %0\n"

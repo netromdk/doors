@@ -296,7 +296,7 @@ optional<int> Scheduler::addTaskAndBlock(string_view name, void (*entry)())
   // the quantum, and thus eliminating up to ~20 ms of dead time.
   const auto next = findNext();
   if (next) {
-#ifdef __IS_DOORS_KERNEL
+#if defined(__IS_DOORS_KERNEL) && defined(__i386__)
     const uint32_t esp = switchTo(*next);
 
     // Unlike the timer ISR path (asmIntTick -> intTick -> tick -> switchTo -> %eax -> movl %esp),
