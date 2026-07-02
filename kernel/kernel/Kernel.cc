@@ -17,12 +17,15 @@
 #include <kernel/Heap.h>
 #include <kernel/Mem.h>
 #include <kernel/Multiboot.h>
+#include <kernel/Pmm.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Serial.h>
-#include <kernel/Taskbar.h>
 #include <kernel/Shell.h>
+#include <kernel/Taskbar.h>
 #include <kernel/Tty.h>
 #include <kernel/Version.h>
+
+#include <arch/i386/Paging.h>
 
 constinit multiboot_info *mbi = nullptr;
 
@@ -65,12 +68,27 @@ void kmain()
   // accessible.
   Acpi::disable();
 
-  // Seed the heap from `_kernel_end` (Linker.ld) to the top of the first available upper-memory
-  // chunk.
-  extern char _kernel_end[];
+  Pmm::init();
+
+  extern char _kernel_end[]; // Linker.ld
   void *heapStart = reinterpret_cast<void *>(_kernel_end);
   size_t heapSize = Mem::availableAbove(heapStart);
+
+  // Calculate the top of the identity-mapped region. Must cover the kernel image, VGA buffer, the
+  // entire future heap, and the page tables themselves. Round up to the next 4 KiB boundary.
+  const auto heapTop = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(heapStart) + heapSize);
+  auto identityMapEnd = heapTop;
+  if (identityMapEnd < 4UL * 1024 * 1024) {
+    identityMapEnd = 4UL * 1024 * 1024;
+  }
+
+  Paging::init(identityMapEnd);
+
+  // With paging active, reserve the heap's physical pages in PMM so the page-level allocator never
+  // hands them out while the byte-level heap uses them.
   if (heapSize > 0) {
+    Pmm::reserveRegion(heapStart,
+                       reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(heapStart) + heapSize));
     Heap::init({reinterpret_cast<uint8_t *>(heapStart), heapSize});
   }
   else {
