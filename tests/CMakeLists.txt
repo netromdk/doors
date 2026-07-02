@@ -333,3 +333,9 @@ doors_test_module(test_kernel_cpu
   cpu/InterruptGuard.cc
   cpu/CpuStub.cc
 )
+
+doors_test_module(test_kernel_paging
+  paging/ClonePageDir.cc
+  paging/PagingStub.cc
+  paging/PmmStub.cc
+)
