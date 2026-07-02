@@ -1,4 +1,7 @@
+#include <cstdint>
+
 #include <arch/i386/Pic.h>
+#include <kernel/Cpu.h>
 #include <kernel/Io.h>
 #include <kernel/Kbd.h>
 #include <kernel/Tty.h>
@@ -16,16 +19,32 @@ void Pic::setMask(uint8_t, bool)
 {
 }
 
-void Pic::enableInt()
-{
-}
-
-void Pic::disableInt()
-{
-}
-
 // Weak stubs so test targets, that also link the real kernel source code (like Tty.cc and target
 // test_tty), pick up the real implementations instead. But otherwise they are stubs.
+
+__attribute__((weak)) uint32_t Cpu::getEflags()
+{
+  // This value is what an actual x86 CPU would return with interrupts enabled.
+  // 0x202 = bit 9 (IF, interrupts enabled) | bit 1 (always 1).
+  return 0x202;
+}
+
+__attribute__((weak)) void Cpu::setEflags(uint32_t)
+{
+}
+
+__attribute__((weak)) void Cpu::disableInterrupts()
+{
+}
+
+__attribute__((weak)) void Cpu::enableInterrupts()
+{
+}
+
+__attribute__((weak)) bool Cpu::interruptsEnabled()
+{
+  return true;
+}
 
 __attribute__((weak)) void Tty::cursorEnable()
 {
