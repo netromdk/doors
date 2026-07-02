@@ -438,3 +438,39 @@ void Cpu::enableInterrupts()
 {
   __asm__("sti" : : : "cc");
 }
+
+uint32_t Cpu::readCr0()
+{
+  uint32_t value;
+  __asm__("mov %%cr0, %0" : "=r"(value));
+  return value;
+}
+
+void Cpu::writeCr0(uint32_t value)
+{
+  __asm__("mov %0, %%cr0" : : "r"(value) : "memory");
+}
+
+uint32_t Cpu::readCr2()
+{
+  uint32_t value;
+  __asm__("mov %%cr2, %0" : "=r"(value));
+  return value;
+}
+
+uint32_t Cpu::readCr3()
+{
+  uint32_t value;
+  __asm__("mov %%cr3, %0" : "=r"(value));
+  return value;
+}
+
+void Cpu::writeCr3(uint32_t value)
+{
+  __asm__("mov %0, %%cr3" : : "r"(value) : "memory");
+}
+
+void Cpu::invlpg(uint32_t virtAddr)
+{
+  __asm__("invlpg (%0)" : : "r"(virtAddr) : "memory");
+}

@@ -77,6 +77,20 @@ public:
    */
   static void disableInterrupts();
   static void enableInterrupts();
+
+  /**
+   * Read/write control registers for paging.
+   */
+  static uint32_t readCr0();
+  static void writeCr0(uint32_t value);
+  static uint32_t readCr2();
+  static uint32_t readCr3();
+  static void writeCr3(uint32_t value);
+
+  /**
+   * Flush a single 4 KiB page from the TLB.
+   */
+  static void invlpg(uint32_t virtAddr);
 };
 
 #endif // KERNEL_CPU_H
