@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #include <kernel/Heap.h>
+#include <kernel/InterruptGuard.h>
 
 namespace {
 
@@ -111,6 +112,8 @@ void *Heap::alloc(size_t size)
     return nullptr;
   }
 
+  InterruptGuard guard;
+
   // Total size needed: header + usable space, rounded up.
   size_t needed = sizeof(Header) + alignUp(size, 4);
   if (needed < Heap::MIN_BLOCK) {
@@ -188,6 +191,8 @@ void Heap::free(void *ptr)
   if (ptr == nullptr) {
     return;
   }
+
+  InterruptGuard guard;
 
   auto *hdr = reinterpret_cast<Header *>(reinterpret_cast<size_t>(ptr) - sizeof(Header));
 

@@ -2,29 +2,21 @@
 #include <utility>
 #include <volatile.h>
 
+#include <kernel/InterruptGuard.h>
 #include <kernel/Semaphore.h>
 
 void Semaphore::wait()
 {
-  // Disable interrupts.
-#ifdef __IS_DOORS_KERNEL
-  __asm__("cli");
-#endif
+  InterruptGuard guard;
 
-  // Enable interrupts when `count_ > 0` and return.
+  // Non-zero count: decrement and return.
   if (volatileLoad(count_) > 0) {
     volatileStore(count_, volatileLoad(count_) - 1);
-#ifdef __IS_DOORS_KERNEL
-    __asm__("sti");
-#endif
     return;
   }
 
-  // Scheduler not yet initialized. Early boot fallback and enable interrupts.
+  // Scheduler not yet initialized: early boot fallback.
   if (Scheduler::taskCount() == 0) {
-#ifdef __IS_DOORS_KERNEL
-    __asm__("sti");
-#endif
     return;
   }
 
@@ -49,9 +41,7 @@ void Semaphore::wait()
 
 void Semaphore::signal()
 {
-#ifdef __IS_DOORS_KERNEL
-  __asm__("cli");
-#endif
+  InterruptGuard guard;
 
   if (waitCount_ > 0) {
     // Wake the longest-waiting task. Take the first and shift the rest to one the left, such that
@@ -64,8 +54,4 @@ void Semaphore::signal()
   else {
     volatileStore(count_, volatileLoad(count_) + 1);
   }
-
-#ifdef __IS_DOORS_KERNEL
-  __asm__("sti");
-#endif
 }
