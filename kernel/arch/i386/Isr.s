@@ -16,7 +16,16 @@ EXCHANDLER InvOp
 EXCHANDLER SegNp
 EXCHANDLER Sf
 EXCHANDLER Gp
-EXCHANDLER Pf
+.globl asmExcPf
+.align 4
+asmExcPf:
+        pushal                  // Save 8 GP regs (32 bytes).
+        cld
+        pushl %esp              // Pass post-pushal esp as argument.
+        call  excPf
+        addl  $4, %esp          // Pop argument.
+        popal
+        iret
 
 .macro INTHANDLER name
 .globl asmInt\name
