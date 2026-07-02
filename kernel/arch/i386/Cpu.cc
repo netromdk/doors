@@ -418,3 +418,23 @@ uint32_t Cpu::getEflags()
           : "=a"(flags));
   return flags;
 }
+
+void Cpu::setEflags(uint32_t eflags)
+{
+  __asm__("push %0; popfl" : : "r"(eflags) : "cc", "memory");
+}
+
+bool Cpu::interruptsEnabled()
+{
+  return getEflags() & (1 << 9);
+}
+
+void Cpu::disableInterrupts()
+{
+  __asm__("cli" : : : "cc");
+}
+
+void Cpu::enableInterrupts()
+{
+  __asm__("sti" : : : "cc");
+}

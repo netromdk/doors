@@ -62,9 +62,21 @@ public:
   static uint32_t getCyclesPrFDiv();
 
   /**
-   * Read the contents of the EFLAGS register.
+   * Read/write the EFLAGS register.
    */
   static uint32_t getEflags();
+  static void setEflags(uint32_t eflags);
+
+  /**
+   * Read/query interrupt state.
+   */
+  static bool interruptsEnabled();
+
+  /**
+   * Disable/enable interrupts.
+   */
+  static void disableInterrupts();
+  static void enableInterrupts();
 };
 
 #endif // KERNEL_CPU_H

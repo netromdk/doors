@@ -1,3 +1,4 @@
+#include <kernel/Cpu.h>
 #include <kernel/Pit.h>
 #include <kernel/Scheduler.h>
 #include <programs/api/Input.h>
@@ -146,7 +147,7 @@ void snakeMain()
   Screen::restore();
   Screen::cursorShow();
 
-  __asm__("cli");
+  Cpu::disableInterrupts();
   Scheduler::unblockTask(shellTaskId_);
   Scheduler::exitCurrentTask();
 }

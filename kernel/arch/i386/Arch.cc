@@ -33,8 +33,8 @@ void Arch::init(multiboot_info *mbi)
     abort();
   }
 
-  if (Pic::isIntEnabled()) {
-    Pic::disableInt();
+  if (Cpu::interruptsEnabled()) {
+    Cpu::disableInterrupts();
   }
 
   printf(" GDT");
@@ -57,7 +57,7 @@ void Arch::init(multiboot_info *mbi)
 
 void Arch::start()
 {
-  Pic::enableInt();
+  Cpu::enableInterrupts();
   for (;;) {
   }
 }

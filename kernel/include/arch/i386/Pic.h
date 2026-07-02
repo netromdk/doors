@@ -89,10 +89,6 @@ class Pic {
 public:
   static void init();
 
-  static void enableInt();
-  static void disableInt();
-  static bool isIntEnabled();
-
   /**
    * Acknowledge interrupt to PIC (by sending end-of-interrupt) so it
    * will process new/pending ones.

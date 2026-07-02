@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <arch/i386/Pic.h>
 #include <cstdint>
+#include <kernel/Cpu.h>
 #include <cstdio>
 #include <kernel/Backtrace.h>
 #include <kernel/Panic.h>
@@ -130,7 +131,7 @@ void dumpCpuState(const CpuState *state)
 
 [[noreturn]] void panic(string_view msg)
 {
-  Pic::disableInt();
+  Cpu::disableInterrupts();
 
 #ifdef __IS_DOORS_KERNEL
   Tty::setColor(vgaColor(COLOR_RED, COLOR_BLACK));

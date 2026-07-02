@@ -1,4 +1,5 @@
 #include <arch/i386/Pic.h>
+#include <kernel/Cpu.h>
 #include <kernel/Io.h>
 
 void Pic::init()
@@ -25,27 +26,6 @@ void Pic::init()
   // Restore masks.
   Io::outb(PIC1_DATA, mask1);
   Io::outb(PIC2_DATA, mask2);
-}
-
-void Pic::enableInt()
-{
-  // Set interrupt-enable flag to enable interrupts.
-  __asm__("sti");
-}
-
-void Pic::disableInt()
-{
-  // Clear interrupt-enable flag to disable interrupts.
-  __asm__("cli");
-}
-
-bool Pic::isIntEnabled()
-{
-  uint32_t flags;
-  __asm__("pushf;"
-          "pop %0;"
-          : "=g"(flags));
-  return flags & (1 << 9);
 }
 
 void Pic::sendEoi()

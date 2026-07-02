@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #include <arch/i386/Pic.h>
+#include <kernel/Cpu.h>
 #include <kernel/Kbd.h>
 #include <kernel/Shell.h>
 #include <kernel/Tty.h>
@@ -22,7 +23,7 @@ int Shell::numCmds = 0;
 
 void Shell::run()
 {
-  Pic::enableInt();
+  Cpu::enableInterrupts();
   Tty::cursorEnable();
   string line;
   array<string, 16> argv;
