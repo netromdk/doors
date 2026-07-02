@@ -101,6 +101,20 @@ __attribute__((weak)) void Tty::scrollbackLineDown()
 {
 }
 
+__attribute__((weak)) void Tty::setColor(uint8_t)
+{
+}
+
+__attribute__((weak)) void Tty::lock()
+{
+}
+
+__attribute__((weak)) void Tty::unlock()
+{
+}
+
+__attribute__((weak)) uint16_t *VGA_RAM = nullptr;
+
 __attribute__((weak)) void Kbd::clearNavigation()
 {
 }

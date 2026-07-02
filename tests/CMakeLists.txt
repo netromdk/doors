@@ -328,3 +328,8 @@ doors_test_module(test_kernel_snake
 target_include_directories(test_kernel_snake PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/../kernel"
 )
+
+doors_test_module(test_kernel_cpu
+  cpu/InterruptGuard.cc
+  cpu/CpuStub.cc
+)
