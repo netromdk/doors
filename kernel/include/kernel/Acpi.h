@@ -107,6 +107,8 @@ public:
   static bool init();
   static bool isSupported();
   static Fadt *getFadt();
+  static uint8_t centuryRegister();
+  static void disable();
 };
 
 #endif // KERNEL_ACPI_H

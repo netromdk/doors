@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstring>
 
+#include <kernel/Acpi.h>
 #include <kernel/Arch.h>
 #include <kernel/Commands.h>
 #include <kernel/Heap.h>
@@ -58,6 +59,11 @@ void kmain()
 #endif
 
   Arch::init(mbi);
+
+  // Invalidate all pre-paging ACPI physical pointers so they can never be dereferenced through the
+  // identity map. The century register is already cached during `Acpi::init()` and remains
+  // accessible.
+  Acpi::disable();
 
   // Seed the heap from `_kernel_end` (Linker.ld) to the top of the first available upper-memory
   // chunk.

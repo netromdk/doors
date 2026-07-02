@@ -96,7 +96,7 @@ void readRtcValues()
   year = comps[5];
 
   // If CMOS supports it, read the year from there, otherwise use `THIS_CENTURY` as fallback.
-  if (const auto *fadt = Acpi::getFadt(); fadt != nullptr && fadt->century != 0) {
+  if (Acpi::isSupported() && Acpi::centuryRegister() != 0) {
     year += comps[6] * 100;
   }
   else {

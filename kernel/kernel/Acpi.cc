@@ -13,6 +13,7 @@ namespace {
 static constinit Rsd *rsdp = nullptr;
 static constinit Rsdt *rsdt = nullptr;
 static constinit Fadt *fadt = nullptr;
+static constinit uint8_t centuryReg = 0;
 
 Rsd *detectRsdp()
 {
@@ -121,6 +122,10 @@ bool Acpi::init()
     return false;
   }
 
+  // Cache the century register value before paging is enabled. The FADT pointer is a physical
+  // address that may not be identity-mapped later.
+  centuryReg = fadt->century;
+
   if (fadt->smiCommandPort != 0 && fadt->acpiEnable != 0 && fadt->acpiDisable != 0) {
     printf("+");
     Io::outb(fadt->smiCommandPort, fadt->acpiEnable);
@@ -137,4 +142,19 @@ bool Acpi::isSupported()
 Fadt *Acpi::getFadt()
 {
   return fadt;
+}
+
+uint8_t Acpi::centuryRegister()
+{
+  return centuryReg;
+}
+
+void Acpi::disable()
+{
+  // Null out the stale physical pointers so they can never be dereferenced after paging is
+  // enabled. The century register is cached during `init()` and remains available via
+  // `centuryRegister()`.
+  rsdp = nullptr;
+  rsdt = nullptr;
+  fadt = nullptr;
 }
