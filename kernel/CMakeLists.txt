@@ -52,6 +52,7 @@ add_library(
   ${ARCH_DIR}/Vga.cc
   ${ARCH_DIR}/Pit.cc
   kernel/Kernel.cc
+  kernel/Pmm.cc
   kernel/Runtime.cc
   kernel/Serial.cc
   kernel/Mem.cc
