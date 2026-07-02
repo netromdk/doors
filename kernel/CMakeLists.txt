@@ -51,6 +51,7 @@ add_library(
   ${ARCH_DIR}/Kbd.cc
   ${ARCH_DIR}/Vga.cc
   ${ARCH_DIR}/Pit.cc
+  ${ARCH_DIR}/Paging.cc
   kernel/Kernel.cc
   kernel/Pmm.cc
   kernel/Runtime.cc
