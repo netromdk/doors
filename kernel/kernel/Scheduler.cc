@@ -1,14 +1,22 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <optional>
 #include <volatile.h>
 
 #include <kernel/Heap.h>
+#include <kernel/InterruptGuard.h>
 #include <kernel/Panic.h>
 #include <kernel/Pit.h>
+#include <kernel/Pmm.h>
 #include <kernel/Scheduler.h>
+
+#ifdef __IS_DOORS_KERNEL
+#include <arch/i386/Gdt.h>
+#include <arch/i386/Paging.h>
+#endif
 
 array<Task, Scheduler::MAX_TASKS> Scheduler::tasks_{};
 volatile int Scheduler::taskCount_{0};
@@ -59,22 +67,12 @@ void Scheduler::init()
   initialized_ = true;
 }
 
-optional<int> Scheduler::addTask(string_view name, void (*entry)())
+optional<int> Scheduler::addTask(string_view name, void (*entry)(), uint32_t pageDir)
 {
   // Disable interrupts while modifying the shared task table so the timer ISR, which calls
   // `tick()`, does not see a partially-initialized slot.
-#ifdef __IS_DOORS_KERNEL
-  __asm__("cli");
-#endif
-
-  const auto id = addTaskImpl(name, entry);
-
-  // Re-enable interrupts after the new task slot is fully set up.
-#ifdef __IS_DOORS_KERNEL
-  __asm__("sti");
-#endif
-
-  return id;
+  InterruptGuard guard;
+  return addTaskImpl(name, entry, pageDir);
 }
 
 optional<int> Scheduler::findSlot()
@@ -85,7 +83,7 @@ optional<int> Scheduler::findSlot()
     return static_cast<int>(it - tasks_.begin());
   }
   if (taskCount_ >= MAX_TASKS) {
-    return nullopt;
+    return {};
   }
   const int n = volatileLoad(taskCount_);
   volatileStore(taskCount_, n + 1);
@@ -126,15 +124,34 @@ uint32_t Scheduler::initStackFrame(uint8_t *stack, void (*entry)())
   return static_cast<uint32_t>(reinterpret_cast<unsigned long long>(stackTop - 11));
 }
 
-optional<int> Scheduler::addTaskImpl(string_view name, void (*entry)())
+uint32_t Scheduler::initUserStackFrame(uint8_t *stack, uint32_t userEip, uint32_t userEsp)
+{
+  const auto stackTop = reinterpret_cast<uint32_t *>(stack + TASK_STACK_SIZE);
+
+  // iret frame for ring 3 -> ring 0 -> ring 3 (20 bytes).
+  stackTop[-1] = 0x23;       // SS: ring-3 data selector (0x20 | RPL 3)
+  stackTop[-2] = userEsp;    // user ESP
+  stackTop[-3] = 0x00000202; // EFLAGS: IF = 1
+  stackTop[-4] = 0x1B;       // CS: ring-3 code selector (0x18 | RPL 3)
+  stackTop[-5] = userEip;    // EIP: user entry point
+
+  // pushal frame (32 bytes). All zero so every register starts at 0.
+  for (int i = 6; i <= 13; ++i) {
+    stackTop[-i] = 0;
+  }
+
+  return static_cast<uint32_t>(reinterpret_cast<unsigned long long>(stackTop - 13));
+}
+
+optional<int> Scheduler::addTaskImpl(string_view name, void (*entry)(), uint32_t pageDir)
 {
   if (name.data() == nullptr) {
-    return nullopt;
+    return {};
   }
 
   const auto slotOpt = findSlot();
   if (!slotOpt) {
-    return nullopt;
+    return {};
   }
   const int slot = *slotOpt;
 
@@ -147,10 +164,11 @@ optional<int> Scheduler::addTaskImpl(string_view name, void (*entry)())
   t.wakeupMs = 0;
   t.runtimeMs = 0;
   t.onKill = nullptr;
+  t.pageDir = pageDir;
 
   auto *stack = static_cast<uint8_t *>(Heap::alloc(TASK_STACK_SIZE));
   if (stack == nullptr) {
-    return nullopt;
+    return {};
   }
 
   t.esp = initStackFrame(stack, &Scheduler::taskWrapper);
@@ -235,21 +253,36 @@ uint32_t Scheduler::switchTo(int next)
   currentIdx_ = next;
   tasks_[currentIdx_].state = TaskState::RUNNING;
   quantumRemaining_ = QUANTUM_TICKS;
+
+#ifdef __IS_DOORS_KERNEL
+  // Switch to the task's page directory if it has one, otherwise use the kernel page
+  // directory. Disable interrupts during CR3 load to prevent being interrupted mid-switch with a
+  // half-configured address space.
+  {
+    InterruptGuard guard;
+    const auto pd = tasks_[currentIdx_].pageDir;
+    Cpu::writeCr3(pd != 0 ? pd : Paging::kernelPageDirPhys());
+
+    // Update TSS.esp0 so that INT 0x80 from a ring-3 task switches to the correct kernel
+    // stack. Ring-0 tasks (`userStackBuf == 0`) don't use the TSS for ring transitions, so leave
+    // the TSS alone for them.
+    if (tasks_[currentIdx_].userStackBuf != 0) {
+      tss.esp0 = static_cast<uint32_t>(
+        reinterpret_cast<unsigned long long>(tasks_[currentIdx_].stackBuf + TASK_STACK_SIZE));
+    }
+  }
+#endif
+
   return tasks_[currentIdx_].esp;
 }
 
-optional<int> Scheduler::addTaskAndBlock(string_view name, void (*entry)())
+optional<int> Scheduler::addTaskAndBlock(string_view name, void (*entry)(), uint32_t pageDir)
 {
-#ifdef __IS_DOORS_KERNEL
-  __asm__("cli");
-#endif
+  InterruptGuard guard;
 
-  const auto id = addTaskImpl(name, entry);
+  const auto id = addTaskImpl(name, entry, pageDir);
   if (!id) {
-#ifdef __IS_DOORS_KERNEL
-    __asm__("sti");
-#endif
-    return nullopt;
+    return {};
   }
 
   if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
@@ -269,17 +302,145 @@ optional<int> Scheduler::addTaskAndBlock(string_view name, void (*entry)())
 #endif
   }
 
-#ifdef __IS_DOORS_KERNEL
-  __asm__("sti");
-#endif
   return id;
 }
 
+#ifdef __IS_DOORS_KERNEL
+
+extern "C" uint8_t userTestStart[], userTestEnd[];
+
+namespace {
+
+// RAII guard: unmaps a page and frees its Pmm frame on scope exit.
+struct MappedFrame {
+  uint32_t phys{};
+  uint32_t vaddr{};
+  bool owned = false;
+
+  void dismiss()
+  {
+    owned = false;
+  }
+
+  ~MappedFrame()
+  {
+    if (owned) {
+      Paging::unmapPage(vaddr);
+      Pmm::freeFrame(reinterpret_cast<void *>(phys));
+    }
+  }
+};
+
+// RAII guard: frees a Heap allocation on scope exit.
+struct HeapAlloc {
+  void *ptr = nullptr;
+  bool owned = false;
+
+  void dismiss()
+  {
+    owned = false;
+  }
+
+  ~HeapAlloc()
+  {
+    if (owned) {
+      Heap::free(ptr);
+    }
+  }
+};
+
+bool allocAndMapUserPage(uint32_t vaddr, MappedFrame &out)
+{
+  void *phys = Pmm::allocFrame();
+  if (!phys) {
+    return false;
+  }
+
+  const uint32_t phys32 = static_cast<uint32_t>(reinterpret_cast<unsigned long long>(phys));
+  if (!Paging::mapPage(vaddr, phys32, PAGE_PRESENT | PAGE_RW | PAGE_USER)) {
+    Pmm::freeFrame(phys);
+    return false;
+  }
+
+  out.phys = phys32;
+  out.vaddr = vaddr;
+  out.owned = true;
+  return true;
+}
+
+} // namespace
+
+optional<int> Scheduler::addUserTask(string_view name)
+{
+  const auto slotOpt = findSlot();
+  if (!slotOpt) {
+    return {};
+  }
+  const int slot = *slotOpt;
+
+  Task &t = tasks_[slot];
+  if (t.stackBuf != nullptr) {
+    Heap::free(t.stackBuf);
+  }
+  t = {};
+
+  HeapAlloc kstack{Heap::alloc(TASK_STACK_SIZE), true};
+  if (!kstack.ptr) {
+    return {};
+  }
+
+  MappedFrame stackFrame{};
+  if (!allocAndMapUserPage(USER_STACK_VADDR, stackFrame)) {
+    return {};
+  }
+
+  MappedFrame codeFrame{};
+  if (!allocAndMapUserPage(USER_BASE, codeFrame)) {
+    return {};
+  }
+
+  t.pageDir = Paging::clonePageDir();
+
+  auto *codeDst = static_cast<uint8_t *>(physToVirt(reinterpret_cast<void *>(codeFrame.phys)));
+  const size_t codeSize = static_cast<size_t>(userTestEnd - userTestStart);
+  memcpy(codeDst, userTestStart, codeSize);
+
+  t.esp = initUserStackFrame(static_cast<uint8_t *>(kstack.ptr), USER_BASE,
+                             USER_STACK_VADDR + USER_STACK_SIZE);
+  t.entry = nullptr;
+  t.state = TaskState::READY;
+  t.id = static_cast<uint8_t>(slot);
+  t.stackBuf = static_cast<uint8_t *>(kstack.ptr);
+  t.stackSize = TASK_STACK_SIZE;
+  name.copy(t.name.data(), t.name.size() - 1);
+  t.userStackBuf = stackFrame.phys;
+  t.userCodeBuf = codeFrame.phys;
+
+  tss.esp0 = static_cast<uint32_t>(
+    reinterpret_cast<unsigned long long>(static_cast<uint8_t *>(kstack.ptr) + TASK_STACK_SIZE));
+  tss.ss0 = 0x10;
+
+  kstack.dismiss();
+  stackFrame.dismiss();
+  codeFrame.dismiss();
+  return slot;
+}
+
+#else
+
+optional<int> Scheduler::addUserTask(string_view)
+{
+  return {};
+}
+
+#endif
+
 [[noreturn]] void Scheduler::exitCurrentTask()
 {
-#ifdef __IS_DOORS_KERNEL
-  __asm__("cli");
-#endif
+  // Disable interrupts so the current task's state transition to DEAD and the CR3 switch in
+  // `switchTo()` are not interrupted. This function never returns, so the InterruptGuard destructor
+  // is never called.
+  InterruptGuard guard;
 
   if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
     panic("Scheduler::exitCurrentTask: corrupted currentIdx");
@@ -363,7 +524,7 @@ int Scheduler::taskCount()
 optional<const char *> Scheduler::taskName(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return nullopt;
+    return {};
   }
   return tasks_[id].name.data();
 }
@@ -371,7 +532,7 @@ optional<const char *> Scheduler::taskName(int id)
 optional<TaskState> Scheduler::taskState(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return nullopt;
+    return {};
   }
   return tasks_[id].state;
 }
@@ -379,7 +540,7 @@ optional<TaskState> Scheduler::taskState(int id)
 optional<uint8_t> Scheduler::taskFlags(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return nullopt;
+    return {};
   }
   return tasks_[id].flags;
 }
@@ -387,7 +548,7 @@ optional<uint8_t> Scheduler::taskFlags(int id)
 optional<uint32_t> Scheduler::taskEsp(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return nullopt;
+    return {};
   }
   return tasks_[id].esp;
 }
@@ -395,7 +556,7 @@ optional<uint32_t> Scheduler::taskEsp(int id)
 optional<const uint8_t *> Scheduler::taskStackBuf(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return nullopt;
+    return {};
   }
   return tasks_[id].stackBuf;
 }
@@ -403,7 +564,7 @@ optional<const uint8_t *> Scheduler::taskStackBuf(int id)
 optional<uint32_t> Scheduler::taskStackSize(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return nullopt;
+    return {};
   }
   return tasks_[id].stackSize;
 }
@@ -411,7 +572,7 @@ optional<uint32_t> Scheduler::taskStackSize(int id)
 optional<uint64_t> Scheduler::taskEntryAddr(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return nullopt;
+    return {};
   }
   return reinterpret_cast<uint64_t>(tasks_[id].entry);
 }
@@ -419,7 +580,7 @@ optional<uint64_t> Scheduler::taskEntryAddr(int id)
 optional<uint64_t> Scheduler::taskWakeupMs(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return nullopt;
+    return {};
   }
   return tasks_[id].wakeupMs;
 }
@@ -427,7 +588,7 @@ optional<uint64_t> Scheduler::taskWakeupMs(int id)
 optional<uint64_t> Scheduler::taskRuntimeMs(int id)
 {
   if (id < 0 || id >= taskCount_) {
-    return nullopt;
+    return {};
   }
   return tasks_[id].runtimeMs;
 }
@@ -465,6 +626,28 @@ void Scheduler::killTask(int id)
     Heap::free(tasks_[id].stackBuf);
     tasks_[id].stackBuf = nullptr;
   }
+
+  // Free the task's page directory if it has one. The kernel page directory (`pageDir == 0`) is
+  // never freed.
+#ifdef __IS_DOORS_KERNEL
+  if (tasks_[id].pageDir != 0) {
+    Pmm::freeFrame(reinterpret_cast<void *>(tasks_[id].pageDir));
+    tasks_[id].pageDir = 0;
+  }
+
+  // Free user-mode pages (ring-3 tasks).
+  if (tasks_[id].userStackBuf != 0) {
+    Paging::unmapPage(USER_STACK_VADDR);
+    Pmm::freeFrame(reinterpret_cast<void *>(tasks_[id].userStackBuf));
+    tasks_[id].userStackBuf = 0;
+  }
+  if (tasks_[id].userCodeBuf != 0) {
+    Paging::unmapPage(USER_BASE);
+    Pmm::freeFrame(reinterpret_cast<void *>(tasks_[id].userCodeBuf));
+    tasks_[id].userCodeBuf = 0;
+  }
+#endif
+
   tasks_[id].stackSize = 0;
 }
 
@@ -528,7 +711,7 @@ optional<int> Scheduler::findNext()
     panic("Scheduler::findNext: corrupted taskCount");
   }
   if (taskCount_ <= 1) {
-    return nullopt;
+    return {};
   }
   for (int i = 0; i < taskCount_ - 1; ++i) {
     const int idx = (currentIdx_ + 1 + i) % taskCount_;
@@ -536,7 +719,7 @@ optional<int> Scheduler::findNext()
       return idx;
     }
   }
-  return nullopt;
+  return {};
 }
 
 void Scheduler::checkCanary(const Task &t)

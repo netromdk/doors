@@ -70,3 +70,25 @@ asmInt80:
         movl  %eax, 7*4(%esp)   // Overwrite pushal's EAX slot with return value.
         popal
         iret
+
+// User-mode PIC test code, copied to a Pmm frame at runtime.
+// Prints "USER" via SYS_WRITE then exits via SYS_EXIT.
+.globl userTestStart
+.globl userTestEnd
+.align 4
+userTestStart:
+        movl  $1, %eax          // SYS_WRITE
+        movl  $'U', %ebx
+        int   $0x80
+        movl  $'S', %ebx
+        int   $0x80
+        movl  $'E', %ebx
+        int   $0x80
+        movl  $'R', %ebx
+        int   $0x80
+        movl  $2, %eax          // SYS_EXIT
+        int   $0x80
+        // Should not reach here.
+        hlt
+        jmp   .-2
+userTestEnd:

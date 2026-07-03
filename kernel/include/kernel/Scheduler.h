@@ -22,9 +22,16 @@ public:
   // A task's saved esp points to `stackBuf + TASK_STACK_SIZE - FRAME_SIZE`.
   static constexpr uint32_t FRAME_SIZE = 44;
 
+  // User-mode constants.
+  static constexpr uint32_t USER_BASE = 0x10000000;        // Virtual address for user code.
+  static constexpr uint32_t USER_STACK_VADDR = 0xB0000000; // Virtual address for user stack.
+  static constexpr uint32_t USER_STACK_SIZE = 0x1000;      // 4 KB (one page).
+  static constexpr uint32_t FRAME_SIZE_USER = 52;          // 32 pushal + 20 iret (ring 3).
+
   static void init();
-  static optional<int> addTask(string_view name, void (*entry)());
-  static optional<int> addTaskAndBlock(string_view name, void (*entry)());
+  static optional<int> addTask(string_view name, void (*entry)(), uint32_t pageDir = 0);
+  static optional<int> addUserTask(string_view name);
+  static optional<int> addTaskAndBlock(string_view name, void (*entry)(), uint32_t pageDir = 0);
   static uint32_t tick(uint32_t currentEsp);
   [[noreturn]] static void exitCurrentTask();
   static void unblockTask(int id);
@@ -72,7 +79,8 @@ private:
 
   static optional<int> findSlot();
   static uint32_t initStackFrame(uint8_t *stack, void (*entry)());
-  static optional<int> addTaskImpl(string_view name, void (*entry)());
+  static uint32_t initUserStackFrame(uint8_t *stack, uint32_t userEip, uint32_t userEsp);
+  static optional<int> addTaskImpl(string_view name, void (*entry)(), uint32_t pageDir = 0);
   static optional<int> findNext();
   static uint32_t switchTo(int next);
   static void checkCanary(const Task &t);
