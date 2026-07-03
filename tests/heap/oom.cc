@@ -1,6 +1,6 @@
 #include "HeapFixture.h"
+#include <cstdint>
 #include <doctest/doctest.h>
-#include <stdint.h>
 
 TEST_CASE_FIXTURE(HeapFixture, "exhaust heap then alloc fails")
 {
@@ -31,4 +31,12 @@ TEST_CASE_FIXTURE(HeapFixture, "alloc after free succeeds after OOM")
 
   void *r = Heap::alloc(16);
   CHECK(r != nullptr);
+}
+
+TEST_CASE_FIXTURE(HeapFixture, "alloc near SIZE_MAX returns nullptr (no wraparound)")
+{
+  // Allocating a size close to `SIZE_MAX` should not silently succeed with a tiny allocation due to
+  // wraparound.
+  void *p = Heap::alloc(static_cast<size_t>(-1));
+  CHECK(p == nullptr);
 }

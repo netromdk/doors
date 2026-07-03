@@ -203,6 +203,7 @@ set(SYMBOLS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Symbols.cc")
 
 doors_test_module(test_kernel_heap_initstate
   heap/is_initialized.cc
+  stubs.cc
   "${HEAP_SRC}"
 )
 
@@ -212,6 +213,8 @@ doors_test_module(test_kernel_heap
   heap/fragmentation.cc
   heap/alignment.cc
   heap/oom.cc
+  heap/backwards_coalesce.cc
+  stubs.cc
   "${HEAP_SRC}"
 )
 

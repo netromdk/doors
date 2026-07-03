@@ -12,7 +12,11 @@ constexpr uint32_t HEAP_MAGIC = 0x48455041; // "HEAP"
 
 size_t alignUp(size_t n, size_t a)
 {
-  return (n + a - 1) & ~(a - 1);
+  size_t mask = a - 1;
+  if (n > static_cast<size_t>(-1) - mask) {
+    return static_cast<size_t>(-1);
+  }
+  return (n + mask) & ~mask;
 }
 
 bool isAlloc(uint32_t v)
@@ -28,8 +32,9 @@ uint32_t rawSize(uint32_t v)
 } // namespace
 
 struct Heap::Header {
-  uint32_t size;  // total block size, low bit = 1 if allocated
-  uint32_t magic; // HEAP_MAGIC for allocated, 0 for free
+  uint32_t size;    // total block size, low bit = 1 if allocated
+  uint32_t magic;   // HEAP_MAGIC for allocated, 0 for free
+  uint32_t _pad[2]; // pad to 16 bytes so user data is 16-byte aligned
 };
 
 struct Heap::FreeNode {
@@ -115,7 +120,12 @@ void *Heap::alloc(size_t size)
   InterruptGuard guard;
 
   // Total size needed: header + usable space, rounded up.
-  size_t needed = sizeof(Header) + alignUp(size, 4);
+  size_t alignedSize = alignUp(size, 4);
+  if (alignedSize == static_cast<size_t>(-1) ||
+      alignedSize > static_cast<size_t>(-1) - sizeof(Header)) {
+    return nullptr;
+  }
+  size_t needed = sizeof(Header) + alignedSize;
   if (needed < Heap::MIN_BLOCK) {
     needed = Heap::MIN_BLOCK;
   }
@@ -205,8 +215,23 @@ void Heap::free(void *ptr)
   hdr->magic = 0;
 
   auto *node = reinterpret_cast<FreeNode *>(hdr);
-  addToFreeList(node);
 
+  // Backwards coalescing: check if a free block ends right before this one.
+  const size_t nodeAddr = reinterpret_cast<size_t>(node);
+  FreeNode *currBwd = freeList_;
+  while (currBwd != nullptr) {
+    const size_t currEnd = reinterpret_cast<size_t>(currBwd) + rawSize(currBwd->header.size);
+    if (currEnd == nodeAddr) {
+      // Preceding block absorbs this one. Expand its size and coalesce forward.
+      currBwd->header.size += node->header.size;
+      coalesce(currBwd);
+      return;
+    }
+    currBwd = currBwd->next;
+  }
+
+  // No backward merge. Add to free list and coalesce forward.
+  addToFreeList(node);
   coalesce(node);
 }
 
