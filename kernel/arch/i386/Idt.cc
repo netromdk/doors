@@ -34,6 +34,7 @@ void asmExcPf();
 void asmIntDummy();
 void asmIntTick();
 void asmIntKbd();
+void asmInt80();
 
 } // extern "C"
 
@@ -62,6 +63,9 @@ void Idt::init()
   // Master interrupts.
   fillDesc((uint32_t) asmIntTick, IRQ_TIMER, INTR_GATE, &idt[32]); // 0: Hardware timer
   fillDesc((uint32_t) asmIntKbd, IRQ_TIMER, INTR_GATE, &idt[33]);  // 1: Keyboard
+
+  // INT 0x80 syscall handler.
+  fillDesc((uint32_t) asmInt80, IRQ_TIMER, TRAP_GATE_DPL3, &idt[0x80]);
 
   // Create idt register and put it at the base memory address.
   idtr.limit = IDT_SIZE * sizeof(IdtDesc);

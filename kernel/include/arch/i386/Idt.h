@@ -14,6 +14,7 @@ static constexpr uint32_t IDT_BASE = 0x00000CF9;
 static constexpr uint16_t IDT_SIZE = 0xFF;
 
 static constexpr uint8_t INTR_GATE = 0x8E;
+static constexpr uint8_t TRAP_GATE_DPL3 = 0xEF;
 
 struct IdtDesc {
   // Low
