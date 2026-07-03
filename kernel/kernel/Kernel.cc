@@ -100,7 +100,7 @@ void kmain()
   printf("\n<<Doors are open>>\n");
 
   initCommands();
-  Scheduler::addTask("taskbar", taskbarMain);
+  Scheduler::addTask("taskbar", taskbarMain, Paging::clonePageDir());
   Shell::run();
 }
 
