@@ -72,6 +72,52 @@ struct GdtReg {
   uint32_t base;
 } __attribute__((packed));
 
+// 32-bit Task State Segment (TSS). The CPU reads SS0 and ESP0 from here when an interrupt
+// transitions from ring 3 -> ring 0.
+struct Tss {
+  uint16_t link;        // 0x00 - previous TSS (for hardware task switching, unused).
+  uint16_t rsvd0;       // 0x02
+  uint32_t esp0;        // 0x04 - kernel stack pointer for ring-0 entry.
+  uint16_t ss0;         // 0x08 - kernel data segment selector.
+  uint16_t rsvd1;       // 0x0A
+  uint32_t esp1;        // 0x0C
+  uint16_t ss1;         // 0x10
+  uint16_t rsvd2;       // 0x12
+  uint32_t esp2;        // 0x14
+  uint16_t ss2;         // 0x18
+  uint16_t rsvd3;       // 0x1A
+  uint32_t cr3;         // 0x1C
+  uint32_t eip;         // 0x20
+  uint32_t eflags;      // 0x24
+  uint32_t eax;         // 0x28
+  uint32_t ecx;         // 0x2C
+  uint32_t edx;         // 0x30
+  uint32_t ebx;         // 0x34
+  uint32_t esp;         // 0x38
+  uint32_t ebp;         // 0x3C
+  uint32_t esi;         // 0x40
+  uint32_t edi;         // 0x44
+  uint16_t es;          // 0x48
+  uint16_t rsvd4;       // 0x4A
+  uint16_t cs;          // 0x4C
+  uint16_t rsvd5;       // 0x4E
+  uint16_t ss;          // 0x50
+  uint16_t rsvd6;       // 0x52
+  uint16_t ds;          // 0x54
+  uint16_t rsvd7;       // 0x56
+  uint16_t fs;          // 0x58
+  uint16_t rsvd8;       // 0x5A
+  uint16_t gs;          // 0x5C
+  uint16_t rsvd9;       // 0x5E
+  uint16_t ldt;         // 0x60
+  uint16_t rsvd10;      // 0x62
+  uint16_t io_map_base; // 0x64 - offset to I/O permission bitmap.
+} __attribute__((packed));
+
+static constexpr uint16_t GDT_TSS_SEL = 0x28; // GDT[5] = 5 * 8
+
+extern Tss tss;
+
 class Gdt {
 public:
   static void init();

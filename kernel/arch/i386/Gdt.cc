@@ -23,6 +23,10 @@ void fillDesc(uint32_t base, uint32_t limit, uint16_t flags, GdtDesc *desc)
 constinit GdtDesc gdt[GDT_SIZE];
 constinit GdtReg gdtr;
 
+#ifdef __IS_DOORS_KERNEL
+Tss tss{};
+#endif
+
 void Gdt::init()
 {
   // Never used by the CPU but required to be present.
@@ -40,6 +44,12 @@ void Gdt::init()
   // User-mode stack after SYSEXIT.
   fillDesc(0, 0xFFFFF, (GDT_DATA_PL3), &gdt[4]);
 
+#ifdef __IS_DOORS_KERNEL
+  // TSS descriptor for ring-3 -> ring-0 transitions on INT 0x80.
+  tss.io_map_base = sizeof(Tss);
+  fillDesc(reinterpret_cast<uint32_t>(&tss), sizeof(Tss) - 1, 0x0089, &gdt[5]);
+#endif
+
   // Create gdt register and put it at the base memory address.
   gdtr.limit = GDT_SIZE * sizeof(GdtDesc);
   gdtr.base = GDT_BASE;
@@ -56,4 +66,8 @@ void Gdt::init()
           "movw %ax, %fs;"
           "movw %ax, %gs;"
           "movw %ax, %ss");
+
+#ifdef __IS_DOORS_KERNEL
+  __asm__("ltr %0" : : "r"(static_cast<uint16_t>(GDT_TSS_SEL)));
+#endif
 }
