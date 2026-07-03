@@ -54,3 +54,19 @@ asmIntTick:
         popal
         iret
 INTHANDLER Kbd
+
+// INT 0x80 syscall handler.
+.globl asmInt80
+.align 4
+asmInt80:
+        pushal
+        cld
+        pushl %edx
+        pushl %ecx
+        pushl %ebx
+        pushl %eax
+        call  syscallHandler
+        addl  $16, %esp         // Pop 4 args.
+        movl  %eax, 7*4(%esp)   // Overwrite pushal's EAX slot with return value.
+        popal
+        iret
