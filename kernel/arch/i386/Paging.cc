@@ -21,7 +21,7 @@ uint32_t roundUp4K(uint32_t val)
 // success the PDE is filled and the TLB flushed.
 bool ensurePageTable(uint32_t *pageDir, int pdeIdx, uint32_t flags)
 {
-  auto *newPt = physToVirt32(Pmm::allocFrame());
+  auto *const newPt = physToVirt32(Pmm::allocFrame());
   if (newPt == nullptr) {
     printf("Paging::mapPage: OOM allocating page table\n");
     return false;
@@ -56,7 +56,7 @@ uint32_t *resolvePageTable(uint32_t virtAddr, uint32_t *pageDir, int &pdeIdx, in
 void tryFreePageTable(uint32_t *pageDir, int pdeIdx)
 {
   const auto ptPhys = pageDir[pdeIdx] & PAGE_ADDR_MASK;
-  auto *pageTable = physToVirt32(reinterpret_cast<void *>(ptPhys));
+  const auto *pageTable = physToVirt32(reinterpret_cast<void *>(ptPhys));
   for (int i = 0; i < PTE_COUNT; ++i) {
     if (pageTable[i] != 0) {
       return;
@@ -70,35 +70,111 @@ void tryFreePageTable(uint32_t *pageDir, int pdeIdx)
 
 } // namespace
 
+bool Paging::setupIdentityMap(void *pageDirPhys, int numPageTables, uint32_t identityMapEnd)
+{
+  auto *pageDir = static_cast<uint32_t *>(pageDirPhys);
+  for (int pdeIdx = 0; pdeIdx < numPageTables; ++pdeIdx) {
+    // Allocate a 4 KiB frame for this PDE's page table.
+    void *ptPhys = Pmm::allocFrame();
+    if (ptPhys == nullptr) {
+      printf("Paging: failed to allocate page table %d!\n", pdeIdx);
+      // Free any page tables allocated so far before returning.
+      for (int i = 0; i < pdeIdx; ++i) {
+        Pmm::freeFrame(
+          reinterpret_cast<void *>(static_cast<unsigned long long>(pageDir[i] & PAGE_ADDR_MASK)));
+      }
+      return false;
+    }
+
+    auto *pt = static_cast<uint32_t *>(ptPhys);
+
+    // Zero out all PTEs.
+    __builtin_memset(pt, 0, Pmm::PAGE_SIZE);
+
+    // First virtual address this PDE covers (PDE idx * 4 MiB).
+    const auto baseAddr = static_cast<uint32_t>(pdeIdx) * 4UL * 1024 * 1024;
+
+    // Identity-map each 4 KiB page up to `identityMapEnd`.
+    for (int pteIdx = 0; pteIdx < PTE_COUNT; ++pteIdx) {
+      if (const auto pageAddr = baseAddr + static_cast<uint32_t>(pteIdx) * Pmm::PAGE_SIZE;
+          pageAddr < identityMapEnd) {
+        pt[pteIdx] = pageAddr | PAGE_PRESENT | PAGE_RW; // virtual == physical
+      }
+    }
+
+    // Point the PDE at this page table (writable, supervisor-only).
+    pageDir[pdeIdx] = reinterpret_cast<uint32_t>(pt) | PAGE_PRESENT | PAGE_RW;
+  }
+  return true;
+}
+
+void Paging::mirrorHigherHalf(uint32_t *pageDir, int numPageTables)
+{
+  for (int i = 0; i < numPageTables; ++i) {
+    pageDir[HIGHER_HALF_PDE + i] = (pageDir[i] & PAGE_ADDR_MASK) | PAGE_PRESENT | PAGE_RW;
+  }
+}
+
+void Paging::mapTrampoline()
+{
+  if (void *trampFrame = Pmm::allocFrame(); trampFrame != nullptr) {
+    const auto trampPhys = static_cast<uint32_t>(reinterpret_cast<unsigned long long>(trampFrame));
+    if (!mapPage(TRAMPOLINE_VADDR, trampPhys, PAGE_PRESENT | PAGE_RW)) {
+      printf("Paging: failed to map trampoline page at 0x%x\n", TRAMPOLINE_VADDR);
+      Pmm::freeFrame(trampFrame);
+    }
+  }
+  else {
+    printf("Paging: failed to allocate trampoline page frame\n");
+  }
+}
+
 void Paging::init(uint32_t identityMapEnd)
 {
   identityMapEnd = roundUp4K(identityMapEnd);
   const int numPageTables = calcNumPageTables(identityMapEnd);
 
-  // Allocate a page directory of 4 KiB from PMM and zero it.
-  auto *pageDir = physToVirt32(Pmm::allocFrame());
-  if (pageDir == nullptr) {
+  // Phase 1: identity-mapped, pre-paging. `physToVirt()` would return unmapped higher-half
+  // addresses before PDE 768 exists, so all page-table work here uses raw physical addresses.
+  void *pageDirPhys = Pmm::allocFrame();
+  if (pageDirPhys == nullptr) {
     printf("Paging: failed to allocate page directory!\n");
     return;
   }
-  __builtin_memset(pageDir, 0, Pmm::PAGE_SIZE);
+  __builtin_memset(pageDirPhys, 0, Pmm::PAGE_SIZE);
 
-  // Allocate a page table per 4 MiB region that is within the identity-map range, zero them, and
-  // fill in 1024 PTEs mapping 4 KiB pages. Virtual addresses matching physical addresses.
-  if (!initPageTables(pageDir, numPageTables, identityMapEnd)) {
-    Pmm::freeFrame(virtToPhys(pageDir));
+  if (!setupIdentityMap(pageDirPhys, numPageTables, identityMapEnd)) {
+    Pmm::freeFrame(pageDirPhys);
     return;
   }
 
-  // Mark kernel page directory.
-  kernelPageDir_ = pageDir;
-
-  // Remove frames above the identity-map since it is not to be used.
+  mirrorHigherHalf(static_cast<uint32_t *>(pageDirPhys), numPageTables);
   Pmm::removeFramesAbove(identityMapEnd);
 
-  // Then enable paging within the identity-mapped range. Afterwards, the CPU translates virtual
-  // addresses through the page tables.
-  enablePaging(pageDir, identityMapEnd, numPageTables);
+  // Load page directory into CR3.
+  Cpu::writeCr3(reinterpret_cast<uint32_t>(pageDirPhys));
+
+  // Set CR0.PG (bit 31) to enable paging.
+  Cpu::writeCr0(Cpu::readCr0() | 0x80000000);
+
+  // Phase 2: paging is active. `physToVirt()` now returns higher-half addresses accessible through
+  // PDE 768+.
+  printf("Paging enabled: CR3=0x%x, %u MiB mapped, %d page tables\n", Cpu::readCr3(),
+         identityMapEnd / (1024 * 1024), numPageTables);
+
+  kernelPageDir_ = physToVirt32(pageDirPhys);
+
+  {
+    const uint32_t pde0 = kernelPageDir_[0] & PAGE_ADDR_MASK;
+    const uint32_t pde768 = kernelPageDir_[HIGHER_HALF_PDE] & PAGE_ADDR_MASK;
+    if (pde0 != pde768) {
+      printf("Paging: PDE 768 (0x%x) does not mirror PDE 0 (0x%x)!\n", pde768, pde0);
+      return;
+    }
+    printf("Paging: higher-half mapping OK, PDE 768 -> PDE 0\n");
+  }
+
+  mapTrampoline();
 }
 
 bool Paging::mapPage(uint32_t virtAddr, uint32_t physAddr, uint32_t flags)
@@ -159,46 +235,6 @@ uint32_t Paging::kernelPageDirPhys()
 
 int Paging::calcNumPageTables(uint32_t end)
 {
-  int n = (end + (4UL * 1024 * 1024) - 1) / (4UL * 1024 * 1024);
+  const int n = (end + (4UL * 1024 * 1024) - 1) / (4UL * 1024 * 1024);
   return n < 1 ? 1 : n;
-}
-
-bool Paging::initPageTables(uint32_t *pageDir, int numPageTables, uint32_t identityMapEnd)
-{
-  int allocatedTables = 0;
-  for (int pdeIdx = 0; pdeIdx < numPageTables; ++pdeIdx) {
-    uint32_t *pt = physToVirt32(Pmm::allocFrame());
-    if (pt == nullptr) {
-      printf("Paging: failed to allocate page table %d!\n", pdeIdx);
-      for (int i = 0; i < allocatedTables; ++i) {
-        Pmm::freeFrame(
-          reinterpret_cast<void *>(static_cast<unsigned long long>(pageDir[i] & PAGE_ADDR_MASK)));
-      }
-      return false;
-    }
-    __builtin_memset(pt, 0, Pmm::PAGE_SIZE);
-
-    uint32_t baseAddr = static_cast<uint32_t>(pdeIdx) * 4UL * 1024 * 1024;
-    for (int pteIdx = 0; pteIdx < PTE_COUNT; ++pteIdx) {
-      uint32_t pageAddr = baseAddr + static_cast<uint32_t>(pteIdx) * Pmm::PAGE_SIZE;
-      if (pageAddr < identityMapEnd) {
-        pt[pteIdx] = pageAddr | PAGE_PRESENT | PAGE_RW;
-      }
-    }
-
-    pageDir[pdeIdx] = virtToPhys32(pt) | PAGE_PRESENT | PAGE_RW;
-    ++allocatedTables;
-  }
-  return true;
-}
-
-void Paging::enablePaging(uint32_t *pageDir, uint32_t identityMapEnd, int numPageTables)
-{
-  Cpu::writeCr3(virtToPhys32(pageDir));
-  uint32_t cr0 = Cpu::readCr0();
-  cr0 |= 0x80000000; // CR0.PG
-  Cpu::writeCr0(cr0);
-
-  printf("Paging enabled: CR3=0x%x, %u MiB mapped, %d page tables\n", Cpu::readCr3(),
-         identityMapEnd / (1024 * 1024), numPageTables);
 }

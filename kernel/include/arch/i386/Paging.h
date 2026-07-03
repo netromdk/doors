@@ -39,6 +39,20 @@ static constexpr uint32_t PAGE_ADDR_MASK = 0xFFFFF000;
 // PDE uses 4 MiB page (requires CPU Page Size Extension).
 static constexpr uint32_t PAGE_PSE = 1 << 7;
 
+// Virtual base address of the kernel (higher half). `physToVirt()`/`virtToPhys()` add/subtract this
+// offset. The kernel itself is NOT relinked yet! It still runs from identity-mapped PDE 0, but
+// page-table manipulation code uses the PDE 768 alias for higher-half addressing.
+static inline constexpr uintptr_t KERNEL_VIRTUAL_BASE = 0xC0000000;
+
+// Fixed virtual address mapped to a Pmm-allocated frame in every page directory. When the kernel
+// runs at higher-half, this ensures the CR3-switch and stack-switch code path always has at least
+// one identically-mapped page regardless of which page directory is active.
+static inline constexpr uint32_t TRAMPOLINE_VADDR = 0xBF000000;
+
+// PDE index of the higher-half VM alias. Each PDE covers 4 MiB (1024 PTEs x 4 KiB).
+// KERNEL_VIRTUAL_BASE (0xC0000000) / 4 MiB = 768, making PDE 768 the first higher-half slot.
+static constexpr uint32_t HIGHER_HALF_PDE = KERNEL_VIRTUAL_BASE / (4 * 1024 * 1024);
+
 static constexpr int PDE_COUNT = 1024;
 static constexpr int PTE_COUNT = 1024;
 
@@ -67,12 +81,17 @@ private:
   // Number of 4 MiB page-table regions needed to cover [0, end).
   static int calcNumPageTables(uint32_t end);
 
-  // Allocate and fill page tables for each 4 MiB region in `pageDir`.
-  // Returns false on OOM (frees already-allocated tables before returning).
-  static bool initPageTables(uint32_t *pageDir, int numPageTables, uint32_t identityMapEnd);
+  // Allocate page tables, fill PTEs identity-mapped, set PDEs. Uses raw physical addresses
+  // (pre-paging, `physToVirt()` not available). Frees partial allocations on OOM and returns false.
+  static bool setupIdentityMap(void *pageDirPhys, int numPageTables, uint32_t identityMapEnd);
 
-  // Load CR3, set CR0.PG, and print a diagnostic message.
-  static void enablePaging(uint32_t *pageDir, uint32_t identityMapEnd, int numPageTables);
+  // Set PDE 768+i = PDE i (same page table) for all identity-mapped regions, creating the
+  // higher-half alias so `physToVirt()` addresses are accessible after paging is enabled.
+  static void mirrorHigherHalf(uint32_t *pageDir, int numPageTables);
+
+  // Allocate a Pmm frame and map it at `TRAMPOLINE_VADDR` in the kernel page directory. Uses
+  // `physToVirt()`/`mapPage()` which require PDE 768 to exist.
+  static void mapTrampoline();
 
   // Physical address of the kernel's page directory, allocated in init().
   static uint32_t *kernelPageDir_;
@@ -84,29 +103,33 @@ private:
 
 #ifdef __IS_DOORS_KERNEL
 
-// Convert a physical address to a kernel-accessible virtual pointer. `physAddr` is a physical
-// byte-address (e.g. from `Pmm::allocFrame()`).
+// Convert a physical address to a kernel-accessible virtual pointer. `physAddr()` is a physical
+// byte-address (e.g. from `Pmm::allocFrame()`). When `KERNEL_VIRTUAL_BASE` is 0 this is identity.
 static inline void *physToVirt(void *physAddr)
 {
-  return physAddr;
+  return reinterpret_cast<void *>(reinterpret_cast<unsigned long long>(physAddr) +
+                                  KERNEL_VIRTUAL_BASE);
 }
 
 // Convert a virtual pointer back to its physical address.
 static inline void *virtToPhys(const void *virtAddr)
 {
-  return const_cast<void *>(virtAddr);
+  return reinterpret_cast<void *>(reinterpret_cast<unsigned long long>(virtAddr) -
+                                  KERNEL_VIRTUAL_BASE);
 }
 
 // Convert a physical address to a `uint32_t*` for page-table manipulation.
 static inline uint32_t *physToVirt32(void *physAddr)
 {
-  return static_cast<uint32_t *>(physAddr);
+  return reinterpret_cast<uint32_t *>(reinterpret_cast<unsigned long long>(physAddr) +
+                                      KERNEL_VIRTUAL_BASE);
 }
 
 // Convert a virtual pointer accessible through the identity map back to its physical address.
 static inline uint32_t virtToPhys32(const uint32_t *virtAddr)
 {
-  return static_cast<uint32_t>(reinterpret_cast<unsigned long long>(virtAddr));
+  return static_cast<uint32_t>(reinterpret_cast<unsigned long long>(virtAddr) -
+                               KERNEL_VIRTUAL_BASE);
 }
 
 #endif // __IS_DOORS_KERNEL
