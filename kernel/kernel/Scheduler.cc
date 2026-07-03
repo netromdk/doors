@@ -458,7 +458,30 @@ optional<int> Scheduler::addUserTask(string_view)
   const auto next = findNext();
   if (next) {
 #if defined(__IS_DOORS_KERNEL) && defined(__i386__)
+    // Save per-task Pmm frames before CR3 switch. After `switchTo()` loads the new page directory,
+    // `currentIdx_` will point to the next task and the reference is lost.
+    const auto oldPageDir = tasks_[currentIdx_].pageDir;
+    const auto oldUserStack = tasks_[currentIdx_].userStackBuf;
+    const auto oldUserCode = tasks_[currentIdx_].userCodeBuf;
+
+    tasks_[currentIdx_].pageDir = 0;
+    tasks_[currentIdx_].userStackBuf = 0;
+    tasks_[currentIdx_].userCodeBuf = 0;
+
     const uint32_t esp = switchTo(*next);
+
+    // The old page directory is no longer active due o the switch. Free its frame and any user-mode
+    // frames. These physical addresses are identity-mapped through PDE 0 in every page directory,
+    // so they are accessible from the new address space.
+    if (oldPageDir != 0) {
+      Pmm::freeFrame(reinterpret_cast<void *>(oldPageDir));
+    }
+    if (oldUserStack != 0) {
+      Pmm::freeFrame(reinterpret_cast<void *>(oldUserStack));
+    }
+    if (oldUserCode != 0) {
+      Pmm::freeFrame(reinterpret_cast<void *>(oldUserCode));
+    }
 
     // Unlike the timer ISR path (asmIntTick -> intTick -> tick -> switchTo -> %eax -> movl %esp),
     // there is no ISR frame or return chain from `exitCurrentTask()`. Switch to the new task's
