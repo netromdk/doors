@@ -200,6 +200,7 @@ set(SEMAPHORE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Semaphore.cc")
 set(PANIC_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Panic.cc")
 set(BTRACE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Backtrace.cc")
 set(SYMBOLS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Symbols.cc")
+set(PMM_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Pmm.cc")
 
 doors_test_module(test_kernel_heap_initstate
   heap/is_initialized.cc
@@ -342,3 +343,18 @@ doors_test_module(test_kernel_paging
   paging/PagingStub.cc
   paging/PmmStub.cc
 )
+
+doors_test_module(test_kernel_paging_sched
+  paging/SchedulerPageDir.cc
+  paging/PagingStub.cc
+  paging/PmmStub.cc
+  stubs.cc
+  "${HEAP_SRC}"
+  "${PIT_SRC}"
+  "${SCHED_SRC}"
+  "${SEMAPHORE_SRC}"
+  "${PANIC_SRC}"
+  "${BTRACE_SRC}"
+  "${SYMBOLS_SRC}"
+)
+target_compile_definitions(test_kernel_paging_sched PRIVATE __IS_DOORS_KERNEL)

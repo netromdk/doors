@@ -1,5 +1,6 @@
 #include <cstdint>
 
+#include <arch/i386/Gdt.h>
 #include <arch/i386/Pic.h>
 #include <kernel/Cpu.h>
 #include <kernel/Io.h>
@@ -38,6 +39,15 @@ __attribute__((weak)) void Cpu::disableInterrupts()
 }
 
 __attribute__((weak)) void Cpu::enableInterrupts()
+{
+}
+
+__attribute__((weak)) uint32_t Cpu::readCr3()
+{
+  return 0;
+}
+
+__attribute__((weak)) void Cpu::writeCr3(uint32_t)
 {
 }
 
@@ -124,3 +134,9 @@ __attribute__((weak)) void Kbd::clearNavigation()
 #include <kernel/Symbols.h>
 const SymbolEntry symbol_table[1] = {};
 const int symbol_table_count = 0;
+
+extern "C" {
+__attribute__((weak)) uint8_t userTestStart = 0xC3; // ret instruction
+__attribute__((weak)) uint8_t userTestEnd = 0;
+}
+__attribute__((weak)) Tss tss{};

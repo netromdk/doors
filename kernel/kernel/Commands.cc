@@ -61,7 +61,7 @@ void cmdHelp(int, const string *)
 void cmdHalt(int, const string *)
 {
   printf("Halting system.\n");
-  Pic::disableInt();
+  Cpu::disableInterrupts();
   for (;;) {
     __asm__("hlt");
   }
