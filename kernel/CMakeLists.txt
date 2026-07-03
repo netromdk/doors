@@ -67,6 +67,7 @@ add_library(
   kernel/Panic.cc
   kernel/Scheduler.cc
   kernel/Semaphore.cc
+  kernel/Syscall.cc
   kernel/Symbols.cc
   kernel/Taskbar.cc
   programs/api/Screen.cc
