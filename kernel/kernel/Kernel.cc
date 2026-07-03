@@ -100,6 +100,11 @@ void kmain()
   printf("\n<<Doors are open>>\n");
 
   initCommands();
+
+  // Uncomment the following to do a ring-3 test, with user-mode task that prints "USER" via
+  // SYS_WRITE then exits.
+  //Scheduler::addUserTask("usertest");
+
   Scheduler::addTask("taskbar", taskbarMain, Paging::clonePageDir());
   Shell::run();
 }
