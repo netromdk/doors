@@ -16,6 +16,17 @@ extern multiboot_info *mbi;
 Pmm::FreeFrame *Pmm::freeList_ = nullptr;
 size_t Pmm::freeCount_ = 0;
 
+void Pmm::freeFrameFast(void *physAddr)
+{
+  if (physAddr == nullptr) {
+    return;
+  }
+  auto *frame = static_cast<FreeFrame *>(physAddr);
+  frame->next = freeList_;
+  freeList_ = frame;
+  ++freeCount_;
+}
+
 void Pmm::init()
 {
   printf("Pmm: scanning memory map...\n");
@@ -32,14 +43,17 @@ void Pmm::init()
       end = end & ~(PAGE_SIZE - 1);
 
       for (auto addr = start; addr < end; addr += PAGE_SIZE) {
-        freeFrame(reinterpret_cast<void *>(addr));
+        // Skip the kernel image: `freeFrameFast()` writes to the page, which would corrupt kernel
+        // code and data that is still being executed.
+        if (addr >= kernelStart && addr < kernelEnd) {
+          continue;
+        }
+
+        freeFrameFast(reinterpret_cast<void *>(addr));
       }
     }
     mmap = (multiboot_memory_map_t *) ((uint64_t) mmap + mmap->size + sizeof(uint32_t));
   }
-
-  // Reserve the kernel image.
-  reserveRegion(reinterpret_cast<void *>(0x100000), _kernel_end);
 
   // Reserve VGA.
   reserveFrame(reinterpret_cast<void *>(0xB8000));
@@ -149,7 +163,20 @@ void Pmm::reserveRegion(void *start, void *end)
   auto e = reinterpret_cast<uintptr_t>(end);
   e = e & ~(PAGE_SIZE - 1);
 
-  for (uintptr_t addr = s; addr < e; addr += PAGE_SIZE) {
-    reserveFrame(reinterpret_cast<void *>(addr));
+  InterruptGuard guard;
+
+  // Single pass: walk the free list once and unlink every frame in [s, e).
+  auto **prev = &freeList_;
+  auto *curr = freeList_;
+  while (curr != nullptr) {
+    if (reinterpret_cast<uintptr_t>(curr) >= s && reinterpret_cast<uintptr_t>(curr) < e) {
+      *prev = curr->next;
+      --freeCount_;
+      curr = curr->next;
+    }
+    else {
+      prev = &curr->next;
+      curr = curr->next;
+    }
   }
 }

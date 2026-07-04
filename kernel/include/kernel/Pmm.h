@@ -35,6 +35,9 @@ private:
     FreeFrame *next;
   };
 
+  // Fast path for init: inserts a frame without the O(n) double-free check.
+  static void freeFrameFast(void *physAddr);
+
   static FreeFrame *freeList_;
   static size_t freeCount_;
 };
