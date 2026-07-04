@@ -16,6 +16,7 @@ include(cmake/compilation.cmake)
 
 add_subdirectory(libc++)
 add_subdirectory(kernel)
+add_subdirectory(user)
 
 set(KERNEL_IMG "${CMAKE_BINARY_DIR}/kernel/doors.kernel")
 

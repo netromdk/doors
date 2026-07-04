@@ -23,12 +23,14 @@ if (_ISO_DEPS_OK)
     COMMAND "${CMAKE_COMMAND}" -E remove_directory "${TMP_ISO}"
     COMMAND "${CMAKE_COMMAND}" -E make_directory   "${TMP_ISO}/boot/grub"
     COMMAND "${CMAKE_COMMAND}" -E copy "${KERNEL_IMG}" "${TMP_ISO}/boot/"
+    COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/shell.elf"
+                                       "${TMP_ISO}/boot/"
     COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_SOURCE_DIR}/grub.cfg"
                                        "${TMP_ISO}/boot/grub/"
     COMMAND "${GRUB_MKRESCUE_EXECUTABLE}" -o "${ISO_FILE}"
             --locale-directory=. "${TMP_ISO}"
     COMMAND "${CMAKE_COMMAND}" -E remove_directory "${TMP_ISO}"
-    DEPENDS doors_kernel
+    DEPENDS doors_kernel user_programs
     VERBATIM
   )
 else()
