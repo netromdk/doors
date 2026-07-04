@@ -68,6 +68,7 @@ add_library(
   kernel/Scheduler.cc
   kernel/Semaphore.cc
   kernel/Syscall.cc
+  kernel/ElfLoader.cc
   kernel/Symbols.cc
   kernel/Taskbar.cc
   programs/api/Screen.cc

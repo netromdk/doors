@@ -31,6 +31,7 @@ public:
   static void init();
   static optional<int> addTask(string_view name, void (*entry)(), uint32_t pageDir = 0);
   static optional<int> addUserTask(string_view name);
+  static optional<int> addUserElfTask(string_view name, const void *elfData, size_t elfSize);
   static optional<int> addTaskAndBlock(string_view name, void (*entry)(), uint32_t pageDir = 0);
   static uint32_t tick(uint32_t currentEsp);
   [[noreturn]] static void exitCurrentTask();

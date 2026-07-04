@@ -16,6 +16,7 @@
 #ifdef __IS_DOORS_KERNEL
 #include <arch/i386/Gdt.h>
 #include <arch/i386/Paging.h>
+#include <kernel/ElfLoader.h>
 #endif
 
 array<Task, Scheduler::MAX_TASKS> Scheduler::tasks_{};
@@ -426,9 +427,66 @@ optional<int> Scheduler::addUserTask(string_view name)
   return slot;
 }
 
+optional<int> Scheduler::addUserElfTask(string_view name, const void *elfData, size_t elfSize)
+{
+  const auto entryOpt = ElfLoader::load(elfData, elfSize);
+  if (!entryOpt) {
+    return {};
+  }
+  const uint32_t entry = *entryOpt;
+
+  const auto slotOpt = findSlot();
+  if (!slotOpt) {
+    return {};
+  }
+  const int slot = *slotOpt;
+
+  Task &t = tasks_[slot];
+  if (t.stackBuf != nullptr) {
+    Heap::free(t.stackBuf);
+  }
+  t = {};
+
+  HeapAlloc kstack{Heap::alloc(TASK_STACK_SIZE), true};
+  if (!kstack.ptr) {
+    return {};
+  }
+
+  MappedFrame stackFrame{};
+  if (!allocAndMapUserPage(USER_STACK_VADDR, stackFrame)) {
+    return {};
+  }
+
+  t.pageDir = Paging::clonePageDir();
+
+  t.esp = initUserStackFrame(static_cast<uint8_t *>(kstack.ptr), entry,
+                             USER_STACK_VADDR + USER_STACK_SIZE);
+  t.entry = nullptr;
+  t.state = TaskState::READY;
+  t.id = static_cast<uint8_t>(slot);
+  t.stackBuf = static_cast<uint8_t *>(kstack.ptr);
+  t.stackSize = TASK_STACK_SIZE;
+  name.copy(t.name.data(), t.name.size() - 1);
+  t.userStackBuf = stackFrame.phys;
+  t.userCodeBuf = 0;
+
+  tss.esp0 = static_cast<uint32_t>(
+    reinterpret_cast<unsigned long long>(static_cast<uint8_t *>(kstack.ptr) + TASK_STACK_SIZE));
+  tss.ss0 = 0x10;
+
+  kstack.dismiss();
+  stackFrame.dismiss();
+  return slot;
+}
+
 #else
 
 optional<int> Scheduler::addUserTask(string_view)
+{
+  return {};
+}
+
+optional<int> Scheduler::addUserElfTask(string_view, const void *, size_t)
 {
   return {};
 }
