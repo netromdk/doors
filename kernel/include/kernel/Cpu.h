@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <string_view>
+#include <kernel/Syscall.h>
 
 static constexpr auto CPUID_VENDOR_OLDAMD = "AMDisbetter!",
   CPUID_VENDOR_AMD = "AuthenticAMD",
@@ -96,6 +97,11 @@ public:
    * Flush a single 4 KiB page from the TLB.
    */
   static void invlpg(uint32_t virtAddr);
+
+  /**
+   * Read raw CPU info into user-provided output struct.
+   */
+  static void readCpuInfo(CpuInfoRaw &out);
 };
 
 #endif // KERNEL_CPU_H

@@ -479,3 +479,20 @@ void Cpu::halt()
 {
   __asm__("hlt");
 }
+
+void Cpu::readCpuInfo(CpuInfoRaw &out)
+{
+  for (int i = 0; i < 12; ++i) {
+    out.vendor[i] = vendorId[i];
+  }
+  out.features = features.raw_data;
+  out.extFeatures = efeatures.raw_data;
+  out.extFeaturesEcx = efeatures2.raw_data;
+  out.stepping = stepping;
+  out.model = model;
+  out.family = family;
+  out.procType = procType;
+  for (int i = 0; i < 48; ++i) {
+    out.brand[i] = brand[i];
+  }
+}

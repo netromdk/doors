@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <string>
 
 enum class TaskState : uint8_t {
   DEAD = 0,    // Slot is unused or exited. Safe default for zero-initialized memory.
@@ -27,8 +28,16 @@ struct Task {
   uint32_t userStackBuf{}; // Physical address of user stack page (Pmm). 0 = ring-0 task.
   uint32_t userCodeBuf{};  // Physical address of user code page (Pmm). 0 = ring-0 task.
 
+  // Per-session history for SYS_READLINE. Allocated on first call, freed on task exit.
+  string *historyBuf_{}; // Array of HISTORY_MAX strings. nullptr = not yet allocated.
+  int historyCount_{};   // Number of entries in history.
+  int historyHead_{};    // Current head index for ring buffer.
+  int historyPos_{};     // Current navigation position (-1 = not browsing history).
+
   // When set, the taskbar task should not display while this task is alive.
   static constexpr uint8_t FLAG_SUPPRESS_TASKBAR = 1;
+
+  static constexpr int HISTORY_MAX = 100;
 
   // The stack canary is written at the base of each task's stack buffer. It is checked by
   // `Scheduler::checkCanary()` on every tick to detect stack overflow before the saved frame is

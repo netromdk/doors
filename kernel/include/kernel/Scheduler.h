@@ -37,6 +37,7 @@ public:
   [[noreturn]] static void exitCurrentTask();
   static void unblockTask(int id);
   static int currentTaskId();
+  static Task &currentTask();
   static int aliveTaskCount();
   static int runningReadyCount();
   static int blockedTaskCount();

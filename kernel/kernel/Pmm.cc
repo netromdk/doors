@@ -175,14 +175,20 @@ void Pmm::reserveFrame(void *physAddr)
   }
 }
 
-uint32_t Pmm::modulePhysStart()
+uint32_t Pmm::modulePhysStart(int idx)
 {
-  return modulePhysStart_[0];
+  if (idx < 0 || idx >= moduleCount_) {
+    return 0;
+  }
+  return modulePhysStart_[idx];
 }
 
-uint32_t Pmm::modulePhysSize()
+uint32_t Pmm::modulePhysSize(int idx)
 {
-  return modulePhysSize_[0];
+  if (idx < 0 || idx >= moduleCount_) {
+    return 0;
+  }
+  return modulePhysSize_[idx];
 }
 
 int Pmm::moduleCount()

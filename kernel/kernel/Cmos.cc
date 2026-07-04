@@ -120,6 +120,17 @@ void Cmos::readTime(uint8_t &h, uint8_t &m, uint8_t &s)
   s = seconds;
 }
 
+void Cmos::readDateTime(uint8_t &y, uint8_t &mth, uint8_t &d, uint8_t &h, uint8_t &min, uint8_t &s)
+{
+  readRtcValues();
+  y = static_cast<uint8_t>(year);
+  mth = static_cast<uint8_t>(month);
+  d = static_cast<uint8_t>(day);
+  h = hours;
+  min = minutes;
+  s = seconds;
+}
+
 uint64_t Cmos::unixTime()
 {
   readRtcValues();

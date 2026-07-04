@@ -2,6 +2,9 @@
 #include <cstdio>
 #include <kernel/Backtrace.h>
 #include <kernel/Symbols.h>
+#ifdef __IS_DOORS_KERNEL
+#include <kernel/Scheduler.h>
+#endif
 
 void dumpBacktrace()
 {
@@ -14,7 +17,13 @@ void dumpBacktrace()
 
   printf("Backtrace:\n");
   for (int i = 0; frame && i < 16; i++) {
-    uint32_t pc = (uint32_t)(unsigned long long)frame[1];
+#ifdef __IS_DOORS_KERNEL
+    if ((unsigned long long) frame >= Scheduler::USER_BASE) {
+      break;
+    }
+#endif
+
+    uint32_t pc = (uint32_t) (unsigned long long) frame[1];
     printf("  #%d  0x%x", i, pc);
 
 #ifdef __IS_DOORS_KERNEL
@@ -24,6 +33,6 @@ void dumpBacktrace()
 #endif
 
     printf("\n");
-    frame = (void **)frame[0];
+    frame = (void **) frame[0];
   }
 }

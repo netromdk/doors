@@ -60,7 +60,7 @@ void Scheduler::init()
   tasks_[0].entry = nullptr;
   tasks_[0].stackBuf = nullptr;
   tasks_[0].stackSize = 0;
-  strncpy(tasks_[0].name.data(), "shell", tasks_[0].name.size() - 1);
+  strncpy(tasks_[0].name.data(), "idle", tasks_[0].name.size() - 1);
   tasks_[0].name[tasks_[0].name.size() - 1] = '\0';
   taskCount_ = 1;
   currentIdx_ = 0;
@@ -127,6 +127,9 @@ uint32_t Scheduler::initStackFrame(uint8_t *stack, void (*entry)())
 
 uint32_t Scheduler::initUserStackFrame(uint8_t *stack, uint32_t userEip, uint32_t userEsp)
 {
+  // Canary at the base of the buffer to detect overflow.
+  reinterpret_cast<uint32_t *>(stack)[0] = Task::STACK_CANARY;
+
   const auto stackTop = reinterpret_cast<uint32_t *>(stack + TASK_STACK_SIZE);
 
   // iret frame for ring 3 -> ring 0 -> ring 3 (20 bytes).
@@ -511,6 +514,12 @@ optional<int> Scheduler::addUserElfTask(string_view, const void *, size_t)
   tasks_[currentIdx_].state = TaskState::DEAD;
   ++totalExited_;
 
+  // Free per-task history buffer.
+  if (tasks_[currentIdx_].historyBuf_ != nullptr) {
+    delete[] tasks_[currentIdx_].historyBuf_;
+    tasks_[currentIdx_].historyBuf_ = nullptr;
+  }
+
   // Switch to the next READY task immediately instead of waiting for the next PIT tick to expire
   // the quantum, and thus eliminating up to ~20 ms of dead time.
   const auto next = findNext();
@@ -570,6 +579,11 @@ void Scheduler::unblockTask(int id)
 int Scheduler::currentTaskId()
 {
   return currentIdx_;
+}
+
+Task &Scheduler::currentTask()
+{
+  return tasks_[currentIdx_];
 }
 
 int Scheduler::aliveTaskCount()
@@ -728,6 +742,12 @@ void Scheduler::killTask(int id)
     tasks_[id].userCodeBuf = 0;
   }
 #endif
+
+  // Free per-task history buffer (SYS_READLINE).
+  if (tasks_[id].historyBuf_ != nullptr) {
+    delete[] tasks_[id].historyBuf_;
+    tasks_[id].historyBuf_ = nullptr;
+  }
 
   tasks_[id].stackSize = 0;
 }
