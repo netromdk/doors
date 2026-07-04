@@ -13,8 +13,14 @@ extern char _kernel_end[];
 
 extern multiboot_info *mbi;
 
+constexpr uintptr_t KERNEL_START = 0x100000;
+const uintptr_t KERNEL_END = reinterpret_cast<uintptr_t>(_kernel_end);
+
 Pmm::FreeFrame *Pmm::freeList_ = nullptr;
 size_t Pmm::freeCount_ = 0;
+uint32_t Pmm::modulePhysStart_[MAX_MODULE_RANGES] = {};
+uint32_t Pmm::modulePhysSize_[MAX_MODULE_RANGES] = {};
+int Pmm::moduleCount_ = 0;
 
 void Pmm::freeFrameFast(void *physAddr)
 {
@@ -31,34 +37,68 @@ void Pmm::init()
 {
   printf("Pmm: scanning memory map...\n");
 
-  // Find all free regions (type == 1) of multiboot memory map and add to the free frame list.
+  cacheModuleInfo();
+  ModuleRange modules[MAX_MODULE_RANGES];
+  const int numModules = collectModuleRanges(modules);
+  addMemoryMapPages(modules, numModules);
+
+  reserveFrame(reinterpret_cast<void *>(0xB8000)); // Reserve VGA.
+  printf("Pmm: %u free frames (%u KB)\n", freeCount_, freeCount_ * 4);
+}
+
+void Pmm::cacheModuleInfo()
+{
+  // Cache module addresses BEFORE the free loop, because `freeFrameFast()` will overwrite the first
+  // 4 bytes of every freed page including the pages holding the multiboot module descriptor
+  // structures (`mbi->mods_addr`). Reading those structures after the free loop would give garbage.
+  if (!(mbi->flags & (1 << 3))) {
+    return;
+  }
+
+  auto *mods = reinterpret_cast<multiboot_module_t *>(static_cast<uintptr_t>(mbi->mods_addr));
+  int count = static_cast<int>(mbi->mods_count);
+  if (count > MAX_MODULE_RANGES) {
+    count = MAX_MODULE_RANGES;
+  }
+
+  moduleCount_ = count;
+  for (int i = 0; i < count; ++i) {
+    modulePhysStart_[i] = mods[i].mod_start;
+    modulePhysSize_[i] = mods[i].mod_end - mods[i].mod_start;
+  }
+}
+
+int Pmm::collectModuleRanges(ModuleRange *out)
+{
+  for (int i = 0; i < moduleCount_; ++i) {
+    out[i].start = modulePhysStart_[i] & ~(PAGE_SIZE - 1);
+    out[i].end = (modulePhysStart_[i] + modulePhysSize_[i] + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+  }
+  return moduleCount_;
+}
+
+void Pmm::addMemoryMapPages(const ModuleRange *modules, int count)
+{
   auto *mmap = (multiboot_memory_map_t *) mbi->mmap_addr;
   while (mmap < (multiboot_memory_map_t *) (mbi->mmap_addr + mbi->mmap_length)) {
     if (mmap->type == 1) {
       uintptr_t start = mmap->addr;
       uintptr_t end = mmap->addr + mmap->len;
-
-      // Align to 4 KiB page boundaries. Only tracking whole page frames.
       start = (start + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
       end = end & ~(PAGE_SIZE - 1);
-
       for (auto addr = start; addr < end; addr += PAGE_SIZE) {
-        // Skip the kernel image: `freeFrameFast()` writes to the page, which would corrupt kernel
-        // code and data that is still being executed.
-        if (addr >= kernelStart && addr < kernelEnd) {
+        if (addr >= KERNEL_START && addr < KERNEL_END) {
           continue;
         }
-
+        if (any_of(modules, modules + count,
+                   [addr](const ModuleRange &m) { return addr >= m.start && addr < m.end; })) {
+          continue;
+        }
         freeFrameFast(reinterpret_cast<void *>(addr));
       }
     }
     mmap = (multiboot_memory_map_t *) ((uint64_t) mmap + mmap->size + sizeof(uint32_t));
   }
-
-  // Reserve VGA.
-  reserveFrame(reinterpret_cast<void *>(0xB8000));
-
-  printf("Pmm: %u free frames (%u KB)\n", freeCount_, freeCount_ * 4);
 }
 
 void *Pmm::allocFrame()
@@ -133,6 +173,21 @@ void Pmm::reserveFrame(void *physAddr)
     prev = &curr->next;
     curr = curr->next;
   }
+}
+
+uint32_t Pmm::modulePhysStart()
+{
+  return modulePhysStart_[0];
+}
+
+uint32_t Pmm::modulePhysSize()
+{
+  return modulePhysSize_[0];
+}
+
+int Pmm::moduleCount()
+{
+  return moduleCount_;
 }
 
 void Pmm::removeFramesAbove(uintptr_t boundary)

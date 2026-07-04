@@ -13,6 +13,7 @@
 class Pmm {
 public:
   static inline constexpr size_t PAGE_SIZE = 4096;
+  static constexpr int MAX_MODULE_RANGES = 16;
 
   static void init();
 
@@ -30,16 +31,34 @@ public:
   // identity-mapped range.
   static void removeFramesAbove(uintptr_t boundary);
 
+  // Physical addresses of the first GRUB module, cached by `init()` before the free loop overwrites
+  // the multiboot module structures.
+  static uint32_t modulePhysStart();
+  static uint32_t modulePhysSize();
+  static int moduleCount();
+
 private:
   struct FreeFrame {
     FreeFrame *next;
   };
 
+  struct ModuleRange {
+    uintptr_t start;
+    uintptr_t end;
+  };
+
   // Fast path for init: inserts a frame without the O(n) double-free check.
   static void freeFrameFast(void *physAddr);
 
+  static void cacheModuleInfo();
+  static int collectModuleRanges(ModuleRange *out);
+  static void addMemoryMapPages(const ModuleRange *modules, int count);
+
   static FreeFrame *freeList_;
   static size_t freeCount_;
+  static uint32_t modulePhysStart_[MAX_MODULE_RANGES];
+  static uint32_t modulePhysSize_[MAX_MODULE_RANGES];
+  static int moduleCount_;
 };
 
 #endif
