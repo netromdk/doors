@@ -385,3 +385,19 @@ doors_test_module(test_kernel_elf
   elf/ElfLoader.cc
   "${ELF_SRC}"
 )
+
+doors_test_module(test_kernel_elf_user
+  elf/UserElfTask.cc
+  paging/PagingStub.cc
+  paging/PmmStub.cc
+  stubs.cc
+  "${HEAP_SRC}"
+  "${PIT_SRC}"
+  "${SCHED_SRC}"
+  "${SEMAPHORE_SRC}"
+  "${PANIC_SRC}"
+  "${BTRACE_SRC}"
+  "${SYMBOLS_SRC}"
+  "${ELF_SRC}"
+)
+target_compile_definitions(test_kernel_elf_user PRIVATE __IS_DOORS_KERNEL)
