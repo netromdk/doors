@@ -66,13 +66,13 @@ else()
 endif()
 
 if (QEMU_EXECUTABLE AND GRUB_MKRESCUE_EXECUTABLE)
-  add_custom_target(run-iso
+  add_custom_target(run
     COMMAND "${QEMU_EXECUTABLE}" ${QEMU_FLAGS} -cdrom "${ISO_FILE}" -boot d
     DEPENDS iso
     VERBATIM
   )
 else()
-  add_custom_target(run-iso
+  add_custom_target(run
     COMMAND "${CMAKE_COMMAND}" -E echo
       "Error: qemu-system-i386 and/or grub-mkrescue not found"
     COMMAND "${CMAKE_COMMAND}" -E false

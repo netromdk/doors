@@ -14,13 +14,13 @@ add_custom_target(check-qemu
 )
 
 if (QEMU_EXECUTABLE)
-  add_custom_target(run
+  add_custom_target(run-direct
     COMMAND "${QEMU_EXECUTABLE}" ${QEMU_FLAGS} -kernel "${KERNEL_IMG}"
     DEPENDS check-qemu doors_kernel
     VERBATIM
   )
 else()
-  add_custom_target(run
+  add_custom_target(run-direct
     COMMAND "${CMAKE_COMMAND}" -E echo
       "Error: qemu-system-i386 not found. Install with: sudo apt install qemu-system-x86"
     COMMAND "${CMAKE_COMMAND}" -E false
