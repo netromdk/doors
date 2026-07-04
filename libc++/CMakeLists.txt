@@ -35,6 +35,17 @@ target_compile_options(libcpp PRIVATE -fno-builtin)
 target_include_directories(libcpp PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+# Freestanding userland library for userland programs.
+add_library(libcpp_user STATIC ${LIBCPP_SOURCES})
+target_compile_definitions(libcpp_user PRIVATE
+  __IS_DOORS_LIBCPP
+  __IS_DOORS_USERLAND)
+target_compile_options(libcpp_user PRIVATE
+  -ffreestanding -fno-builtin -fno-exceptions -fno-rtti)
+target_include_directories(libcpp_user PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set_target_properties(libcpp_user PROPERTIES OUTPUT_NAME "cpp_user")
+
 # Freestanding kernel library.
 add_library(k STATIC ${LIBCPP_SOURCES})
 target_compile_definitions(k PRIVATE
