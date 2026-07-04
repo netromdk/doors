@@ -70,9 +70,6 @@ namespace {
 // Minimum virtual address allowed for user-space ELF segments.
 constexpr uint32_t ELF_MIN_ADDR = 0x10000;
 
-// Maximum pages a single load may map (256 KB per segment, 64 pages max).
-constexpr int MAX_ELF_PAGES = 64;
-
 // Align `val` down to the nearest `align` boundary (must be power of 2).
 constexpr uint32_t alignDown(uint32_t val, uint32_t align)
 {
@@ -85,10 +82,8 @@ constexpr uint32_t alignUp(uint32_t val, uint32_t align)
   return (val + align - 1) & ~(align - 1);
 }
 
-struct PageEntry {
-  uint32_t vaddr;
-  uint32_t phys;
-};
+using ElfLoader::MappedPage;
+using ElfLoader::MAX_ELF_PAGES;
 
 bool validateSegment(const Elf32_Phdr *phdr)
 {
@@ -104,7 +99,7 @@ bool validateSegment(const Elf32_Phdr *phdr)
   return true;
 }
 
-bool mapSegmentRange(const void *elf, const Elf32_Phdr *phdr, PageEntry *mapped, int &numMapped)
+bool mapSegmentRange(const void *elf, const Elf32_Phdr *phdr, MappedPage *mapped, int &numMapped)
 {
   // Page-aligned range covering the segment's virtual address span.
   const uint32_t pageStart = alignDown(phdr->p_vaddr, Pmm::PAGE_SIZE);
@@ -151,7 +146,7 @@ bool mapSegmentRange(const void *elf, const Elf32_Phdr *phdr, PageEntry *mapped,
   return true;
 }
 
-void rollbackMapped(PageEntry *mapped, int numMapped)
+void rollbackMapped(MappedPage *mapped, int numMapped)
 {
   for (int i = 0; i < numMapped; ++i) {
     Paging::unmapPage(mapped[i].vaddr);
@@ -161,7 +156,7 @@ void rollbackMapped(PageEntry *mapped, int numMapped)
 
 } // namespace
 
-optional<uint32_t> ElfLoader::load(const void *elf, size_t size)
+optional<ElfLoader::LoadResult> ElfLoader::load(const void *elf, size_t size)
 {
   if (!validate(elf, size)) {
     return {};
@@ -172,7 +167,7 @@ optional<uint32_t> ElfLoader::load(const void *elf, size_t size)
   const auto phnum = static_cast<size_t>(ehdr->e_phnum);
   const auto phentsize = static_cast<size_t>(ehdr->e_phentsize);
 
-  PageEntry mapped[MAX_ELF_PAGES];
+  MappedPage mapped[MAX_ELF_PAGES];
   int numMapped = 0;
 
   for (size_t i = 0; i < phnum; ++i) {
@@ -186,12 +181,18 @@ optional<uint32_t> ElfLoader::load(const void *elf, size_t size)
     }
   }
 
-  return ehdr->e_entry;
+  LoadResult result;
+  result.entry = ehdr->e_entry;
+  result.numPages = numMapped;
+  for (int i = 0; i < numMapped; ++i) {
+    result.pages[i] = mapped[i];
+  }
+  return result;
 }
 
 #else
 
-optional<uint32_t> ElfLoader::load(const void *, size_t)
+optional<ElfLoader::LoadResult> ElfLoader::load(const void *, size_t)
 {
   return {};
 }

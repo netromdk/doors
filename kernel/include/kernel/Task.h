@@ -28,6 +28,13 @@ struct Task {
   uint32_t userStackBuf{}; // Physical address of user stack page (Pmm). 0 = ring-0 task.
   uint32_t userCodeBuf{};  // Physical address of user code page (Pmm). 0 = ring-0 task.
 
+  // ELF-loaded page tracking. Populated by `addUserElfTask()`. These pages are freed when the task
+  // is killed or exits. `elfPageCount` is 0 for ring-0 tasks and non-ELF user tasks.
+  int elfPageCount{};
+  static constexpr int ELF_PAGE_MAX = 64;
+  uint32_t elfVaddr[ELF_PAGE_MAX]{};
+  uint32_t elfPhys[ELF_PAGE_MAX]{};
+
   // Per-session history for SYS_READLINE. Allocated on first call, freed on task exit.
   string *historyBuf_{}; // Array of HISTORY_MAX strings. nullptr = not yet allocated.
   int historyCount_{};   // Number of entries in history.

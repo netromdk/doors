@@ -432,11 +432,11 @@ optional<int> Scheduler::addUserTask(string_view name)
 
 optional<int> Scheduler::addUserElfTask(string_view name, const void *elfData, size_t elfSize)
 {
-  const auto entryOpt = ElfLoader::load(elfData, elfSize);
-  if (!entryOpt) {
+  const auto loadResult = ElfLoader::load(elfData, elfSize);
+  if (!loadResult) {
     return {};
   }
-  const uint32_t entry = *entryOpt;
+  const uint32_t entry = loadResult->entry;
 
   const auto slotOpt = findSlot();
   if (!slotOpt) {
@@ -471,7 +471,13 @@ optional<int> Scheduler::addUserElfTask(string_view name, const void *elfData, s
   t.stackSize = TASK_STACK_SIZE;
   name.copy(t.name.data(), t.name.size() - 1);
   t.userStackBuf = stackFrame.phys;
-  t.userCodeBuf = 0;
+
+  // Track ELF-loaded pages so they are freed on task exit.
+  t.elfPageCount = loadResult->numPages;
+  for (int i = 0; i < t.elfPageCount; ++i) {
+    t.elfVaddr[i] = loadResult->pages[i].vaddr;
+    t.elfPhys[i] = loadResult->pages[i].phys;
+  }
 
   tss.esp0 = static_cast<uint32_t>(
     reinterpret_cast<unsigned long long>(static_cast<uint8_t *>(kstack.ptr) + TASK_STACK_SIZE));
@@ -530,18 +536,33 @@ optional<int> Scheduler::addUserElfTask(string_view, const void *, size_t)
     const auto oldPageDir = tasks_[currentIdx_].pageDir;
     const auto oldUserStack = tasks_[currentIdx_].userStackBuf;
     const auto oldUserCode = tasks_[currentIdx_].userCodeBuf;
+    const int oldElfCount = tasks_[currentIdx_].elfPageCount;
+    uint32_t oldElfVaddr[Task::ELF_PAGE_MAX];
+    uint32_t oldElfPhys[Task::ELF_PAGE_MAX];
+    for (int i = 0; i < oldElfCount; ++i) {
+      oldElfVaddr[i] = tasks_[currentIdx_].elfVaddr[i];
+      oldElfPhys[i] = tasks_[currentIdx_].elfPhys[i];
+    }
 
     tasks_[currentIdx_].pageDir = 0;
     tasks_[currentIdx_].userStackBuf = 0;
     tasks_[currentIdx_].userCodeBuf = 0;
+    tasks_[currentIdx_].elfPageCount = 0;
 
     const uint32_t esp = switchTo(*next);
 
-    // The old page directory is no longer active due o the switch. Free its frame and any user-mode
-    // frames. These physical addresses are identity-mapped through PDE 0 in every page directory,
-    // so they are accessible from the new address space.
     if (oldPageDir != 0) {
       Pmm::freeFrame(reinterpret_cast<void *>(oldPageDir));
+    }
+    if (oldUserStack != 0) {
+      Pmm::freeFrame(reinterpret_cast<void *>(oldUserStack));
+    }
+    if (oldUserCode != 0) {
+      Pmm::freeFrame(reinterpret_cast<void *>(oldUserCode));
+    }
+    for (int i = 0; i < oldElfCount; ++i) {
+      Paging::unmapPage(oldElfVaddr[i]);
+      Pmm::freeFrame(reinterpret_cast<void *>(oldElfPhys[i]));
     }
     if (oldUserStack != 0) {
       Pmm::freeFrame(reinterpret_cast<void *>(oldUserStack));
@@ -741,6 +762,14 @@ void Scheduler::killTask(int id)
     Pmm::freeFrame(reinterpret_cast<void *>(tasks_[id].userCodeBuf));
     tasks_[id].userCodeBuf = 0;
   }
+
+  // Free ring-3 ELF-loaded pages. These are tracked separately from `userCodeBuf` because an ELF
+  // task may have multiple code/data segments at arbitrary virtual addresses.
+  for (int i = 0; i < tasks_[id].elfPageCount; ++i) {
+    Paging::unmapPage(tasks_[id].elfVaddr[i]);
+    Pmm::freeFrame(reinterpret_cast<void *>(tasks_[id].elfPhys[i]));
+  }
+  tasks_[id].elfPageCount = 0;
 #endif
 
   // Free per-task history buffer (SYS_READLINE).
