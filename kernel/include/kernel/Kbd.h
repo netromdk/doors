@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <string>
 
+#include <kernel/Semaphore.h>
+
 struct HistoryCtx {
   string *buf;
   int size;
@@ -33,6 +35,7 @@ public:
   static void pushChar(char ch);
   static bool charAvail();
   static char getChar();
+  static void waitForChar();
   static void readLine(string &line, HistoryCtx *history = nullptr);
 
   static void clearNavigation();
@@ -77,6 +80,8 @@ public:
   static volatile int pendingEnd_;
 
 private:
+  static Semaphore available_;
+
   // Ring buffer
   static volatile char buffer_[BUF_SIZE];
   static volatile size_t head_;

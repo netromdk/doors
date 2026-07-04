@@ -201,6 +201,7 @@ set(PANIC_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Panic.cc")
 set(BTRACE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Backtrace.cc")
 set(SYMBOLS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Symbols.cc")
 set(PMM_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Pmm.cc")
+set(SYSCALL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Syscall.cc")
 
 doors_test_module(test_kernel_heap_initstate
   heap/is_initialized.cc
@@ -229,6 +230,7 @@ doors_test_module(test_kernel_kbd
   stubs.cc
   "${KBD_SRC}"
   "${KBD_KEYMAP_SRC}"
+  "${SEMAPHORE_SRC}"
 )
 
 doors_test_module(test_kernel_kbd_caps_is_ctrl
@@ -236,6 +238,7 @@ doors_test_module(test_kernel_kbd_caps_is_ctrl
   stubs.cc
   "${KBD_SRC}"
   "${KBD_KEYMAP_SRC}"
+  "${SEMAPHORE_SRC}"
 )
 target_compile_definitions(test_kernel_kbd_caps_is_ctrl PRIVATE CAPS_LOCK_IS_CTRL)
 
@@ -359,3 +362,19 @@ doors_test_module(test_kernel_paging_sched
   "${SYMBOLS_SRC}"
 )
 target_compile_definitions(test_kernel_paging_sched PRIVATE __IS_DOORS_KERNEL)
+
+doors_test_module(test_kernel_syscall_read
+  syscall/SyscallRead.cc
+  tty/vga_ram.cc
+  stubs.cc
+  "${SYSCALL_SRC}"
+  "${HEAP_SRC}"
+  "${PIT_SRC}"
+  "${KBD_SRC}"
+  "${KBD_KEYMAP_SRC}"
+  "${TTY_SRC}"
+  "${SCHED_SRC}"
+  "${SEMAPHORE_SRC}"
+  "${PANIC_SRC}"
+  "${BTRACE_SRC}"
+)

@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <cstdint>
 
 #include <arch/i386/Gdt.h>
@@ -5,6 +6,7 @@
 #include <kernel/Cpu.h>
 #include <kernel/Io.h>
 #include <kernel/Kbd.h>
+#include <kernel/Scheduler.h>
 #include <kernel/Tty.h>
 
 uint8_t Io::inb(uint16_t)
@@ -126,6 +128,24 @@ __attribute__((weak)) void Tty::unlock()
 __attribute__((weak)) uint16_t *VGA_RAM = nullptr;
 
 __attribute__((weak)) void Kbd::clearNavigation()
+{
+}
+
+__attribute__((weak)) int Scheduler::taskCount()
+{
+  return 0;
+}
+
+__attribute__((weak)) int Scheduler::currentTaskId()
+{
+  return 0;
+}
+
+__attribute__((weak)) void Scheduler::blockCurrentTask()
+{
+}
+
+__attribute__((weak)) void Scheduler::unblockTask(int)
 {
 }
 

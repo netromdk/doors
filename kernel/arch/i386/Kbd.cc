@@ -119,6 +119,8 @@ volatile int Kbd::pendingPageDown_ = 0;
 volatile int Kbd::pendingHome_ = 0;
 volatile int Kbd::pendingEnd_ = 0;
 
+Semaphore Kbd::available_{0};
+
 void Kbd::clearNavigation()
 {
   pendingUp_ = 0;
@@ -146,6 +148,7 @@ void Kbd::init()
 void Kbd::pushChar(char ch)
 {
   buffer_[exchange(head_, head_ + 1) % BUF_SIZE] = ch;
+  available_.signal();
 }
 
 bool Kbd::charAvail()
@@ -159,6 +162,11 @@ char Kbd::getChar()
     // spin
   }
   return buffer_[exchange(tail_, tail_ + 1) % BUF_SIZE];
+}
+
+void Kbd::waitForChar()
+{
+  available_.wait();
 }
 
 Kbd::KeyEvent Kbd::tryReadKey()
