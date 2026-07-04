@@ -16,6 +16,7 @@ function(add_user_program name)
       -ffreestanding -nostdlib -static -no-pie
       -T "${CMAKE_CURRENT_SOURCE_DIR}/../User.ld"
       -I "${CMAKE_CURRENT_SOURCE_DIR}/.."
+      -I "${CMAKE_SOURCE_DIR}/libc++/include"
       -fno-exceptions -fno-rtti -fno-builtin
       -o "${CMAKE_CURRENT_BINARY_DIR}/${name}.elf"
       ${sources}
