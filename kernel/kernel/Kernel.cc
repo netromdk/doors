@@ -95,15 +95,28 @@ void kmain()
     printf("Warning: no memory available for heap\n");
   }
 
+  if (Pmm::moduleCount() > 0 && Pmm::modulePhysSize() > 0) {
+    printf("Multiboot modules found: %d\n", Pmm::moduleCount());
+  }
+  else {
+    printf("No multiboot modules found\n");
+  }
+
   Scheduler::init();
 
   printf("\n<<Doors are open>>\n");
 
   initCommands();
 
+  if (Pmm::moduleCount() > 0 && Pmm::modulePhysSize() > 0) {
+    const void *modPtr =
+      physToVirt(reinterpret_cast<void *>(static_cast<uintptr_t>(Pmm::modulePhysStart())));
+    Scheduler::addUserElfTask("shell.elf", modPtr, Pmm::modulePhysSize());
+  }
+
   // Uncomment the following to do a ring-3 test, with user-mode task that prints "USER" via
-  // SYS_WRITE then exits.
-  //Scheduler::addUserTask("usertest");
+  // SYS_WRITE then exits:
+  // Scheduler::addUserTask("usertest");
 
   Scheduler::addTask("taskbar", taskbarMain, Paging::clonePageDir());
   Shell::run();
