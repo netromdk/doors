@@ -79,6 +79,11 @@ public:
   static void enableInterrupts();
 
   /**
+   * Halt the processor until the next interrupt.
+   */
+  static void halt();
+
+  /**
    * Read/write control registers for paging.
    */
   static uint32_t readCr0();

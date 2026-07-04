@@ -474,3 +474,8 @@ void Cpu::invlpg(uint32_t virtAddr)
 {
   __asm__("invlpg (%0)" : : "r"(virtAddr) : "memory");
 }
+
+void Cpu::halt()
+{
+  __asm__("hlt");
+}
