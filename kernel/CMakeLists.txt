@@ -61,8 +61,6 @@ add_library(
   kernel/Cmos.cc
   kernel/Keymap.cc
   kernel/Heap.cc
-  kernel/Shell.cc
-  kernel/Commands.cc
   kernel/Backtrace.cc
   kernel/Panic.cc
   kernel/Scheduler.cc

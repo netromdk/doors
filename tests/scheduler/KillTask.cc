@@ -65,7 +65,7 @@ TEST_CASE_FIXTURE(SchedulerFixture, "killTask: already DEAD is no-op")
 TEST_CASE_FIXTURE(SchedulerFixture, "killTask: self-kill rejected")
 {
 
-  // current task is 0 (shell).
+  // current task is 0 (idle).
   Scheduler::killTask(0);
   CHECK(Scheduler::taskState(0) == TaskState::RUNNING);
 }

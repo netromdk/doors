@@ -7,7 +7,7 @@
 
 TEST_CASE_FIXTURE(SchedulerFixture, "taskCount: starts at 1 after init, increments with addTask")
 {
-  CHECK(Scheduler::taskCount() == 1); // Shell task.
+  CHECK(Scheduler::taskCount() == 1); // Idle task.
 
   CHECK(*Scheduler::addTask("a", nullptr) == 1);
   CHECK(Scheduler::taskCount() == 2);
@@ -19,7 +19,7 @@ TEST_CASE_FIXTURE(SchedulerFixture, "taskCount: starts at 1 after init, incremen
 TEST_CASE_FIXTURE(SchedulerFixture, "taskName: returns stored name and empty string for bad id")
 {
 
-  CHECK(strcmp(*Scheduler::taskName(0), "shell") == 0);
+  CHECK(strcmp(*Scheduler::taskName(0), "idle") == 0);
   CHECK(strcmp(Scheduler::taskName(-1).value_or(""), "") == 0);
   CHECK(strcmp(Scheduler::taskName(99).value_or(""), "") == 0);
 }
@@ -60,7 +60,7 @@ TEST_CASE_FIXTURE(SchedulerFixture, "taskFlags: returns 0 for added task, sets s
   CHECK(!Scheduler::taskFlags(-1));
   CHECK(!Scheduler::taskFlags(99));
 
-  // Suppress taskbar for the running task (shell in this case).
+  // Suppress taskbar for the running task ("idle" in this case).
   Scheduler::suppressTaskbar();
   CHECK((*Scheduler::taskFlags(0) & Task::FLAG_SUPPRESS_TASKBAR) != 0);
 }
@@ -76,7 +76,7 @@ TEST_CASE_FIXTURE(SchedulerFixture, "taskEsp: returns nullopt for invalid id")
   CHECK(!Scheduler::taskEsp(99));
 }
 
-TEST_CASE_FIXTURE(SchedulerFixture, "taskStackBuf: nullptr for shell, non-null for added task")
+TEST_CASE_FIXTURE(SchedulerFixture, "taskStackBuf: nullptr for idle, non-null for added task")
 {
   CHECK(Scheduler::taskStackBuf(0) == nullptr);
 
@@ -90,7 +90,7 @@ TEST_CASE_FIXTURE(SchedulerFixture, "taskStackBuf: returns nullopt for invalid i
   CHECK(!Scheduler::taskStackBuf(99));
 }
 
-TEST_CASE_FIXTURE(SchedulerFixture, "taskStackSize: 0 for shell, TASK_STACK_SIZE for added task")
+TEST_CASE_FIXTURE(SchedulerFixture, "taskStackSize: 0 for idle, TASK_STACK_SIZE for added task")
 {
   CHECK(Scheduler::taskStackSize(0) == 0);
 
@@ -103,7 +103,7 @@ static void taskEntryTestDummy()
 {
 }
 
-TEST_CASE_FIXTURE(SchedulerFixture, "taskEntryAddr: 0 for shell, non-zero for added task")
+TEST_CASE_FIXTURE(SchedulerFixture, "taskEntryAddr: 0 for idle, non-zero for added task")
 {
   CHECK(Scheduler::taskEntryAddr(0) == 0);
 

@@ -13,14 +13,13 @@
 
 #include <kernel/Acpi.h>
 #include <kernel/Arch.h>
-#include <kernel/Commands.h>
+#include <kernel/Cpu.h>
 #include <kernel/Heap.h>
 #include <kernel/Mem.h>
 #include <kernel/Multiboot.h>
 #include <kernel/Pmm.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Serial.h>
-#include <kernel/Shell.h>
 #include <kernel/Taskbar.h>
 #include <kernel/Tty.h>
 #include <kernel/Version.h>
@@ -106,8 +105,6 @@ void kmain()
 
   printf("\n<<Doors are open>>\n");
 
-  initCommands();
-
   if (Pmm::moduleCount() > 0 && Pmm::modulePhysSize() > 0) {
     const void *modPtr =
       physToVirt(reinterpret_cast<void *>(static_cast<uintptr_t>(Pmm::modulePhysStart())));
@@ -119,7 +116,16 @@ void kmain()
   // Scheduler::addUserTask("usertest");
 
   Scheduler::addTask("taskbar", taskbarMain, Paging::clonePageDir());
-  Shell::run();
+
+  // User-mode interactive shell runs as a ring-3 task. No kernel fallback.
+  if (Pmm::moduleCount() == 0) {
+    printf("No multiboot modules found\n");
+    printf("No shell available!\n");
+  }
+  for (;;) {
+    Cpu::enableInterrupts();
+    Cpu::halt();
+  }
 }
 
 } // extern "C"

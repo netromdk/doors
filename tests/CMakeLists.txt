@@ -194,7 +194,6 @@ set(PIT_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Pit.cc")
 set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cc")
 set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cc")
 set(TTY_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Tty.cc")
-set(SHELL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Shell.cc")
 set(SCHED_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Scheduler.cc")
 set(SEMAPHORE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Semaphore.cc")
 set(PANIC_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Panic.cc")
@@ -247,26 +246,6 @@ doors_test_module(test_kernel_pit
   pit/uptime_math.cc
   stubs.cc
   "${PIT_SRC}"
-)
-
-doors_test_module(test_kernel_shell
-  shell/tokenizer.cc
-  shell/dispatch.cc
-  shell/commands.cc
-  shell/history.cc
-  tty/vga_ram.cc
-  stubs.cc
-  "${HEAP_SRC}"
-  "${PIT_SRC}"
-  "${KBD_SRC}"
-  "${KBD_KEYMAP_SRC}"
-  "${TTY_SRC}"
-  "${SCHED_SRC}"
-  "${SEMAPHORE_SRC}"
-  "${PANIC_SRC}"
-  "${BTRACE_SRC}"
-  "${SYMBOLS_SRC}"
-  "${SHELL_SRC}"
 )
 
 doors_test_module(test_kernel_tty
