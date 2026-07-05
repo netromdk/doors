@@ -270,7 +270,7 @@ uint32_t Scheduler::switchTo(int next)
     // Update TSS.esp0 so that INT 0x80 from a ring-3 task switches to the correct kernel
     // stack. Ring-0 tasks (`userStackBuf == 0`) don't use the TSS for ring transitions, so leave
     // the TSS alone for them.
-    if (tasks_[currentIdx_].userStackBuf != 0) {
+    if (tasks_[currentIdx_].userStackPageCount > 0) {
       tss.esp0 = static_cast<uint32_t>(
         reinterpret_cast<unsigned long long>(tasks_[currentIdx_].stackBuf + TASK_STACK_SIZE));
     }
@@ -372,6 +372,30 @@ bool allocAndMapUserPage(uint32_t vaddr, MappedFrame &out)
   return true;
 }
 
+bool mapUserStackPages(Task &t)
+{
+  for (uint32_t i = 0; i < Scheduler::USER_STACK_PAGES; ++i) {
+    MappedFrame frame{};
+    const uint32_t vaddr = Scheduler::USER_STACK_VADDR - i * Pmm::PAGE_SIZE;
+    if (!allocAndMapUserPage(vaddr, frame)) {
+      return false;
+    }
+    t.userStackVaddr[i] = vaddr;
+    t.userStackPhys[i] = frame.phys;
+    frame.dismiss();
+  }
+  t.userStackPageCount = Scheduler::USER_STACK_PAGES;
+  return true;
+}
+
+void freePageArray(int count, const uint32_t *vaddrs, const uint32_t *phys)
+{
+  for (int i = 0; i < count; ++i) {
+    Paging::unmapPage(vaddrs[i]);
+    Pmm::freeFrame(reinterpret_cast<void *>(phys[i]));
+  }
+}
+
 } // namespace
 
 optional<int> Scheduler::addUserTask(string_view name)
@@ -393,13 +417,12 @@ optional<int> Scheduler::addUserTask(string_view name)
     return {};
   }
 
-  MappedFrame stackFrame{};
-  if (!allocAndMapUserPage(USER_STACK_VADDR, stackFrame)) {
+  MappedFrame codeFrame{};
+  if (!allocAndMapUserPage(USER_BASE, codeFrame)) {
     return {};
   }
 
-  MappedFrame codeFrame{};
-  if (!allocAndMapUserPage(USER_BASE, codeFrame)) {
+  if (!mapUserStackPages(t)) {
     return {};
   }
 
@@ -410,14 +433,13 @@ optional<int> Scheduler::addUserTask(string_view name)
   memcpy(codeDst, userTestStart, codeSize);
 
   t.esp = initUserStackFrame(static_cast<uint8_t *>(kstack.ptr), USER_BASE,
-                             USER_STACK_VADDR + USER_STACK_SIZE);
+                             USER_STACK_VADDR + Pmm::PAGE_SIZE);
   t.entry = nullptr;
   t.state = TaskState::READY;
   t.id = static_cast<uint8_t>(slot);
   t.stackBuf = static_cast<uint8_t *>(kstack.ptr);
   t.stackSize = TASK_STACK_SIZE;
   name.copy(t.name.data(), t.name.size() - 1);
-  t.userStackBuf = stackFrame.phys;
   t.userCodeBuf = codeFrame.phys;
 
   tss.esp0 = static_cast<uint32_t>(
@@ -425,7 +447,6 @@ optional<int> Scheduler::addUserTask(string_view name)
   tss.ss0 = 0x10;
 
   kstack.dismiss();
-  stackFrame.dismiss();
   codeFrame.dismiss();
   return slot;
 }
@@ -455,22 +476,20 @@ optional<int> Scheduler::addUserElfTask(string_view name, const void *elfData, s
     return {};
   }
 
-  MappedFrame stackFrame{};
-  if (!allocAndMapUserPage(USER_STACK_VADDR, stackFrame)) {
+  if (!mapUserStackPages(t)) {
     return {};
   }
 
   t.pageDir = Paging::clonePageDir();
 
   t.esp = initUserStackFrame(static_cast<uint8_t *>(kstack.ptr), entry,
-                             USER_STACK_VADDR + USER_STACK_SIZE);
+                             USER_STACK_VADDR + Pmm::PAGE_SIZE);
   t.entry = nullptr;
   t.state = TaskState::READY;
   t.id = static_cast<uint8_t>(slot);
   t.stackBuf = static_cast<uint8_t *>(kstack.ptr);
   t.stackSize = TASK_STACK_SIZE;
   name.copy(t.name.data(), t.name.size() - 1);
-  t.userStackBuf = stackFrame.phys;
 
   // Track ELF-loaded pages so they are freed on task exit.
   t.elfPageCount = loadResult->numPages;
@@ -484,7 +503,6 @@ optional<int> Scheduler::addUserElfTask(string_view name, const void *elfData, s
   tss.ss0 = 0x10;
 
   kstack.dismiss();
-  stackFrame.dismiss();
   return slot;
 }
 
@@ -534,7 +552,13 @@ optional<int> Scheduler::addUserElfTask(string_view, const void *, size_t)
     // Save per-task Pmm frames before CR3 switch. After `switchTo()` loads the new page directory,
     // `currentIdx_` will point to the next task and the reference is lost.
     const auto oldPageDir = tasks_[currentIdx_].pageDir;
-    const auto oldUserStack = tasks_[currentIdx_].userStackBuf;
+    const int oldUserStackCount = tasks_[currentIdx_].userStackPageCount;
+    uint32_t oldUserStackVaddr[Task::USER_STACK_PAGE_MAX];
+    uint32_t oldUserStackPhys[Task::USER_STACK_PAGE_MAX];
+    for (int i = 0; i < oldUserStackCount; ++i) {
+      oldUserStackVaddr[i] = tasks_[currentIdx_].userStackVaddr[i];
+      oldUserStackPhys[i] = tasks_[currentIdx_].userStackPhys[i];
+    }
     const auto oldUserCode = tasks_[currentIdx_].userCodeBuf;
     const int oldElfCount = tasks_[currentIdx_].elfPageCount;
     uint32_t oldElfVaddr[Task::ELF_PAGE_MAX];
@@ -545,7 +569,7 @@ optional<int> Scheduler::addUserElfTask(string_view, const void *, size_t)
     }
 
     tasks_[currentIdx_].pageDir = 0;
-    tasks_[currentIdx_].userStackBuf = 0;
+    tasks_[currentIdx_].userStackPageCount = 0;
     tasks_[currentIdx_].userCodeBuf = 0;
     tasks_[currentIdx_].elfPageCount = 0;
 
@@ -554,22 +578,12 @@ optional<int> Scheduler::addUserElfTask(string_view, const void *, size_t)
     if (oldPageDir != 0) {
       Pmm::freeFrame(reinterpret_cast<void *>(oldPageDir));
     }
-    if (oldUserStack != 0) {
-      Pmm::freeFrame(reinterpret_cast<void *>(oldUserStack));
-    }
+    freePageArray(oldUserStackCount, oldUserStackVaddr, oldUserStackPhys);
     if (oldUserCode != 0) {
+      Paging::unmapPage(USER_BASE);
       Pmm::freeFrame(reinterpret_cast<void *>(oldUserCode));
     }
-    for (int i = 0; i < oldElfCount; ++i) {
-      Paging::unmapPage(oldElfVaddr[i]);
-      Pmm::freeFrame(reinterpret_cast<void *>(oldElfPhys[i]));
-    }
-    if (oldUserStack != 0) {
-      Pmm::freeFrame(reinterpret_cast<void *>(oldUserStack));
-    }
-    if (oldUserCode != 0) {
-      Pmm::freeFrame(reinterpret_cast<void *>(oldUserCode));
-    }
+    freePageArray(oldElfCount, oldElfVaddr, oldElfPhys);
 
     // Unlike the timer ISR path (asmIntTick -> intTick -> tick -> switchTo -> %eax -> movl %esp),
     // there is no ISR frame or return chain from `exitCurrentTask()`. Switch to the new task's
@@ -752,11 +766,8 @@ void Scheduler::killTask(int id)
   }
 
   // Free user-mode pages (ring-3 tasks).
-  if (tasks_[id].userStackBuf != 0) {
-    Paging::unmapPage(USER_STACK_VADDR);
-    Pmm::freeFrame(reinterpret_cast<void *>(tasks_[id].userStackBuf));
-    tasks_[id].userStackBuf = 0;
-  }
+  freePageArray(tasks_[id].userStackPageCount, tasks_[id].userStackVaddr, tasks_[id].userStackPhys);
+  tasks_[id].userStackPageCount = 0;
   if (tasks_[id].userCodeBuf != 0) {
     Paging::unmapPage(USER_BASE);
     Pmm::freeFrame(reinterpret_cast<void *>(tasks_[id].userCodeBuf));
@@ -765,10 +776,7 @@ void Scheduler::killTask(int id)
 
   // Free ring-3 ELF-loaded pages. These are tracked separately from `userCodeBuf` because an ELF
   // task may have multiple code/data segments at arbitrary virtual addresses.
-  for (int i = 0; i < tasks_[id].elfPageCount; ++i) {
-    Paging::unmapPage(tasks_[id].elfVaddr[i]);
-    Pmm::freeFrame(reinterpret_cast<void *>(tasks_[id].elfPhys[i]));
-  }
+  freePageArray(tasks_[id].elfPageCount, tasks_[id].elfVaddr, tasks_[id].elfPhys);
   tasks_[id].elfPageCount = 0;
 #endif
 

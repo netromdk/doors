@@ -4,6 +4,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <kernel/Pmm.h>
 #include <kernel/Task.h>
 #include <optional>
 #include <string_view>
@@ -25,8 +26,9 @@ public:
   // User-mode constants.
   static constexpr uint32_t USER_BASE = 0x10000000;        // Virtual address for user code.
   static constexpr uint32_t USER_STACK_VADDR = 0xB0000000; // Virtual address for user stack.
-  static constexpr uint32_t USER_STACK_SIZE = 0x1000;      // 4 KB (one page).
-  static constexpr uint32_t FRAME_SIZE_USER = 52;          // 32 pushal + 20 iret (ring 3).
+  static constexpr uint32_t USER_STACK_SIZE = 0x4000;      // 16 KB (4 pages).
+  static constexpr uint32_t USER_STACK_PAGES = USER_STACK_SIZE / Pmm::PAGE_SIZE;
+  static constexpr uint32_t FRAME_SIZE_USER = 52; // 32 pushal + 20 iret (ring 3).
 
   static void init();
   static optional<int> addTask(string_view name, void (*entry)(), uint32_t pageDir = 0);

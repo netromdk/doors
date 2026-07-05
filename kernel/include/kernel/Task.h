@@ -13,20 +13,26 @@ enum class TaskState : uint8_t {
 };
 
 struct Task {
-  uint32_t esp{};          // Saved stack pointer.
-  TaskState state{};       // Current lifecycle state.
-  uint8_t id{};            // Index into `Scheduler::tasks_[]`.
-  array<char, 16> name{};  // Human-readable label (null-terminated).
-  void (*entry)(){};       // Function to invoke via `taskWrapper()` on first schedule.
-  uint8_t *stackBuf{};     // Base of heap-allocated stack. null for the shell (bootstrap) task.
-  uint32_t stackSize{};    // Size of `stackBuf` in bytes. 0 for the shell task.
-  uint8_t flags{};         // Task behaviour flags (see FLAG_* constants).
-  uint64_t wakeupMs{};     // System uptime (ms) when BLOCKED task should wake. 0 = not sleeping.
-  uint64_t runtimeMs{};    // Cumulative CPU runtime in PIT ticks (milliseconds).
-  void (*onKill)(){};      // Called when this task is killed/exits. Used for cleanup.
-  uint32_t pageDir{};      // Physical address of task's page directory. 0 = use kernel page dir.
-  uint32_t userStackBuf{}; // Physical address of user stack page (Pmm). 0 = ring-0 task.
-  uint32_t userCodeBuf{};  // Physical address of user code page (Pmm). 0 = ring-0 task.
+  uint32_t esp{};         // Saved stack pointer.
+  TaskState state{};      // Current lifecycle state.
+  uint8_t id{};           // Index into `Scheduler::tasks_[]`.
+  array<char, 16> name{}; // Human-readable label (null-terminated).
+  void (*entry)(){};      // Function to invoke via `taskWrapper()` on first schedule.
+  uint8_t *stackBuf{};    // Base of heap-allocated stack. null for the shell (bootstrap) task.
+  uint32_t stackSize{};   // Size of `stackBuf` in bytes. 0 for the shell task.
+  uint8_t flags{};        // Task behaviour flags (see FLAG_* constants).
+  uint64_t wakeupMs{};    // System uptime (ms) when BLOCKED task should wake. 0 = not sleeping.
+  uint64_t runtimeMs{};   // Cumulative CPU runtime in PIT ticks (milliseconds).
+  void (*onKill)(){};     // Called when this task is killed/exits. Used for cleanup.
+  uint32_t pageDir{};     // Physical address of task's page directory. 0 = use kernel page dir.
+
+  // User stack page tracking. Populated by `addUserTask()` and `addUserElfTask()`. Freed when the
+  // task is killed or exits. `userStackPageCount` is 0 for ring-0 tasks.
+  int userStackPageCount{};
+  static constexpr int USER_STACK_PAGE_MAX = 16;
+  uint32_t userStackVaddr[USER_STACK_PAGE_MAX]{};
+  uint32_t userStackPhys[USER_STACK_PAGE_MAX]{};
+  uint32_t userCodeBuf{}; // Physical address of user code page (Pmm). 0 = ring-0 task.
 
   // ELF-loaded page tracking. Populated by `addUserElfTask()`. These pages are freed when the task
   // is killed or exits. `elfPageCount` is 0 for ring-0 tasks and non-ELF user tasks.
