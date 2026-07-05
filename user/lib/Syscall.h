@@ -1,19 +1,7 @@
 #ifndef USER_SYSCALL_H
 #define USER_SYSCALL_H
 
-// Must mirror `Syscall` in "include/kernel/Syscall.h"!
-enum Syscall {
-  SYS_WRITE = 1,
-  SYS_EXIT = 2,
-  SYS_READ = 3,
-  SYS_WRITESTR = 4,
-  SYS_READLINE = 5,
-  SYS_IOCTL = 6,
-  SYS_TASKCTL = 7,
-  SYS_SYSINFO = 8,
-  SYS_EXECMOD = 9,
-  SYS_PANIC = 10,
-};
+#include <sys/syscall.h>
 
 enum IoctlCmd {
   IOCTL_CLEAR = 1,

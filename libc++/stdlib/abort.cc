@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
+#include <sys/syscall.h>
 
 #ifdef __IS_DOORS_KERNEL
 #include <kernel/Panic.h>
@@ -12,7 +13,6 @@ __attribute__((__noreturn__)) void abort() noexcept
 #ifdef __IS_DOORS_KERNEL
   panic("abort()");
 #elif defined(__IS_DOORS_USERLAND)
-  constexpr unsigned int SYS_PANIC = 10;
   __asm__ volatile("int $0x80" : : "a"(SYS_PANIC), "b"(0U) : "memory");
   __builtin_unreachable();
 #else

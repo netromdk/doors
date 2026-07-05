@@ -2,19 +2,7 @@
 #define KERNEL_SYSCALL_H
 
 #include <cstdint>
-
-enum Syscall : uint32_t {
-  SYS_WRITE = 1,    // Write a character to the terminal. EBX = char.
-  SYS_EXIT = 2,     // Exit the current task.
-  SYS_READ = 3,     // Read from keyboard into buffer. EBX=buf, ECX=count. Returns bytes read.
-  SYS_WRITESTR = 4, // Write a string to the terminal. EBX=buf, ECX=len. Returns bytes written.
-  SYS_READLINE = 5, // Read a line with editing. EBX=buf, ECX=maxlen. Returns bytes incl '\n' / -1.
-  SYS_IOCTL = 6,    // System control operations. EBX=cmd, ECX=arg.
-  SYS_TASKCTL = 7,  // Task control operations. EBX=cmd, ECX=arg1, EDX=arg2.
-  SYS_SYSINFO = 8,  // System information queries. EBX=cmd, ECX=arg.
-  SYS_EXECMOD = 9,  // Execute a GRUB module. EBX=module_index.
-  SYS_PANIC = 10,   // Trigger a kernel panic. EBX=msg_ptr.
-};
+#include <sys/syscall.h>
 
 enum IoctlCmd : uint32_t {
   IOCTL_CLEAR = 1,
