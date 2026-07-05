@@ -10,6 +10,8 @@
 #include <kernel/Scancodes.h>
 #include <kernel/Tty.h>
 
+#include <arch/i386/Pic.h>
+
 namespace {
 
 constexpr uint16_t KBD_DATA_PORT = 0x60;
@@ -135,6 +137,7 @@ void Kbd::clearNavigation()
 
 void Kbd::init()
 {
+  Pic::setMask(IRQ_KEYBOARD, true);
   head_ = 0;
   tail_ = 0;
   shiftPressed_ = false;
