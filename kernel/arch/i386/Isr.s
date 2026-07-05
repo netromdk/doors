@@ -12,7 +12,16 @@ asmExc\name:
 .endm
 
 EXCHANDLER DivZero
-EXCHANDLER InvOp
+.globl asmExcInvOp
+.align 4
+asmExcInvOp:
+        pushal
+        cld
+        pushl %esp
+        call  excInvOp
+        addl  $4, %esp
+        popal
+        iret
 EXCHANDLER SegNp
 EXCHANDLER Sf
 EXCHANDLER Gp

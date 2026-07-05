@@ -7,7 +7,6 @@
 
 #include <cstdint>
 #include <cstdio>
-#include <cstdlib>
 
 #include <kernel/Cpu.h>
 #include <kernel/Panic.h>
@@ -16,32 +15,38 @@ extern "C" {
 
 void excDivZero()
 {
-  printf("Divide by zero!\n");
-  abort();
+  panic("division by zero");
 }
 
-void excInvOp()
+void excInvOp(uint32_t *frame)
 {
-  printf("Invalid opcode!\n");
-  abort();
+  // `frame` points to post-pushal stack from `asmExcInvOp`.
+  // pushal layout: EDI, ESI, EBP, ESP, EBX, EDX, ECX, EAX.
+  // Above pushal (from CPU for ring3 -> 0 transition):
+  //   frame[8]  = EIP
+  //   frame[9]  = CS
+  //   frame[10] = EFLAGS
+  //   frame[11] = ESP_user
+  //   frame[12] = SS_user
+  const uint32_t eip = frame[8];
+  const uint32_t cs = frame[9];
+  printf("Invalid opcode! EIP=0x%x CS=0x%x\n", eip, cs);
+  panic("invalid opcode");
 }
 
 void excSegNp()
 {
-  printf("Segment not present!\n");
-  abort();
+  panic("segment not present");
 }
 
 void excSf()
 {
-  printf("Stack fault!\n");
-  abort();
+  panic("stack fault");
 }
 
 void excGp()
 {
-  printf("General protection exception!\n");
-  abort();
+  panic("general protection fault");
 }
 
 // Page fault handler.
