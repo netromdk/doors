@@ -3,24 +3,6 @@
 #include "Util.h"
 #include "Lib.h"
 
-int strLen(const char *s)
-{
-  int n = 0;
-  while (*s++) {
-    ++n;
-  }
-  return n;
-}
-
-int strCmp(const char *a, const char *b)
-{
-  while (*a && *a == *b) {
-    ++a;
-    ++b;
-  }
-  return static_cast<unsigned char>(*a) - static_cast<unsigned char>(*b);
-}
-
 int brandLen(const char *b)
 {
   int n = 0;

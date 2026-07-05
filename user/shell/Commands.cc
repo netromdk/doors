@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "lib/Syscall.h"
 #include "Commands.h"
 #include "Util.h"
@@ -35,7 +37,7 @@ int dispatch(int argc, char **argv)
     return 0;
   }
   for (int i = 0; i < NUM_CMDS; ++i) {
-    if (strCmp(argv[0], cmdTable[i].name) == 0) {
+    if (strcmp(argv[0], cmdTable[i].name) == 0) {
       cmdTable[i].handler(argc, argv);
       return 0;
     }
