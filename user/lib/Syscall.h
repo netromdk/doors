@@ -154,4 +154,9 @@ __attribute__((noreturn)) static inline void sys_panic(const char *msg)
   __builtin_unreachable();
 }
 
+static inline void sys_suppressTaskbar()
+{
+  __asm__ volatile("int $0x80" : : "a"(SYS_SUPPRESS_TASKBAR) : "memory");
+}
+
 #endif
