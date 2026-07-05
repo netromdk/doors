@@ -36,7 +36,11 @@ target_include_directories(libcpp PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # Freestanding userland library for userland programs.
-set(LIBCPP_USER_SOURCES ${LIBCPP_SOURCES} stdlib/malloc.cc)
+set(LIBCPP_USER_SOURCES
+  ${LIBCPP_SOURCES}
+  stdlib/malloc.cc
+  stdlib/udivmoddi3.cc
+)
 add_library(libcpp_user STATIC ${LIBCPP_USER_SOURCES})
 target_compile_definitions(libcpp_user PRIVATE
   __IS_DOORS_LIBCPP
@@ -48,7 +52,10 @@ target_include_directories(libcpp_user PUBLIC
 set_target_properties(libcpp_user PROPERTIES OUTPUT_NAME "c++_user")
 
 # Freestanding kernel library.
-add_library(libcpp_kernel STATIC ${LIBCPP_SOURCES})
+add_library(libcpp_kernel STATIC
+  ${LIBCPP_SOURCES}
+  stdlib/udivmoddi3.cc
+)
 set_target_properties(libcpp_kernel PROPERTIES OUTPUT_NAME "c++_kernel")
 target_compile_definitions(libcpp_kernel PRIVATE
   __IS_DOORS_LIBCPP
