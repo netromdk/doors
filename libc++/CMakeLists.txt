@@ -45,16 +45,17 @@ target_compile_options(libcpp_user PRIVATE
   -ffreestanding -fno-builtin -fno-exceptions -fno-rtti)
 target_include_directories(libcpp_user PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include)
-set_target_properties(libcpp_user PROPERTIES OUTPUT_NAME "cpp_user")
+set_target_properties(libcpp_user PROPERTIES OUTPUT_NAME "c++_user")
 
 # Freestanding kernel library.
-add_library(k STATIC ${LIBCPP_SOURCES})
-target_compile_definitions(k PRIVATE
+add_library(libcpp_kernel STATIC ${LIBCPP_SOURCES})
+set_target_properties(libcpp_kernel PROPERTIES OUTPUT_NAME "c++_kernel")
+target_compile_definitions(libcpp_kernel PRIVATE
   __IS_DOORS_LIBCPP
   __IS_DOORS_KERNEL)
-target_compile_options(k PRIVATE
+target_compile_options(libcpp_kernel PRIVATE
   -ffreestanding -fno-builtin -fno-exceptions -fno-rtti)
-target_include_directories(k PUBLIC
+target_include_directories(libcpp_kernel PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_SOURCE_DIR}/kernel/include)
 

@@ -5,9 +5,9 @@ add_custom_target(dist-stage
   COMMAND "${CMAKE_COMMAND}" -E copy
     "${KERNEL_IMG}"
     "$<TARGET_FILE:libcpp>"
-    "$<TARGET_FILE:k>"
+    "$<TARGET_FILE:libcpp_kernel>"
     "${DIST_DIR}/"
-  DEPENDS doors_kernel libcpp k
+  DEPENDS doors_kernel libcpp libcpp_kernel
   VERBATIM
 )
 

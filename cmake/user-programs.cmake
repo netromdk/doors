@@ -21,7 +21,7 @@ function(add_user_program name)
       -o "${CMAKE_CURRENT_BINARY_DIR}/${name}.elf"
       ${sources}
       -L "${CMAKE_BINARY_DIR}/libc++"
-      -lcpp_user
+      -lc++_user
     DEPENDS
       ${sources}
       ${headers}

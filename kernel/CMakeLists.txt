@@ -81,7 +81,7 @@ target_compile_definitions(kernel_objs PRIVATE __IS_DOORS_KERNEL)
 target_include_directories(kernel_objs PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(kernel_objs PRIVATE k)
+target_link_libraries(kernel_objs PRIVATE libcpp_kernel)
 
 if (KERNEL_UBSAN)
   target_sources(kernel_objs PRIVATE kernel/Ubsan.cc)
@@ -123,7 +123,7 @@ function(add_kernel_target TARGET_NAME SYMBOL_TABLE_FILE)
   target_link_libraries(${TARGET_NAME} PRIVATE
     "${CRTEND_OBJ}"
     "${CRTN_OBJ}"
-    k
+    libcpp_kernel
     -lgcc)
 
   if (KERNEL_UBSAN)
