@@ -121,7 +121,9 @@ uint32_t handleReadLine(uint32_t bufAddr, uint32_t maxlen)
   return static_cast<uint32_t>(copyLen);
 }
 
-uint32_t handleIoctl(uint32_t cmd, uint32_t /*arg*/)
+uint32_t handleExecmod(int modIdx);
+
+uint32_t handleIoctl(uint32_t cmd, uint32_t arg)
 {
   switch (static_cast<IoctlCmd>(cmd)) {
   case IOCTL_CLEAR:
@@ -141,11 +143,11 @@ uint32_t handleIoctl(uint32_t cmd, uint32_t /*arg*/)
     Io::outb(0x64, 0xFE);
     return 0;
 
-  case IOCTL_SNAKE: {
     const int shellId = Scheduler::currentTaskId();
     Snake::setShellTaskId(shellId);
     const auto id = Scheduler::addTaskAndBlock("snake", Snake::snakeMain);
     if (!id) {
+  case IOCTL_PUT: {
       return static_cast<uint32_t>(-1);
     }
     return static_cast<uint32_t>(*id);
@@ -400,8 +402,16 @@ extern "C" uint32_t syscallHandler(uint32_t eax, uint32_t ebx, uint32_t ecx, uin
   case SYS_SYSINFO:
     return handleSysinfo(ebx, ecx);
 
-  case SYS_EXECMOD:
-    return handleExecmod(static_cast<int>(ebx));
+  case SYS_EXECMOD: {
+    const int callerId = Scheduler::currentTaskId();
+    const auto tid = handleExecmod(static_cast<int>(ebx));
+    if (tid == static_cast<uint32_t>(-1)) {
+      return static_cast<uint32_t>(-1);
+    }
+    Scheduler::setUnblockOnExit(static_cast<int>(tid), callerId);
+    Scheduler::blockCurrentTaskAndYield();
+    return tid;
+  }
 
   case SYS_PANIC:
     return handlePanic(ebx);

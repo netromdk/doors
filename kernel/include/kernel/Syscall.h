@@ -8,7 +8,12 @@ enum IoctlCmd : uint32_t {
   IOCTL_CLEAR = 1,
   IOCTL_HALT = 2,
   IOCTL_REBOOT = 3,
-  IOCTL_SNAKE = 4,
+  IOCTL_PUT = 4,           // arg = (row<<24)|(col<<16)|(ch<<8)|color
+  IOCTL_SAVESCREEN = 5,    // save VGA buffer to kernel internal buffer
+  IOCTL_RESTORESCREEN = 6, // restore VGA from kernel internal buffer
+  IOCTL_CURSOR_HIDE = 7,   // Tty::cursorDisable()
+  IOCTL_CURSOR_SHOW = 8,   // Tty::cursorEnable()
+  IOCTL_POLL_KEY = 9,      // returns (key<<8|ch) or -1 on no key
 };
 
 enum TaskctlCmd : uint32_t {
