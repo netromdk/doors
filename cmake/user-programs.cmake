@@ -13,7 +13,7 @@ function(add_user_program name)
     OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/${name}.elf"
     COMMAND
       ${CMAKE_CXX_COMPILER}
-      -ffreestanding -nostdlib -static -no-pie
+      -ffreestanding -nostdlib -static -no-pie -std=c++20
       -T "${CMAKE_CURRENT_SOURCE_DIR}/../User.ld"
       -I "${CMAKE_CURRENT_SOURCE_DIR}/.."
       -I "${CMAKE_SOURCE_DIR}/libc++/include"
