@@ -1,5 +1,5 @@
-#ifndef PROGRAMS_API_SCREEN_H
-#define PROGRAMS_API_SCREEN_H
+#ifndef USER_SNAKE_SNAKESCREEN_H
+#define USER_SNAKE_SNAKESCREEN_H
 
 #include <cstdint>
 
@@ -13,4 +13,4 @@ public:
   static void cursorHide();
 };
 
-#endif // PROGRAMS_API_SCREEN_H
+#endif // USER_SNAKE_SNAKESCREEN_H

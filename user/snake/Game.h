@@ -1,11 +1,8 @@
-#ifndef PROGRAMS_SNAKE_SNAKEGAME_H
-#define PROGRAMS_SNAKE_SNAKEGAME_H
+#ifndef USER_SNAKE_SNAKEGAME_H
+#define USER_SNAKE_SNAKEGAME_H
 
 #include <array>
 #include <cstdint>
-
-#include <programs/api/Input.h>
-#include <programs/api/Screen.h>
 
 class SnakeGame {
 public:
@@ -112,4 +109,4 @@ private:
   void drawStatus() const;
 };
 
-#endif // PROGRAMS_SNAKE_SNAKEGAME_H
+#endif // USER_SNAKE_SNAKEGAME_H

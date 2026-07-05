@@ -69,10 +69,6 @@ add_library(
   kernel/ElfLoader.cc
   kernel/Symbols.cc
   kernel/Taskbar.cc
-  programs/api/Screen.cc
-  programs/api/Input.cc
-  programs/snake/SnakeGame.cc
-  programs/snake/Snake.cc
 )
 
 target_compile_options(kernel_objs PRIVATE

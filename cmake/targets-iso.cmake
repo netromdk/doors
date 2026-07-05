@@ -25,6 +25,8 @@ if (_ISO_DEPS_OK)
     COMMAND "${CMAKE_COMMAND}" -E copy "${KERNEL_IMG}" "${TMP_ISO}/boot/"
     COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/shell/shell.elf"
                                        "${TMP_ISO}/boot/"
+    COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/snake/snake.elf"
+                                       "${TMP_ISO}/boot/"
     COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_SOURCE_DIR}/grub.cfg"
                                        "${TMP_ISO}/boot/grub/"
     COMMAND "${GRUB_MKRESCUE_EXECUTABLE}" -o "${ISO_FILE}"

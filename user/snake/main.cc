@@ -1,10 +1,9 @@
-#include <kernel/Cpu.h>
-#include <kernel/Pit.h>
-#include <kernel/Scheduler.h>
-#include <programs/api/Input.h>
-#include <programs/api/Screen.h>
-#include <programs/snake/Snake.h>
-#include <programs/snake/SnakeGame.h>
+#include <cstdint>
+
+#include "Game.h"
+#include "Input.h"
+#include "Screen.h"
+#include "lib/Syscall.h"
 
 namespace {
 
@@ -34,26 +33,26 @@ void chooseMode(SnakeGame &game)
   }
   while (true) {
     if (const auto pk = Input::poll(); pk.key == Input::Key::Char) {
-      if (pk.ch == 'c' || pk.ch == 'C') break;
+      if (pk.ch == 'c' || pk.ch == 'C') {
+        break;
+      }
       if (pk.ch == 'w' || pk.ch == 'W') {
         game.setWrapMode(true);
         break;
       }
     }
-    __asm__("hlt");
   }
   for (int c = 1; c < SnakeGame::BOARD_COLS + 1; ++c) {
     Screen::put(PROMPT_ROW, c, ' ', 0);
   }
 }
 
-void countDown(SnakeGame &game)
+void countDown(SnakeGame &game, uint64_t startMs)
 {
   for (int i = 3; i >= 1; --i) {
     game.drawCountdown(i);
-    const auto cdStart = Pit::uptimeMs();
-    while (Pit::msSince(cdStart) < 1000) {
-      __asm__("hlt");
+    const uint64_t target = startMs + (4 - i) * 1000;
+    while (static_cast<uint64_t>(sys_sysinfo(SYSINFO_UPTIME, 0)) < target) {
     }
     game.clearOverlay();
   }
@@ -62,31 +61,24 @@ void countDown(SnakeGame &game)
 
 } // namespace
 
-namespace Snake {
-
-int shellTaskId_ = -1;
-
-void setShellTaskId(int id)
+extern "C" [[noreturn]] void _start()
 {
-  shellTaskId_ = id;
-}
-
-void snakeMain()
-{
-  Scheduler::suppressTaskbar();
-  SnakeGame game{};
-  const bool withObstacles{true};
-  game.init(static_cast<uint32_t>(Pit::uptimeMs()), withObstacles);
-
+  sys_suppressTaskbar();
   Screen::save();
   Screen::cls(0);
   Screen::cursorHide();
+
+  SnakeGame game{};
+  const bool withObstacles{true};
+  const auto seedMs = static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0));
+  game.init(seedMs, withObstacles);
+
   game.drawBoard();
 
   chooseMode(game);
-  countDown(game);
+  countDown(game, static_cast<uint64_t>(sys_sysinfo(SYSINFO_UPTIME, 0)));
 
-  uint64_t lastMove = Pit::uptimeMs();
+  uint64_t lastMove = static_cast<uint64_t>(sys_sysinfo(SYSINFO_UPTIME, 0));
   bool quit = false;
   bool paused = false;
 
@@ -108,7 +100,6 @@ void snakeMain()
     }
 
     if (paused) {
-      __asm__("hlt");
       continue;
     }
 
@@ -116,16 +107,14 @@ void snakeMain()
       game.setDir(keyToDir(ke.key));
     }
 
-    if (Pit::msSince(lastMove) >= static_cast<uint64_t>(game.moveIntervalMs())) {
-      const auto now = Pit::uptimeMs();
+    const auto now = static_cast<uint64_t>(sys_sysinfo(SYSINFO_UPTIME, 0));
+    if (now - lastMove >= static_cast<uint64_t>(game.moveIntervalMs())) {
       const auto dt = now - lastMove;
       lastMove = now;
       if (!game.step(dt)) {
         break;
       }
     }
-
-    __asm__("hlt");
   }
 
   if (!quit) {
@@ -134,22 +123,16 @@ void snakeMain()
     }
     game.drawGameOver();
 
-    // Only 'q' quits.
     while (true) {
       if (const auto pk = Input::poll();
           pk.key == Input::Key::Char && (pk.ch == 'q' || pk.ch == 'Q')) {
         break;
       }
-      __asm__("hlt");
     }
   }
 
   Screen::restore();
   Screen::cursorShow();
 
-  Cpu::disableInterrupts();
-  Scheduler::unblockTask(shellTaskId_);
-  Scheduler::exitCurrentTask();
+  sys_exit();
 }
-
-} // namespace Snake

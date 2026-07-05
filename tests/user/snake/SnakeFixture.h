@@ -2,7 +2,7 @@
 #define TESTS_SNAKE_SNAKEFIXTURE_H
 
 #include <doctest/doctest.h>
-#include <programs/snake/SnakeGame.h>
+#include "Game.h"
 
 struct SnakeFixture {
   SnakeGame g;

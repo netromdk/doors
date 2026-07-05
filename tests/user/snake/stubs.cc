@@ -1,5 +1,5 @@
-#include <programs/api/Input.h>
-#include <programs/api/Screen.h>
+#include "Input.h"
+#include "Screen.h"
 
 __attribute__((weak)) void Screen::put(int, int, char, uint8_t)
 {

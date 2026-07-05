@@ -3,7 +3,8 @@
 #include <cstring>
 #include <utility>
 
-#include <programs/snake/SnakeGame.h>
+#include "Game.h"
+#include "Screen.h"
 
 namespace {
 

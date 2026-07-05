@@ -303,23 +303,6 @@ doors_test_module(test_kernel_scheduler
   "${SYMBOLS_SRC}"
 )
 
-set(SNAKE_GAME_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/programs/snake/SnakeGame.cc")
-doors_test_module(test_kernel_snake
-  snake/Direction.cc
-  snake/Body.cc
-  snake/BoostZones.cc
-  snake/Collision.cc
-  snake/Food.cc
-  snake/Prng.cc
-  snake/BonusFood.cc
-  snake/Obstacles.cc
-  snake/stubs.cc
-  "${SNAKE_GAME_SRC}"
-)
-target_include_directories(test_kernel_snake PRIVATE
-  "${CMAKE_CURRENT_SOURCE_DIR}/../kernel"
-)
-
 doors_test_module(test_kernel_cpu
   cpu/InterruptGuard.cc
   cpu/CpuStub.cc
@@ -384,3 +367,20 @@ doors_test_module(test_kernel_elf_user
   "${ELF_SRC}"
 )
 target_compile_definitions(test_kernel_elf_user PRIVATE __IS_DOORS_KERNEL)
+
+set(SNAKE_GAME_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../user/snake/Game.cc")
+doors_test_module(test_user_snake
+  user/snake/Direction.cc
+  user/snake/Body.cc
+  user/snake/BoostZones.cc
+  user/snake/Collision.cc
+  user/snake/Food.cc
+  user/snake/Prng.cc
+  user/snake/BonusFood.cc
+  user/snake/Obstacles.cc
+  user/snake/stubs.cc
+  "${SNAKE_GAME_SRC}"
+)
+target_include_directories(test_user_snake PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/../user/snake"
+)

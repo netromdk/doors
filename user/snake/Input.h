@@ -1,5 +1,5 @@
-#ifndef PROGRAMS_API_INPUT_H
-#define PROGRAMS_API_INPUT_H
+#ifndef USER_SNAKE_SNAKEINPUT_H
+#define USER_SNAKE_SNAKEINPUT_H
 
 #include <cstdint>
 
@@ -20,10 +20,10 @@ public:
 
   struct KeyEvent {
     Key key;
-    char ch{0}; // Set when `key == Key::Char`.
+    char ch{0};
   };
 
   static KeyEvent poll();
 };
 
-#endif // PROGRAMS_API_INPUT_H
+#endif // USER_SNAKE_SNAKEINPUT_H
