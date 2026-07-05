@@ -36,7 +36,8 @@ target_include_directories(libcpp PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # Freestanding userland library for userland programs.
-add_library(libcpp_user STATIC ${LIBCPP_SOURCES})
+set(LIBCPP_USER_SOURCES ${LIBCPP_SOURCES} stdlib/malloc.cc)
+add_library(libcpp_user STATIC ${LIBCPP_USER_SOURCES})
 target_compile_definitions(libcpp_user PRIVATE
   __IS_DOORS_LIBCPP
   __IS_DOORS_USERLAND)
