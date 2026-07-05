@@ -59,6 +59,8 @@ public:
   static int quantumRemaining();
   static void sleep(uint64_t ms);
   static void blockCurrentTask();
+  static void blockCurrentTaskAndYield();
+  static void setUnblockOnExit(int taskId, int unblockId);
   static void suppressTaskbar();
   static bool isTaskbarSuppressed();
   static void setOnKill(void (*handler)());

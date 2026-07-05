@@ -26,6 +26,10 @@ struct Task {
   void (*onKill)(){};     // Called when this task is killed/exits. Used for cleanup.
   uint32_t pageDir{};     // Physical address of task's page directory. 0 = use kernel page dir.
 
+  // Task ID to unblock when this task exits. -1 = none. Set by `Scheduler::setUnblockOnExit()` so
+  // the spawning task, e.g., shell, is unblocked when the spawned task, e.g., snake, exits.
+  int8_t unblockOnExit{-1};
+
   // User stack page tracking. Populated by `addUserTask()` and `addUserElfTask()`. Freed when the
   // task is killed or exits. `userStackPageCount` is 0 for ring-0 tasks.
   int userStackPageCount{};

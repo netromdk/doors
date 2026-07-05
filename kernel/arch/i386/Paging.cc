@@ -17,6 +17,11 @@ uint32_t roundUp4K(uint32_t val)
   return (val + 0xFFF) & PAGE_ADDR_MASK;
 }
 
+static inline void *pdePhysAddr(uint32_t pde)
+{
+  return reinterpret_cast<void *>(static_cast<unsigned long long>(pde & PAGE_ADDR_MASK));
+}
+
 // Allocate a new page table for the given PDE index if one does not exist. Returns false on OOM. On
 // success the PDE is filled and the TLB flushed.
 bool ensurePageTable(uint32_t *pageDir, int pdeIdx, uint32_t flags)
@@ -80,8 +85,7 @@ bool Paging::setupIdentityMap(void *pageDirPhys, int numPageTables, uint32_t ide
       printf("Paging: failed to allocate page table %d!\n", pdeIdx);
       // Free any page tables allocated so far before returning.
       for (int i = 0; i < pdeIdx; ++i) {
-        Pmm::freeFrame(
-          reinterpret_cast<void *>(static_cast<unsigned long long>(pageDir[i] & PAGE_ADDR_MASK)));
+        Pmm::freeFrame(pdePhysAddr(pageDir[i]));
       }
       return false;
     }
@@ -213,6 +217,21 @@ void Paging::unmapPage(uint32_t virtAddr)
   tryFreePageTable(pageDir, pdeIdx);
 }
 
+void Paging::clearPageTable(uint32_t virtAddr)
+{
+  InterruptGuard guard;
+
+  auto *pageDir = kernelPageDir_;
+  int pdeIdx, pteIdx;
+  auto *pageTable = resolvePageTable(virtAddr, pageDir, pdeIdx, pteIdx);
+  if (pageTable == nullptr) {
+    return;
+  }
+
+  __builtin_memset(pageTable, 0, Pmm::PAGE_SIZE);
+  Cpu::writeCr3(Cpu::readCr3());
+}
+
 uint32_t Paging::clonePageDir()
 {
   auto *newPd = physToVirt32(Pmm::allocFrame());
@@ -220,9 +239,39 @@ uint32_t Paging::clonePageDir()
     printf("Paging::clonePageDir: OOM\n");
     return 0;
   }
+  __builtin_memset(newPd, 0, Pmm::PAGE_SIZE);
+
+  auto rollback = [&](int upTo) {
+    for (int j = 0; j < upTo; ++j) {
+      if (newPd[j] & PAGE_PRESENT) {
+        Pmm::freeFrame(pdePhysAddr(newPd[j]));
+      }
+    }
+    Pmm::freeFrame(virtToPhys(newPd));
+  };
 
   for (int i = 0; i < PDE_COUNT; ++i) {
-    newPd[i] = kernelPageDir_[i];
+    const uint32_t pde = kernelPageDir_[i];
+    if (!(pde & PAGE_PRESENT)) {
+      continue;
+    }
+
+    if (pde & PAGE_USER) {
+      void *newPtPhys = Pmm::allocFrame();
+      if (newPtPhys == nullptr) {
+        printf("Paging::clonePageDir: OOM allocating user page table\n");
+        rollback(i);
+        return 0;
+      }
+
+      auto *newPt = physToVirt32(newPtPhys);
+      const auto *oldPt = physToVirt32(pdePhysAddr(pde));
+      __builtin_memcpy(newPt, oldPt, Pmm::PAGE_SIZE);
+      newPd[i] = virtToPhys32(newPt) | (pde & ~PAGE_ADDR_MASK);
+    }
+    else {
+      newPd[i] = pde;
+    }
   }
 
   return virtToPhys32(newPd);

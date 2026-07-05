@@ -16,10 +16,16 @@
 #include <kernel/Panic.h>
 #include <kernel/Pit.h>
 #include <kernel/Pmm.h>
-#include <programs/snake/Snake.h>
+#include <kernel/Vga.h>
 #endif
 
 namespace {
+
+#ifdef __IS_DOORS_KERNEL
+static uint16_t savedVgaBuf_[VGA_WIDTH * VGA_HEIGHT];
+static uint8_t savedCursorRow_;
+static uint8_t savedCursorCol_;
+#endif
 
 bool isValidUserBuf(uint32_t addr, int count)
 {
@@ -143,14 +149,53 @@ uint32_t handleIoctl(uint32_t cmd, uint32_t arg)
     Io::outb(0x64, 0xFE);
     return 0;
 
-    const int shellId = Scheduler::currentTaskId();
-    Snake::setShellTaskId(shellId);
-    const auto id = Scheduler::addTaskAndBlock("snake", Snake::snakeMain);
-    if (!id) {
   case IOCTL_PUT: {
+    const int row = static_cast<int>((arg >> 24) & 0xFF);
+    const int col = static_cast<int>((arg >> 16) & 0xFF);
+    const char ch = static_cast<char>((arg >> 8) & 0xFF);
+    const uint8_t color = static_cast<uint8_t>(arg & 0xFF);
+    if (row >= 0 && static_cast<size_t>(row) < VGA_HEIGHT && col >= 0 &&
+        static_cast<size_t>(col) < VGA_WIDTH) {
+      Tty::lock();
+      VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(ch, color);
+      Tty::unlock();
+    }
+    return 0;
+  }
+
+  case IOCTL_SAVESCREEN:
+    // Save cursor first because `getCursor()` acquires/releases its own lock.
+    {
+      const auto [r, c] = Tty::getCursor();
+      savedCursorRow_ = r;
+      savedCursorCol_ = c;
+    }
+    Tty::lock();
+    memcpy(savedVgaBuf_, VGA_RAM, sizeof(savedVgaBuf_));
+    Tty::unlock();
+    return 0;
+
+  case IOCTL_RESTORESCREEN:
+    Tty::lock();
+    memcpy(VGA_RAM, savedVgaBuf_, sizeof(savedVgaBuf_));
+    Tty::unlock();
+    Tty::cursorSetPos(savedCursorRow_, savedCursorCol_);
+    return 0;
+
+  case IOCTL_CURSOR_HIDE:
+    Tty::cursorDisable();
+    return 0;
+
+  case IOCTL_CURSOR_SHOW:
+    Tty::cursorEnable();
+    return 0;
+
+  case IOCTL_POLL_KEY: {
+    const auto ke = Kbd::tryReadKey();
+    if (ke.key == Kbd::Key::Unknown) {
       return static_cast<uint32_t>(-1);
     }
-    return static_cast<uint32_t>(*id);
+    return (static_cast<uint32_t>(ke.key) << 8) | static_cast<uint32_t>(ke.ch);
   }
 
   default:
@@ -415,6 +460,10 @@ extern "C" uint32_t syscallHandler(uint32_t eax, uint32_t ebx, uint32_t ecx, uin
 
   case SYS_PANIC:
     return handlePanic(ebx);
+
+  case SYS_SUPPRESS_TASKBAR:
+    Scheduler::suppressTaskbar();
+    return 0;
 #endif
 
   default:

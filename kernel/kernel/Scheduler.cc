@@ -567,11 +567,13 @@ optional<int> Scheduler::addUserElfTask(string_view, const void *, size_t)
       oldElfVaddr[i] = tasks_[currentIdx_].elfVaddr[i];
       oldElfPhys[i] = tasks_[currentIdx_].elfPhys[i];
     }
+    const int oldUnblockOnExit = tasks_[currentIdx_].unblockOnExit;
 
     tasks_[currentIdx_].pageDir = 0;
     tasks_[currentIdx_].userStackPageCount = 0;
     tasks_[currentIdx_].userCodeBuf = 0;
     tasks_[currentIdx_].elfPageCount = 0;
+    tasks_[currentIdx_].unblockOnExit = -1;
 
     const uint32_t esp = switchTo(*next);
 
@@ -584,6 +586,9 @@ optional<int> Scheduler::addUserElfTask(string_view, const void *, size_t)
       Pmm::freeFrame(reinterpret_cast<void *>(oldUserCode));
     }
     freePageArray(oldElfCount, oldElfVaddr, oldElfPhys);
+    if (oldUnblockOnExit != -1) {
+      unblockTask(oldUnblockOnExit);
+    }
 
     // Unlike the timer ISR path (asmIntTick -> intTick -> tick -> switchTo -> %eax -> movl %esp),
     // there is no ISR frame or return chain from `exitCurrentTask()`. Switch to the new task's
@@ -748,6 +753,14 @@ void Scheduler::killTask(int id)
     tasks_[id].onKill();
   }
 
+  // Unblock the task waiting on this one before marking DEAD, so the wait task can be scheduled on
+  // the next tick.
+  const int unblockId = tasks_[id].unblockOnExit;
+  tasks_[id].unblockOnExit = -1;
+  if (unblockId != -1) {
+    unblockTask(unblockId);
+  }
+
   tasks_[id].state = TaskState::DEAD;
   ++totalExited_;
 
@@ -838,6 +851,27 @@ void Scheduler::blockCurrentTask()
     panic("Scheduler::blockCurrentTask: corrupted currentIdx");
   }
   tasks_[currentIdx_].state = TaskState::BLOCKED;
+}
+
+void Scheduler::blockCurrentTaskAndYield()
+{
+  if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
+    panic("Scheduler::blockCurrentTaskAndYield: corrupted currentIdx");
+  }
+  tasks_[currentIdx_].state = TaskState::BLOCKED;
+
+#ifdef __IS_DOORS_KERNEL
+  while (tasks_[currentIdx_].state == TaskState::BLOCKED) {
+    __asm__("sti\n\thlt\n\tcli");
+  }
+#endif
+}
+
+void Scheduler::setUnblockOnExit(int taskId, int unblockId)
+{
+  if (taskId >= 0 && taskId < taskCount_) {
+    tasks_[taskId].unblockOnExit = unblockId;
+  }
 }
 
 optional<int> Scheduler::findNext()

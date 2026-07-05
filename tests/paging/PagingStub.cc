@@ -51,3 +51,7 @@ bool Paging::mapPage(uint32_t, uint32_t, uint32_t)
 void Paging::unmapPage(uint32_t)
 {
 }
+
+void Paging::clearPageTable(uint32_t)
+{
+}
