@@ -1,7 +1,7 @@
-#include "lib/Syscall.h"
 #include "Commands.h"
+#include "lib/Syscall.h"
 
-void cmdHalt(int, char **)
+void cmdHalt(const span<string_view> &)
 {
   sys_ioctl(IOCTL_HALT, 0);
 }

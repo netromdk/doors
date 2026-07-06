@@ -1,7 +1,7 @@
-#include "lib/Syscall.h"
 #include "Commands.h"
+#include "lib/Syscall.h"
 
-void cmdPanic(int, char **)
+void cmdPanic(const span<string_view> &)
 {
   sys_panic("triggered from user shell");
 }

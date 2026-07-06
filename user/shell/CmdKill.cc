@@ -1,25 +1,25 @@
-#include "lib/Syscall.h"
-#include "Commands.h"
-#include "Util.h"
-#include "Lib.h"
+#include <cstdlib>
 
-void cmdKill(int argc, char **argv)
+#include "Commands.h"
+#include "Lib.h"
+#include "lib/Syscall.h"
+
+void cmdKill(const span<string_view> &args)
 {
-  if (argc < 2) {
+  if (args.size() < 2) {
     print("Usage: kill <task-id>\n");
     return;
   }
-  const char *s = argv[1];
-  if (!isNumeric(s)) {
+
+  const string_view s{args[1]};
+  char *end = nullptr;
+  const long id = strtol(s.data(), &end, 10);
+  if (end == s.data() || *end != '\0') {
     printf("kill: invalid task id\n");
     return;
   }
-  int id = 0;
-  while (*s) {
-    id = id * 10 + (*s - '0');
-    ++s;
-  }
-  int ret = sys_taskctl(TASKCTL_KILL, static_cast<unsigned int>(id), 0);
+
+  const int ret = sys_taskctl(TASKCTL_KILL, static_cast<unsigned int>(id), 0);
   if (ret == 0) {
     printf("Task %u killed\n", static_cast<unsigned>(id));
   }

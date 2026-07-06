@@ -1,47 +1,47 @@
-#include <cstring>
+#include <array>
 
-#include "lib/Syscall.h"
 #include "Commands.h"
-#include "Util.h"
 #include "Lib.h"
+#include "Util.h"
 
-struct Command {
-  const char *name;
-  const char *desc;
-  void (*handler)(int argc, char **argv);
+static constexpr array<Command, 15> cmdTable{
+  Command{.name = "help", .desc = "Show this help message", .handler = cmdHelp},
+  Command{.name = "clear", .desc = "Clear the terminal", .handler = cmdClear},
+  Command{.name = "halt", .desc = "Halt the system", .handler = cmdHalt},
+  Command{.name = "reboot", .desc = "Reboot the system", .handler = cmdReboot},
+  Command{.name = "panic", .desc = "Trigger a kernel panic", .handler = cmdPanic},
+  Command{.name = "uptime", .desc = "Show system uptime", .handler = cmdUptime},
+  Command{.name = "ticks", .desc = "Show raw PIT tick count", .handler = cmdTicks},
+  Command{.name = "meminfo", .desc = "Show memory information", .handler = cmdMemInfo},
+  Command{.name = "heap", .desc = "Show heap allocator statistics", .handler = cmdHeap},
+  Command{.name = "datetime",
+          .desc = "Show current date and time from CMOS",
+          .handler = cmdDateTime},
+  Command{.name = "cpuinfo", .desc = "Show CPU information", .handler = cmdCpuInfo},
+  Command{.name = "echo", .desc = "Echo text back to the terminal", .handler = cmdEcho},
+  Command{.name = "tasks", .desc = "Show task list or task detail", .handler = cmdTasks},
+  Command{.name = "kill", .desc = "Kill a task by ID", .handler = cmdKill},
+  Command{.name = "snake", .desc = "Start the snake game", .handler = cmdSnake},
 };
 
-static Command cmdTable[] = {
-  {"help", "Show this help message", cmdHelp},
-  {"clear", "Clear the terminal", cmdClear},
-  {"halt", "Halt the system", cmdHalt},
-  {"reboot", "Reboot the system", cmdReboot},
-  {"panic", "Trigger a kernel panic", cmdPanic},
-  {"uptime", "Show system uptime", cmdUptime},
-  {"ticks", "Show raw PIT tick count", cmdTicks},
-  {"meminfo", "Show memory information", cmdMemInfo},
-  {"heap", "Show heap allocator statistics", cmdHeap},
-  {"datetime", "Show current date and time from CMOS", cmdDateTime},
-  {"cpuinfo", "Show CPU information", cmdCpuInfo},
-  {"echo", "Echo text back to the terminal", cmdEcho},
-  {"tasks", "Show task list or task detail", cmdTasks},
-  {"kill", "Kill a task by ID", cmdKill},
-  {"snake", "Start the snake game", cmdSnake},
-};
-
-static const int NUM_CMDS = sizeof(cmdTable) / sizeof(cmdTable[0]);
-
-int dispatch(int argc, char **argv)
+span<const Command> getCmdTable()
 {
-  if (argc == 0 || argv[0] == 0) {
+  return {cmdTable.data(), cmdTable.size()};
+}
+
+int dispatch(const span<string_view> &args)
+{
+  if (args.size() == 0 || args[0].empty()) {
     return 0;
   }
-  for (int i = 0; i < NUM_CMDS; ++i) {
-    if (strcmp(argv[0], cmdTable[i].name) == 0) {
-      cmdTable[i].handler(argc, argv);
+
+  for (size_t i = 0; i < cmdTable.size(); ++i) {
+    if (args[0] == cmdTable[i].name) {
+      cmdTable[i].handler(args);
       return 0;
     }
   }
-  printf("Unknown command: %s\n", argv[0]);
+
+  printf("Unknown command: %s\n", args[0].data());
   return -1;
 }

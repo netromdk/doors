@@ -1,13 +1,13 @@
 #include "Commands.h"
 #include "Lib.h"
 
-void cmdEcho(int argc, char **argv)
+void cmdEcho(const span<string_view> &args)
 {
-  for (int i = 1; i < argc; ++i) {
+  for (size_t i = 1; i < args.size(); ++i) {
     if (i > 1) {
       putchar(' ');
     }
-    print(argv[i]);
+    print(args[i].data());
   }
   putchar('\n');
 }

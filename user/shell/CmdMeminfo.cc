@@ -1,8 +1,8 @@
-#include "lib/Syscall.h"
 #include "Commands.h"
 #include "Lib.h"
+#include "lib/Syscall.h"
 
-void cmdMemInfo(int, char **)
+void cmdMemInfo(const span<string_view> &)
 {
   unsigned int freeMem = sys_sysinfo(SYSINFO_MEMFREE, 0);
   unsigned int largest = sys_sysinfo(SYSINFO_MEMBLOCK, 0);

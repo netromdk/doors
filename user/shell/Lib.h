@@ -2,9 +2,12 @@
 #define USER_SHELL_LIB_H
 
 #include <cstdio>
+#include <span>
+#include <string>
+#include <string_view>
 
-int readLine(char *buf, int maxlen);
-int tokenize(char *line, char *argv[], int maxArgs);
+string readLine();
+span<string_view> tokenize(const string &line);
 void print(const char *s);
 
 #endif

@@ -368,6 +368,24 @@ doors_test_module(test_kernel_elf_user
 )
 target_compile_definitions(test_kernel_elf_user PRIVATE __IS_DOORS_KERNEL)
 
+set(SHELL_COMMANDS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../user/shell/Commands.cc")
+set(SHELL_TOKENIZE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../user/shell/Tokenize.cc")
+set(SHELL_UTIL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../user/shell/Util.cc")
+doors_test_module(test_user_shell
+  user/shell/Dispatch.cc
+  user/shell/Tokenize.cc
+  user/shell/BrandLen.cc
+  user/shell/StateStr.cc
+  user/shell/stubs.cc
+  "${SHELL_COMMANDS_SRC}"
+  "${SHELL_TOKENIZE_SRC}"
+  "${SHELL_UTIL_SRC}"
+)
+target_include_directories(test_user_shell PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/user/shell"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../user/shell"
+)
+
 set(SNAKE_GAME_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../user/snake/Game.cc")
 doors_test_module(test_user_snake
   user/snake/Direction.cc

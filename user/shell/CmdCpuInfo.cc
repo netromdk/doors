@@ -1,9 +1,9 @@
-#include "lib/Syscall.h"
 #include "Commands.h"
-#include "Util.h"
 #include "Lib.h"
+#include "Util.h"
+#include "lib/Syscall.h"
 
-void cmdCpuInfo(int, char **)
+void cmdCpuInfo(const span<string_view> &)
 {
   CpuInfoRaw cpu{};
   if (sys_sysinfo(SYSINFO_CPU, reinterpret_cast<unsigned int>(&cpu)) == 0) {

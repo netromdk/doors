@@ -1,21 +1,29 @@
-#include "lib/Syscall.h"
+#include <span>
+#include <string>
+#include <string_view>
+
 #include "Lib.h"
+#include "lib/Syscall.h"
 
-extern int dispatch(int argc, char **argv);
+extern void main();
+extern int dispatch(const span<string_view> &);
 
+// ELF entry point.
 extern "C" __attribute__((noreturn)) void _start()
 {
-  char line[256];
-  char *argv[16];
+  main();
+  __builtin_unreachable();
+}
 
+void main()
+{
+  string line;
   for (;;) {
     printf("> ");
-
-    if (const int n = readLine(line, sizeof(line)); n <= 0) {
+    line = readLine();
+    if (line.empty()) {
       continue;
     }
-
-    const int argc = tokenize(line, argv, 16);
-    dispatch(argc, argv);
+    dispatch(tokenize(line));
   }
 }

@@ -1,8 +1,8 @@
-#include "lib/Syscall.h"
 #include "Commands.h"
 #include "Lib.h"
+#include "lib/Syscall.h"
 
-void cmdDateTime(int, char **)
+void cmdDateTime(const span<string_view> &)
 {
   DateTimeRaw dt{};
   if (sys_sysinfo(SYSINFO_DATETIME, reinterpret_cast<unsigned int>(&dt)) == 0) {

@@ -4,7 +4,7 @@
 
 static constexpr int SNAKE_MODULE_IDX = 1;
 
-void cmdSnake(int, char **)
+void cmdSnake(const span<string_view> &)
 {
   const int tid = sys_execmod(SNAKE_MODULE_IDX);
   if (tid < 0) {

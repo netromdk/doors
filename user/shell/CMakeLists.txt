@@ -2,7 +2,8 @@ add_user_program(shell
   main.cc
 
   Lib.h
-  Printf.cc
+  Lib.cc
+  Tokenize.cc
   Util.cc
   Util.h
   Commands.cc
@@ -20,6 +21,7 @@ add_user_program(shell
   CmdPanic.cc
   CmdReboot.cc
   CmdSnake.cc
+  CmdTasks.cc
   CmdTicks.cc
   CmdUptime.cc
 )
