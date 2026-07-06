@@ -12,5 +12,5 @@ const char *strrchr(const char *str, int value)
       return str + i;
     }
   }
-  return str;
+  return nullptr;
 }

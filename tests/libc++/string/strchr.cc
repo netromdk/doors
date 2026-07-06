@@ -10,6 +10,8 @@ TEST_CASE("strchr")
   // Searching for \0 finds the terminator.
   CHECK(strchr(msg, '\0') == msg + 11);
 
-  // Not found: implementation returns start of string.
-  CHECK(strchr(msg, 'H') == msg);
+  // Not found: must return nullptr.
+  CHECK(strchr(msg, 'H') == nullptr);
+  CHECK(strchr(msg, 'x') == nullptr);
+  CHECK(strchr("", 'a') == nullptr);
 }
