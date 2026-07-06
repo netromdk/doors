@@ -9,7 +9,7 @@ TEST_CASE("strncpy")
   char *res = strncpy(buf, msg, num);
   CHECK(res == buf);
   CHECK(strlen(buf) == num);
-  CHECK(strcmp(buf, msg) == 0);
+  CHECK(strncmp(buf, msg, num) == 0);
 
   // Copy shorter string than bytes to copy: remainder gets zero-padded.
   char buf2[64];
