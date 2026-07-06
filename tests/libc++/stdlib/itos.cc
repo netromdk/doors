@@ -51,7 +51,7 @@ TEST_CASE("itos")
 
   memset(str, 0, 64);
   itos(INT32_MAX, str, 2);
-  CHECK(strcmp(str, "111111111111111111111111111111") == 0); // 31 ones
+  CHECK(strcmp(str, "1111111111111111111111111111111") == 0); // 31 ones
 
   memset(str, 0, 64);
   itos(INT32_MIN, str);
