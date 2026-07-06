@@ -4,7 +4,7 @@ A 32-bit x86 hobby OS written in C++20, booted via GRUB/Multiboot.
 
 The name is the recursive acronym "Doors of Open Run-time Systems".
 
-![Doors shell running in QEMU](misc/doors_panic_hal.png)
+![Doors kernel panic in QEMU](misc/doors_panic.png)
 
 ### Features
 
@@ -13,8 +13,9 @@ The name is the recursive acronym "Doors of Open Run-time Systems".
 - PIT timer at 1000 Hz with uptime tracking
 - Heap allocator (best-fit free-list, coalescing, 16-byte aligned)
 - Preemptive round-robin kernel task scheduler (8 slots, 20 ms quantum)
-- Snake game running as a scheduled task with VGA save/restore
-- Shell with 14 built-in commands
+- ELF userland programs loaded as Multiboot modules (see `grub.cfg`)
+  - Shell userland program with 15 built-in commands
+  - Snake userland program spawned by shell as a separate userland task
 - IDT/PIC with exception handlers and IRQ routing
 - GDT (5 entries, PL0/PL3)
 - CMOS/RTC, CPU detection, memory map
@@ -23,8 +24,7 @@ The name is the recursive acronym "Doors of Open Run-time Systems".
 ### Shell commands
 
 `uptime`, `cpuinfo`, `meminfo`, `clear`, `help`, `halt`, `reboot`, `datetime`, `echo`, `ticks`,
-`heap`, `snake`, `testsched`, `tasks`, `kill`, `panic`, `ubsan`/`ubsanp` (only when
-`-DKERNEL_UBSAN=ON`)
+`heap`, `snake`, `tasks`, `kill`, `panic`
 
 ### Prerequisites
 
