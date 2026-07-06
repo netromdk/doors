@@ -27,7 +27,7 @@ uint64_t __udivdi3(uint64_t a, uint64_t b)
     ++shift;
   }
 
-  // Ssubtract where the divisor fits.
+  // Subtract where the divisor fits.
   while (shift >= 0) {
     if (a >= b) {
       a -= b;
@@ -70,5 +70,50 @@ uint64_t __umoddi3(uint64_t a, uint64_t b)
   }
 
   return a; // Remainder of the division.
+}
+
+// Combined 64-bit unsigned division + modulo.
+// Returns quotient and stores remainder in `rem`.
+uint64_t __udivmoddi4(uint64_t a, uint64_t b, uint64_t *rem)
+{
+  if (rem) {
+    *rem = 0;
+  }
+
+  if (b == 0) {
+    return 0;
+  }
+
+  const auto a_lo = static_cast<uint32_t>(a);
+  const auto a_hi = static_cast<uint32_t>(a >> 32);
+  const auto b_lo = static_cast<uint32_t>(b);
+  if (a_hi == 0 && b_lo <= a_lo) {
+    if (rem) {
+      *rem = a_lo % b_lo;
+    }
+    return a_lo / b_lo;
+  }
+
+  uint64_t quotient = 0;
+  int shift = 0;
+  uint64_t divisor = b;
+  while (divisor <= a && !(divisor & (1ULL << 63))) {
+    divisor <<= 1;
+    ++shift;
+  }
+
+  while (shift >= 0) {
+    if (a >= divisor) {
+      a -= divisor;
+      quotient |= (1ULL << shift);
+    }
+    divisor >>= 1;
+    --shift;
+  }
+
+  if (rem) {
+    *rem = a;
+  }
+  return quotient;
 }
 }
