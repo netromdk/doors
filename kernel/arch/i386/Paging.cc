@@ -26,11 +26,12 @@ static inline void *pdePhysAddr(uint32_t pde)
 // success the PDE is filled and the TLB flushed.
 bool ensurePageTable(uint32_t *pageDir, int pdeIdx, uint32_t flags)
 {
-  auto *const newPt = physToVirt32(Pmm::allocFrame());
-  if (newPt == nullptr) {
+  void *frame = Pmm::allocFrame();
+  if (frame == nullptr) {
     printf("Paging::mapPage: OOM allocating page table\n");
     return false;
   }
+  auto *const newPt = physToVirt32(frame);
   __builtin_memset(newPt, 0, Pmm::PAGE_SIZE);
 
   pageDir[pdeIdx] = virtToPhys32(newPt) | PAGE_PRESENT | PAGE_RW | (flags & PAGE_USER);
@@ -234,11 +235,12 @@ void Paging::clearPageTable(uint32_t virtAddr)
 
 uint32_t Paging::clonePageDir()
 {
-  auto *newPd = physToVirt32(Pmm::allocFrame());
-  if (newPd == nullptr) {
+  void *pdFrame = Pmm::allocFrame();
+  if (pdFrame == nullptr) {
     printf("Paging::clonePageDir: OOM\n");
     return 0;
   }
+  auto *newPd = physToVirt32(pdFrame);
   __builtin_memset(newPd, 0, Pmm::PAGE_SIZE);
 
   auto rollback = [&](int upTo) {
