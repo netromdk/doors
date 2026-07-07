@@ -193,6 +193,7 @@ set_tests_properties(test_libcpp_abort PROPERTIES WILL_FAIL TRUE)
 
 # The following tests compile kernel code for host-side testing.
 
+set(CMOS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Cmos.cc")
 set(HEAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Heap.cc")
 set(PIT_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Pit.cc")
 set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cc")
@@ -367,6 +368,10 @@ doors_test_module(test_kernel_elf_user
   "${ELF_SRC}"
 )
 target_compile_definitions(test_kernel_elf_user PRIVATE __IS_DOORS_KERNEL)
+
+doors_test_module(test_kernel_cmos
+  kernel/Cmos.cc
+)
 
 set(SHELL_COMMANDS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../user/shell/Commands.cc")
 set(SHELL_TOKENIZE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../user/shell/Tokenize.cc")

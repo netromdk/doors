@@ -85,7 +85,7 @@ void readRtcValues()
   // If 12 hour format and the PM bit is set (0x80) then convert 24
   // hour format.
   if (!(regB & 0x02) && (comps[2] & 0x80)) {
-    comps[2] = ((comps[2] & 0x7F) + 12) % 24;
+    comps[2] = Cmos::pm12To24(comps[2]);
   }
 
   seconds = comps[0];
