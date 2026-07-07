@@ -83,11 +83,11 @@ bool cpuidSupported()
           "push %%eax;"
           "pop %%eax;"
           "xor %%ecx, %%eax;"
-          "je no;"
+          "je 0f;"
           "mov $1, %%eax;" // Return 1.
-          "jmp end;"
-          "no: mov $0, %%eax;" // Return 0.
-          "end:;"
+          "jmp 1f;"
+          "0: mov $0, %%eax;" // Return 0.
+          "1:;"
           : "=a"(res)
           :
           : "cc");
