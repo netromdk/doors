@@ -1,4 +1,5 @@
 #include <arch/i386/Pic.h>
+#include <kernel/InterruptGuard.h>
 #include <kernel/Io.h>
 #include <kernel/Pit.h>
 
@@ -20,15 +21,18 @@ void Pit::tick()
 
 uint64_t Pit::uptimeMs()
 {
+  InterruptGuard guard;
   return pitTicks;
 }
 
 uint64_t Pit::uptimeSec()
 {
+  InterruptGuard guard;
   return pitTicks / 1000;
 }
 
 uint64_t Pit::msSince(uint64_t last)
 {
+  InterruptGuard guard;
   return pitTicks - last;
 }
