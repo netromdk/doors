@@ -3,6 +3,7 @@
 #include <volatile.h>
 
 #include <kernel/InterruptGuard.h>
+#include <kernel/Panic.h>
 #include <kernel/Semaphore.h>
 
 void Semaphore::wait()
@@ -26,6 +27,13 @@ void Semaphore::wait()
   // eventually reaches `unblockTask()`).
   const int id = Scheduler::currentTaskId();
   const int wc = volatileLoad(waitCount_);
+  if (wc >= MAX_WAITERS) {
+#ifdef __IS_DOORS_KERNEL
+    panic("Semaphore::wait: waiter count exceeds MAX_WAITERS");
+#else
+    return;
+#endif
+  }
   volatileStore(waitCount_, wc + 1);
   waiters_[wc] = id;
   Scheduler::blockCurrentTask();

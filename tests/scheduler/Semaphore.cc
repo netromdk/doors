@@ -25,6 +25,11 @@ struct Sema : Semaphore {
     }
     return -1;
   }
+
+  void setWaitCount(int count)
+  {
+    waitCount_ = count;
+  }
 };
 
 TEST_CASE("semaphore: fast path wait and signal")
@@ -149,4 +154,13 @@ TEST_CASE_FIXTURE(SchedulerFixture, "semaphore: blockCurrentTask sets state to B
   Scheduler::blockCurrentTask();
   CHECK(Scheduler::taskState(0) == TaskState::BLOCKED);
   CHECK(Scheduler::currentTaskId() == 0);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "semaphore: wait with full waiter list does not overflow")
+{
+  Sema s(0);
+  s.setWaitCount(Semaphore::MAX_WAITERS);
+
+  s.wait();
+  CHECK(s.testWaitCount() == Semaphore::MAX_WAITERS);
 }
