@@ -7,7 +7,7 @@ void cmdEcho(const span<string_view> &args)
     if (i > 1) {
       putchar(' ');
     }
-    print(args[i].data());
+    print(args[i]);
   }
   putchar('\n');
 }

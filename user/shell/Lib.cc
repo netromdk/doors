@@ -1,15 +1,9 @@
-#include <cstddef>
-
 #include "Lib.h"
 #include "lib/Syscall.h"
 
-void print(const char *s)
+void print(string_view s)
 {
-  unsigned int len = 0;
-  while (s[len]) {
-    ++len;
-  }
-  sys_write_str(s, len);
+  sys_write_str(s.data(), static_cast<unsigned int>(s.size()));
 }
 
 string readLine()
