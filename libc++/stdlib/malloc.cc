@@ -11,15 +11,17 @@ struct Header {
 constexpr size_t POOL_SIZE = 16384;
 alignas(alignof(max_align_t)) static char pool[POOL_SIZE];
 static Header *freeList = nullptr;
+static bool initialized_ = false;
 
 static_assert(sizeof(Header) <= alignof(max_align_t));
 
 void init()
 {
-  if (freeList != nullptr) {
+  if (initialized_) {
     return;
   }
 
+  initialized_ = true;
   freeList = reinterpret_cast<Header *>(pool);
   freeList->next = nullptr;
   freeList->size = POOL_SIZE - sizeof(Header);
