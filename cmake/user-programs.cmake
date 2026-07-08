@@ -21,6 +21,7 @@ function(add_user_program name)
     COMMAND
       ${CMAKE_CXX_COMPILER}
       ${definitions}
+      -Wall -Wextra -Wpedantic -Werror
       -ffreestanding -nostdlib -static -no-pie -std=c++20
       -T "${CMAKE_CURRENT_SOURCE_DIR}/../User.ld"
       -I "${CMAKE_CURRENT_SOURCE_DIR}/.."
