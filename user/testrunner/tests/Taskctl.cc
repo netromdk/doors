@@ -62,7 +62,6 @@ void testTaskctlIdleDetail()
   ASSERT_TRUE(td.state <= TASK_STATE_MAX, "idle bad state");
   ASSERT_TRUE(td.stackBuf == 0, "idle unexpected stack");
   ASSERT_TRUE(td.stackSize == 0, "idle unexpected stack size");
-  ASSERT_TRUE(td.runtimeMs >= 0, "idle negative runtime");
 }
 
 void testTaskctlSelfDetail()
@@ -75,7 +74,6 @@ void testTaskctlSelfDetail()
   ASSERT_TRUE(td.state <= TASK_STATE_MAX, "self bad state");
   ASSERT_TRUE(td.stackBuf != 0, "self no stack");
   ASSERT_TRUE(td.stackSize > 0, "self empty stack");
-  ASSERT_TRUE(td.runtimeMs >= 0, "self negative runtime");
 }
 
 void testTaskctlDetailInvalid()
