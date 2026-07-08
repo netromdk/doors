@@ -46,6 +46,8 @@ void main()
   const auto totalMs = static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0)) - suiteStart;
   emitDone(passed_, failed_, passed_ + failed_, totalMs);
 
-  // Power off to actually stop the test runner.
+  // Power off to actually stop the test runner if not interactive.
+#ifndef INTERACTIVE
   sys_poweroff();
+#endif
 }

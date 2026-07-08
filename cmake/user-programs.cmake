@@ -1,8 +1,15 @@
 function(add_user_program name)
   set(sources)
   set(headers)
-  foreach(f ${ARGN})
-    if(f MATCHES "\\.h$")
+  set(definitions "")
+  set(next_is_defs FALSE)
+  foreach (f ${ARGN})
+    if (f STREQUAL "COMPILE_DEFINITIONS")
+      set(next_is_defs TRUE)
+    elseif (next_is_defs)
+      list(APPEND definitions ${f})
+      set(next_is_defs FALSE)
+    elseif (f MATCHES "\\.h$")
       list(APPEND headers "${CMAKE_CURRENT_SOURCE_DIR}/${f}")
     else()
       list(APPEND sources "${CMAKE_CURRENT_SOURCE_DIR}/${f}")
@@ -13,6 +20,7 @@ function(add_user_program name)
     OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/${name}.elf"
     COMMAND
       ${CMAKE_CXX_COMPILER}
+      ${definitions}
       -ffreestanding -nostdlib -static -no-pie -std=c++20
       -T "${CMAKE_CURRENT_SOURCE_DIR}/../User.ld"
       -I "${CMAKE_CURRENT_SOURCE_DIR}/.."

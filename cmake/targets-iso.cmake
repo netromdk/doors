@@ -11,7 +11,7 @@ set(TMP_TEST_ISO "${CMAKE_BINARY_DIR}/tmp_test_iso")
 if (BUILD_INTEGRATION_TESTS)
   set(_GRUB_TESTING_ENTRY "menuentry \"doors (testing)\" {
   multiboot /boot/doors.kernel --test
-  module /boot/testrunner.elf
+  module /boot/testrunner-interactive.elf
 }")
 else()
   set(_GRUB_TESTING_ENTRY "")
@@ -44,7 +44,9 @@ if (_ISO_DEPS_OK)
   if (BUILD_INTEGRATION_TESTS)
     list(APPEND _ISO_COPY_CMDS
       COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/testrunner/testrunner.elf"
-                                         "${TMP_ISO}/boot/"
+                                          "${TMP_ISO}/boot/"
+      COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/testrunner/testrunner-interactive.elf"
+                                          "${TMP_ISO}/boot/"
     )
   endif()
 
