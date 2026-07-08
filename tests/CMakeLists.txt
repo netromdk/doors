@@ -100,7 +100,7 @@ doors_test_module(test_libcpp_string_header
 )
 
 doors_test_module(test_libcpp_string
-  string/test_string.cc
+  libc++/string/string.cc
 )
 
 set(UDIVMODDI3_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../libc++/stdlib/udivmoddi3.cc")
