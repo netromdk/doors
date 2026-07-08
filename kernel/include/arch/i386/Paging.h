@@ -65,6 +65,7 @@ public:
   // Map a single 4 KiB page. If the relevant page table does not exist, allocate one from
   // Pmm. Flushes the TLB entry for `virtAddr` via INVLPG.
   static bool mapPage(uint32_t virtAddr, uint32_t physAddr, uint32_t flags);
+  static bool mapPage(uint32_t virtAddr, uint32_t physAddr, uint32_t flags, uint32_t pageDir);
 
   // Unmap a 4 KiB page, clearing the PTE, and flush the TLB entry.
   static void unmapPage(uint32_t virtAddr);
@@ -72,6 +73,7 @@ public:
   // Clear all PTEs in the page table covering `virtAddr`. Used before mapping a new ELF segment to
   // remove stale entries left by a previously-loaded ELF.
   static void clearPageTable(uint32_t virtAddr);
+  static void clearPageTable(uint32_t virtAddr, uint32_t pageDir);
 
   // Allocate a new page directory from Pmm, copy the kernel page directory into it, and return its
   // physical address. It is used by the scheduler when creating a task with its own address space.

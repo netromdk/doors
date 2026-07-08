@@ -453,12 +453,6 @@ optional<int> Scheduler::addUserTask(string_view name)
 
 optional<int> Scheduler::addUserElfTask(string_view name, const void *elfData, size_t elfSize)
 {
-  const auto loadResult = ElfLoader::load(elfData, elfSize);
-  if (!loadResult) {
-    return {};
-  }
-  const uint32_t entry = loadResult->entry;
-
   const auto slotOpt = findSlot();
   if (!slotOpt) {
     return {};
@@ -481,6 +475,15 @@ optional<int> Scheduler::addUserElfTask(string_view name, const void *elfData, s
   }
 
   t.pageDir = Paging::clonePageDir();
+  if (t.pageDir == 0) {
+    return {};
+  }
+
+  const auto loadResult = ElfLoader::load(elfData, elfSize, t.pageDir);
+  if (!loadResult) {
+    return {};
+  }
+  const uint32_t entry = loadResult->entry;
 
   t.esp = initUserStackFrame(static_cast<uint8_t *>(kstack.ptr), entry,
                              USER_STACK_VADDR + Pmm::PAGE_SIZE);
