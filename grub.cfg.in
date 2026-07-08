@@ -1,5 +1,8 @@
-menuentry "doors" {
+set timeout=5
+
+menuentry "doors (normal)" {
   multiboot /boot/doors.kernel
   module /boot/shell.elf
   module /boot/snake.elf
 }
+@_GRUB_TESTING_ENTRY@
