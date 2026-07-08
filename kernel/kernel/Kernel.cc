@@ -46,7 +46,7 @@ bool hasTestFlag(const char *cmdline)
 
 void loadTestRunner()
 {
-  if (const int mod = 0; Pmm::moduleCount() == 1 && Pmm::modulePhysSize(mod) > 0) {
+  if (const int mod = 0; Pmm::moduleCount() >= 1 && Pmm::modulePhysSize(mod) > 0) {
     printf("Test mode: loading test runner (module %d)\n", mod);
     const void *modPtr =
       physToVirt(reinterpret_cast<void *>(static_cast<uintptr_t>(Pmm::modulePhysStart(mod))));

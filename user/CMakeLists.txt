@@ -5,4 +5,5 @@ add_subdirectory(snake)
 
 if (BUILD_INTEGRATION_TESTS)
   add_subdirectory(testrunner)
+  add_subdirectory(minimal)
 endif ()
