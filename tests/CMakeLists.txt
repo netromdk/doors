@@ -62,6 +62,7 @@ add_library(libc++test STATIC
   ${DOORS_LIBC_SRC_DIR}/string/strncmp.cc
   ${DOORS_LIBC_SRC_DIR}/string/strncpy.cc
   ${DOORS_LIBC_SRC_DIR}/string/strrchr.cc
+  ${DOORS_LIBC_SRC_DIR}/string/strstr.cc
 )
 target_compile_definitions(libc++test PRIVATE __IS_DOORS_LIBCPP __IS_DOORS_LIBCPPTEST)
 target_compile_options(libc++test PRIVATE -fno-builtin)
@@ -95,6 +96,7 @@ doors_test_module(test_libcpp_string_header
   libc++/string/strncpy.cc
   libc++/string/strchr.cc
   libc++/string/strrchr.cc
+  libc++/string/strstr.cc
 )
 
 doors_test_module(test_libcpp_string

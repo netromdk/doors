@@ -24,5 +24,6 @@ int strcmp(const char *str1, const char *str2);
 int strncmp(const char *str1, const char *str2, size_t num);
 const char *strchr(const char *str, int value);
 const char *strrchr(const char *str, int value);
+const char *strstr(const char *str, const char *substr);
 
 #endif // STRING_H

@@ -25,6 +25,7 @@ set(LIBCPP_SOURCES
   string/strncmp.cc
   string/strncpy.cc
   string/strrchr.cc
+  string/strstr.cc
 )
 
 # Hosted userland library.
