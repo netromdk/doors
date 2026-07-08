@@ -42,6 +42,12 @@ void main()
   runTest("sys_ioctl_save_restore_screen", testIoctlSaveRestoreScreen);
   runTest("sys_ioctl_cursor_hide_show", testIoctlCursorHideShow);
   runTest("heap_alloc_free_alloc", testHeapAllocFreeAlloc);
+  runTest("sys_taskctl_kill_self", testTaskctlKillSelf);
+  runTest("sys_taskctl_detail_invalid", testTaskctlDetailInvalid);
+  runTest("sys_serial_edges", testSysSerialEdges);
+  runTest("sys_sysinfo_uptime_increasing", testSysinfoUptimeIncreasing);
+  runTest("heap_malloc_zero", testHeapMallocZero);
+  runTest("heap_free_null", testHeapFreeNull);
 
   const auto totalMs = static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0)) - suiteStart;
   emitDone(passed_, failed_, passed_ + failed_, totalMs);
