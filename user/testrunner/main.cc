@@ -25,6 +25,12 @@ void main()
   runTest("sys_sysinfo_memfree", testSysinfoMemfree);
   runTest("sys_taskctl_count", testSysTaskctlCount);
   runTest("sys_sysinfo_cpu", testSysinfoCpu);
+  runTest("sys_sysinfo_datetime", testSysinfoDatetime);
+  runTest("sys_taskctl_list", testTaskctlList);
+  runTest("sys_taskctl_detail", testTaskctlDetail);
+  runTest("sys_execmod_invalid", testExecmodInvalid);
+  runTest("sys_ioctl_poll_key", testIoctlPollKey);
+  runTest("sys_suppress_taskbar", testSuppressTaskbar);
 
   const auto totalMs = static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0)) - suiteStart;
   emitDone(passed_, failed_, passed_ + failed_, totalMs);

@@ -7,5 +7,11 @@ void testSysinfoUptime();
 void testSysinfoMemfree();
 void testSysTaskctlCount();
 void testSysinfoCpu();
+void testSysinfoDatetime();
+void testTaskctlList();
+void testTaskctlDetail();
+void testExecmodInvalid();
+void testIoctlPollKey();
+void testSuppressTaskbar();
 
 #endif
