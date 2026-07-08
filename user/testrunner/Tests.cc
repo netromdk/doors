@@ -87,8 +87,7 @@ void testTaskctlList()
 void testTaskctlIdleDetail()
 {
   TaskDetail td{};
-  const int r =
-    sys_taskctl(TASKCTL_DETAIL, IDLE_TASK_ID, reinterpret_cast<unsigned int>(&td));
+  const int r = sys_taskctl(TASKCTL_DETAIL, IDLE_TASK_ID, reinterpret_cast<unsigned int>(&td));
   ASSERT_TRUE(r >= 0, "idle detail failed");
   ASSERT_TRUE(td.name[0] != '\0', "idle empty name");
   ASSERT_TRUE(td.state <= TASK_STATE_MAX, "idle bad state");
@@ -208,4 +207,47 @@ void testHeapAllocFreeAlloc()
   void *p3 = malloc(HEAP_ALLOC_SIZE);
   ASSERT_TRUE(p3 != nullptr, "malloc after free failed");
   free(p3);
+}
+
+void testTaskctlKillSelf()
+{
+  const int r = sys_taskctl(TASKCTL_KILL, TESTRUNNER_TASK_ID, 0);
+  ASSERT_TRUE(r < 0, "kill self should fail");
+}
+
+void testTaskctlDetailInvalid()
+{
+  TaskDetail td{};
+  const int r = sys_taskctl(TASKCTL_DETAIL, KILL_INVALID_ID, reinterpret_cast<unsigned int>(&td));
+  ASSERT_TRUE(r < 0, "detail for invalid id should fail");
+}
+
+void testSysSerialEdges()
+{
+  const int r1 = sys_serial(nullptr, 0);
+  ASSERT_TRUE(r1 >= 0, "serial with null buf failed");
+
+  const char msg[]{""};
+  const int r2 = sys_serial(msg, 0);
+  ASSERT_TRUE(r2 >= 0, "serial with empty buf failed");
+}
+
+void testSysinfoUptimeIncreasing()
+{
+  const auto t1 = static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0));
+  for (volatile int i = 0; i < 10000; ++i) {
+  }
+  const auto t2 = static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0));
+  ASSERT_TRUE(t2 >= t1, "uptime did not increase");
+}
+
+void testHeapMallocZero()
+{
+  void *p = malloc(0);
+  free(p);
+}
+
+void testHeapFreeNull()
+{
+  free(nullptr);
 }

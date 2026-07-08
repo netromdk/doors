@@ -24,5 +24,11 @@ void testIoctlPut();
 void testIoctlSaveRestoreScreen();
 void testIoctlCursorHideShow();
 void testHeapAllocFreeAlloc();
+void testTaskctlKillSelf();
+void testTaskctlDetailInvalid();
+void testSysSerialEdges();
+void testSysinfoUptimeIncreasing();
+void testHeapMallocZero();
+void testHeapFreeNull();
 
 #endif
