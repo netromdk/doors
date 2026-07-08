@@ -159,4 +159,20 @@ static inline void sys_suppressTaskbar()
   __asm__ volatile("int $0x80" : : "a"(SYS_SUPPRESS_TASKBAR) : "memory");
 }
 
+static inline int sys_serial(const char *buf, unsigned int len)
+{
+  int ret;
+  __asm__ volatile("int $0x80"
+                   : "=a"(ret)
+                   : "a"(SYS_SERIAL), "b"((unsigned int) buf), "c"(len)
+                   : "memory");
+  return ret;
+}
+
+__attribute__((noreturn)) static inline void sys_poweroff()
+{
+  __asm__ volatile("int $0x80" : : "a"(SYS_POWEROFF));
+  __builtin_unreachable();
+}
+
 #endif

@@ -7,6 +7,7 @@
 #include <kernel/Io.h>
 #include <kernel/Kbd.h>
 #include <kernel/Scheduler.h>
+#include <kernel/Serial.h>
 #include <kernel/Tty.h>
 
 uint8_t Io::inb(uint16_t)
@@ -15,6 +16,23 @@ uint8_t Io::inb(uint16_t)
 }
 
 void Io::outb(uint16_t, uint8_t)
+{
+}
+
+uint16_t lastOutwPort = 0;
+uint16_t lastOutwValue = 0;
+
+void Io::outw(uint16_t port, uint16_t value)
+{
+  lastOutwPort = port;
+  lastOutwValue = value;
+}
+
+void Io::outl(uint16_t, uint32_t)
+{
+}
+
+void Serial::write(char)
 {
 }
 

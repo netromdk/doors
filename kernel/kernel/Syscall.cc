@@ -3,8 +3,11 @@
 #include <cstring>
 
 #include <arch/i386/Paging.h>
+#include <kernel/Acpi.h>
+#include <kernel/Io.h>
 #include <kernel/Kbd.h>
 #include <kernel/Scheduler.h>
+#include <kernel/Serial.h>
 #include <kernel/Syscall.h>
 #include <kernel/Tty.h>
 
@@ -12,7 +15,6 @@
 #include <kernel/Cmos.h>
 #include <kernel/Cpu.h>
 #include <kernel/Heap.h>
-#include <kernel/Io.h>
 #include <kernel/Panic.h>
 #include <kernel/Pit.h>
 #include <kernel/Pmm.h>
@@ -65,6 +67,45 @@ uint32_t handleRead(uint32_t addr, int count)
     n++;
   }
   return static_cast<uint32_t>(n);
+}
+
+uint32_t handleWriteSerial(uint32_t addr, uint32_t len)
+{
+  if (!isValidUserBuf(addr, static_cast<int>(len))) {
+    return 0;
+  }
+  auto *const buf = reinterpret_cast<const char *>(static_cast<uintptr_t>(addr));
+  for (uint32_t i = 0; i < len; ++i) {
+    Serial::write(buf[i]);
+  }
+  return len;
+}
+
+uint32_t handlePoweroff()
+{
+  // Attempt 1: ACPI S5 shutdown. Works on real hardware with ACPI and on QEMU `-machine
+  // pc,acpi=on`.
+  Io::outw(PM1_CNT_PORT, PM1_CNT_S5);
+
+  // Attempt 2: QEMU `isa-debug-exit` device at port 0x402. No-op on real hardware.
+  Io::outl(0x402, 1);
+
+  // Attempt 3: triple fault. Load a null IDT and fire an interrupt. With QEMU `-no-reboot` this
+  // exits, and on real hardware it reboots.
+#ifdef __IS_DOORS_KERNEL
+  struct {
+    uint16_t limit;
+    uint32_t base;
+  } __attribute__((packed)) nullIdt{};
+  __asm__ volatile("lidt %0" : : "m"(nullIdt));
+  __asm__ volatile("int $0x00");
+
+  // Safety: if the triple fault somehow doesn't trigger, halt the CPU.
+  Cpu::disableInterrupts();
+  Cpu::halt();
+#endif
+
+  return 0;
 }
 
 #ifdef __IS_DOORS_KERNEL
@@ -430,6 +471,12 @@ extern "C" uint32_t syscallHandler(uint32_t eax, uint32_t ebx, uint32_t ecx, uin
 
   case SYS_READ:
     return handleRead(ebx, static_cast<int>(ecx));
+
+  case SYS_SERIAL:
+    return handleWriteSerial(ebx, ecx);
+
+  case SYS_POWEROFF:
+    return handlePoweroff();
 
 #ifdef __IS_DOORS_KERNEL
   case SYS_WRITESTR:

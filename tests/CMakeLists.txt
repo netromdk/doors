@@ -332,8 +332,10 @@ doors_test_module(test_kernel_paging_sched
 )
 target_compile_definitions(test_kernel_paging_sched PRIVATE __IS_DOORS_KERNEL)
 
-doors_test_module(test_kernel_syscall_read
+doors_test_module(test_kernel_syscalls
   syscall/SyscallRead.cc
+  syscall/SyscallSerial.cc
+  syscall/SyscallPoweroff.cc
   tty/vga_ram.cc
   stubs.cc
   "${SYSCALL_SRC}"

@@ -3,6 +3,18 @@
 
 #include <cstdint>
 
+// PM1_CNT register bit definitions (ACPI 1.0+).
+static constexpr uint16_t PM1_CNT_SLP_EN = 0x2000;    // Sleep enable (bit 13).
+static constexpr uint16_t PM1_CNT_SLP_TYP_SHIFT = 10; // Sleep type field (bits 10-12).
+static constexpr uint8_t PM1_CNT_SLP_TYP_S5 = 5;      // S5 soft-off sleep type.
+
+// Convenience: value for S5 shutdown write to PM1_CNT (0x3400).
+static constexpr uint16_t PM1_CNT_S5 =
+  (PM1_CNT_SLP_TYP_S5 << PM1_CNT_SLP_TYP_SHIFT) | PM1_CNT_SLP_EN;
+
+// PIIX4 PMCNTRL register port.
+static constexpr uint16_t PM1_CNT_PORT = 0x604;
+
 // Root System Descriptor, version 1.
 struct Rsd {
   char sig[8];

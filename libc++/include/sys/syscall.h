@@ -14,6 +14,8 @@ enum Syscall {
   SYS_EXECMOD = 9,           // Execute GRUB module (ebx=index).
   SYS_PANIC = 10,            // Kernel panic (ebx=msg).
   SYS_SUPPRESS_TASKBAR = 11, // Hide taskbar.
+  SYS_SERIAL = 12,           // Write buffer directly to COM1 (ebx=buf, ecx=len).
+  SYS_POWEROFF = 13,         // Shut down the machine.
 };
 
 #endif // SYS_SYSCALL_H
