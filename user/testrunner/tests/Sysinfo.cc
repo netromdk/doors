@@ -24,7 +24,8 @@ void testSysinfoUptime()
 void testSysinfoUptimeIncreasing()
 {
   const auto t1 = static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0));
-  for (volatile int i = 0; i < 10000; ++i) {
+  for (int i = 0; i < 10000; ++i) {
+    __asm__ volatile("");
   }
   const auto t2 = static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0));
   ASSERT_TRUE(t2 >= t1, "uptime did not increase");
