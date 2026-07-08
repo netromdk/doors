@@ -125,6 +125,7 @@ doors_test_module(test_libcpp_stdio_header
   libc++/stdio/putchar.cc
   libc++/stdio/puts.cc
   libc++/stdio/printf.cc
+  libc++/stdio/sprintf.cc
   libc++/stdio/snprintf.cc
 )
 

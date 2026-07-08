@@ -216,17 +216,6 @@ TEST_CASE("snprintf uint64")
   CHECK(snprintf(buf, sizeof(buf), "%llu", (unsigned long long) big) > 0);
 }
 
-TEST_CASE("sprintf basic")
-{
-  char buf[128];
-
-  CHECK(sprintf(buf, "hello %s", "world") == 11);
-  CHECK(strcmp(buf, "hello world") == 0);
-
-  CHECK(sprintf(buf, "%d", 42) == 2);
-  CHECK(strcmp(buf, "42") == 0);
-}
-
 TEST_CASE("zero-pad with left-align: %-08d same as %-8d")
 {
   char buf[128];
