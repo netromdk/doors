@@ -27,6 +27,50 @@
 #include <arch/i386/Paging.h>
 
 constinit multiboot_info *mbi = nullptr;
+static bool testMode_ = false;
+
+namespace {
+
+bool hasTestFlag(const char *cmdline)
+{
+  if (const char *p = strstr(cmdline, "--test")) {
+    return (p == cmdline    // Test at the start.
+            || p[-1] == ' ' // Space before match.
+            ) &&
+           (p[6] == '\0'   // Test at the end.
+            || p[6] == ' ' // Space after match.
+           );
+  }
+  return false;
+}
+
+void loadTestRunner()
+{
+  if (const int mod = 0; Pmm::moduleCount() == 1 && Pmm::modulePhysSize(mod) > 0) {
+    printf("Test mode: loading test runner (module %d)\n", mod);
+    const void *modPtr =
+      physToVirt(reinterpret_cast<void *>(static_cast<uintptr_t>(Pmm::modulePhysStart(mod))));
+    Scheduler::addUserElfTask("testrunner.elf", modPtr, Pmm::modulePhysSize(mod));
+  }
+  else {
+    printf("Test mode: no modules found. Cannot run test runner!\n");
+  }
+}
+
+void loadUserPrograms()
+{
+  if (Pmm::moduleCount() > 0 && Pmm::modulePhysSize() > 0) {
+    const void *modPtr =
+      physToVirt(reinterpret_cast<void *>(static_cast<uintptr_t>(Pmm::modulePhysStart())));
+    Scheduler::addUserElfTask("shell.elf", modPtr, Pmm::modulePhysSize());
+  }
+  else {
+    printf("No multiboot modules found.\nNo shell available!\n");
+  }
+  Scheduler::addTask("taskbar", taskbarMain, Paging::clonePageDir());
+}
+
+} // namespace
 
 extern "C" {
 
@@ -49,6 +93,11 @@ void kmainInit(multiboot_info *mbi_, uint32_t magic)
   }
 
   mbi = mbi_;
+
+  if (mbi_->flags & MULTIBOOT_INFO_CMDLINE) {
+    const char *cmdline = reinterpret_cast<const char *>(static_cast<uintptr_t>(mbi_->cmdline));
+    testMode_ = hasTestFlag(cmdline);
+  }
 }
 
 void kmain()
@@ -105,23 +154,13 @@ void kmain()
 
   printf("\n<<Doors are open>>\n");
 
-  if (Pmm::moduleCount() > 0 && Pmm::modulePhysSize() > 0) {
-    const void *modPtr =
-      physToVirt(reinterpret_cast<void *>(static_cast<uintptr_t>(Pmm::modulePhysStart())));
-    Scheduler::addUserElfTask("shell.elf", modPtr, Pmm::modulePhysSize());
+  if (testMode_) {
+    loadTestRunner();
+  }
+  else {
+    loadUserPrograms();
   }
 
-  // Uncomment the following to do a ring-3 test, with user-mode task that prints "USER" via
-  // SYS_WRITE then exits:
-  // Scheduler::addUserTask("usertest");
-
-  Scheduler::addTask("taskbar", taskbarMain, Paging::clonePageDir());
-
-  // User-mode interactive shell runs as a ring-3 task. No kernel fallback.
-  if (Pmm::moduleCount() == 0) {
-    printf("No multiboot modules found\n");
-    printf("No shell available!\n");
-  }
   for (;;) {
     Cpu::enableInterrupts();
     Cpu::halt();
