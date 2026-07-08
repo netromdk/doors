@@ -11,3 +11,13 @@ void Io::outb(uint16_t port, uint8_t value)
 {
   __asm__("outb %%al, %%dx" : : "d"(port), "a"(value));
 }
+
+void Io::outw(uint16_t port, uint16_t value)
+{
+  __asm__("outw %%ax, %%dx" : : "d"(port), "a"(value));
+}
+
+void Io::outl(uint16_t port, uint32_t value)
+{
+  __asm__("outl %%eax, %%dx" : : "d"(port), "a"(value));
+}
