@@ -119,7 +119,8 @@ bool validateSegment(const Elf32_Phdr *phdr)
   return true;
 }
 
-bool mapSegmentRange(const void *elf, const Elf32_Phdr *phdr, MappedPage *mapped, int &numMapped)
+bool mapSegmentRange(const void *elf, const Elf32_Phdr *phdr, MappedPage *mapped, int &numMapped,
+                     uint32_t pageDir)
 {
   // Page-aligned range covering the segment's virtual address span.
   const uint32_t pageStart = alignDown(phdr->p_vaddr, Pmm::PAGE_SIZE);
@@ -152,7 +153,7 @@ bool mapSegmentRange(const void *elf, const Elf32_Phdr *phdr, MappedPage *mapped
       }
       phys32 = static_cast<uint32_t>(reinterpret_cast<unsigned long long>(phys));
 
-      if (!Paging::mapPage(vaddr, phys32, PAGE_PRESENT | PAGE_RW | PAGE_USER)) {
+      if (!Paging::mapPage(vaddr, phys32, PAGE_PRESENT | PAGE_RW | PAGE_USER, pageDir)) {
         Pmm::freeFrame(phys);
         return false;
       }
@@ -202,7 +203,7 @@ ElfRange computeElfRange(const uint8_t *phdrBytes, size_t phnum, size_t phentsiz
   ElfRange r{0xFFFFFFFF, 0};
   for (size_t i = 0; i < phnum; ++i) {
     const auto *phdr = reinterpret_cast<const Elf32_Phdr *>(phdrBytes + i * phentsize);
-    if (phdr->p_type != PT_LOAD) {
+    if (phdr->p_type != PT_LOAD || phdr->p_memsz == 0) {
       continue;
     }
     if (phdr->p_vaddr < r.min) {
@@ -217,7 +218,7 @@ ElfRange computeElfRange(const uint8_t *phdrBytes, size_t phnum, size_t phentsiz
 
 } // namespace
 
-optional<ElfLoader::LoadResult> ElfLoader::load(const void *elf, size_t size)
+optional<ElfLoader::LoadResult> ElfLoader::load(const void *elf, size_t size, uint32_t pageDir)
 {
   if (!validate(elf, size)) {
     return {};
@@ -230,7 +231,7 @@ optional<ElfLoader::LoadResult> ElfLoader::load(const void *elf, size_t size)
 
   const auto range = computeElfRange(phdrBytes, phnum, phentsize);
   if (range.min != 0xFFFFFFFF) {
-    Paging::clearPageTable(alignDown(range.min, Pmm::PAGE_SIZE));
+    Paging::clearPageTable(alignDown(range.min, Pmm::PAGE_SIZE), pageDir);
   }
 
   MappedPage mapped[MAX_ELF_PAGES];
@@ -241,7 +242,10 @@ optional<ElfLoader::LoadResult> ElfLoader::load(const void *elf, size_t size)
     if (phdr->p_type != PT_LOAD) {
       continue;
     }
-    if (!validateSegment(phdr) || !mapSegmentRange(elf, phdr, mapped, numMapped)) {
+    if (phdr->p_memsz == 0) {
+      continue;
+    }
+    if (!validateSegment(phdr) || !mapSegmentRange(elf, phdr, mapped, numMapped, pageDir)) {
       rollbackMapped(mapped, numMapped);
       return {};
     }
@@ -256,7 +260,7 @@ optional<ElfLoader::LoadResult> ElfLoader::load(const void *elf, size_t size)
 
 #else
 
-optional<ElfLoader::LoadResult> ElfLoader::load(const void *, size_t)
+optional<ElfLoader::LoadResult> ElfLoader::load(const void *, size_t, uint32_t)
 {
   return {};
 }

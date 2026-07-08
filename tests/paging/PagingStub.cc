@@ -48,10 +48,19 @@ bool Paging::mapPage(uint32_t, uint32_t, uint32_t)
   return true;
 }
 
+bool Paging::mapPage(uint32_t, uint32_t, uint32_t, uint32_t)
+{
+  return true;
+}
+
 void Paging::unmapPage(uint32_t)
 {
 }
 
 void Paging::clearPageTable(uint32_t)
+{
+}
+
+void Paging::clearPageTable(uint32_t, uint32_t)
 {
 }

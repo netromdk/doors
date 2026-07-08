@@ -22,7 +22,7 @@ struct LoadResult {
 
 bool validate(const void *elf, size_t size);
 uint32_t entryPoint(const void *elf);
-optional<LoadResult> load(const void *elf, size_t size);
+optional<LoadResult> load(const void *elf, size_t size, uint32_t pageDir = 0);
 
 } // namespace ElfLoader
 

@@ -184,17 +184,22 @@ void Paging::init(uint32_t identityMapEnd)
 
 bool Paging::mapPage(uint32_t virtAddr, uint32_t physAddr, uint32_t flags)
 {
+  return mapPage(virtAddr, physAddr, flags, kernelPageDirPhys());
+}
+
+bool Paging::mapPage(uint32_t virtAddr, uint32_t physAddr, uint32_t flags, uint32_t pageDir)
+{
   InterruptGuard guard;
 
-  auto *pageDir = kernelPageDir_;
+  auto *pd = physToVirt32(reinterpret_cast<void *>(static_cast<uintptr_t>(pageDir)));
   int pdeIdx, pteIdx;
-  auto *pageTable = resolvePageTable(virtAddr, pageDir, pdeIdx, pteIdx);
-  if (pageTable == nullptr && !ensurePageTable(pageDir, pdeIdx, flags)) {
+  auto *pageTable = resolvePageTable(virtAddr, pd, pdeIdx, pteIdx);
+  if (pageTable == nullptr && !ensurePageTable(pd, pdeIdx, flags)) {
     return false;
   }
 
   if (pageTable == nullptr) {
-    pageTable = resolvePageTable(virtAddr, pageDir, pdeIdx, pteIdx);
+    pageTable = resolvePageTable(virtAddr, pd, pdeIdx, pteIdx);
   }
 
   pageTable[pteIdx] = (physAddr & PAGE_ADDR_MASK) | PAGE_PRESENT | (flags & (PAGE_RW | PAGE_USER));
@@ -220,16 +225,31 @@ void Paging::unmapPage(uint32_t virtAddr)
 
 void Paging::clearPageTable(uint32_t virtAddr)
 {
+  clearPageTable(virtAddr, kernelPageDirPhys());
+}
+
+void Paging::clearPageTable(uint32_t virtAddr, uint32_t pageDir)
+{
   InterruptGuard guard;
 
-  auto *pageDir = kernelPageDir_;
+  auto *pd = physToVirt32(reinterpret_cast<void *>(static_cast<uintptr_t>(pageDir)));
   int pdeIdx, pteIdx;
-  auto *pageTable = resolvePageTable(virtAddr, pageDir, pdeIdx, pteIdx);
-  if (pageTable == nullptr) {
-    return;
+  (void) resolvePageTable(virtAddr, pd, pdeIdx, pteIdx);
+
+  if (!(pd[pdeIdx] & PAGE_PRESENT)) {
+    return; // Nothing to clear.
   }
 
-  __builtin_memset(pageTable, 0, Pmm::PAGE_SIZE);
+  // Allocate a new page table so the shared (kernel) page table is not corrupted.
+  void *frame = Pmm::allocFrame();
+  if (frame == nullptr) {
+    printf("Paging::clearPageTable: OOM allocating page table\n");
+    return;
+  }
+  auto *newPt = physToVirt32(frame);
+  __builtin_memset(newPt, 0, Pmm::PAGE_SIZE);
+
+  pd[pdeIdx] = virtToPhys32(newPt) | (pd[pdeIdx] & (PAGE_PRESENT | PAGE_RW | PAGE_USER));
   Cpu::writeCr3(Cpu::readCr3());
 }
 
