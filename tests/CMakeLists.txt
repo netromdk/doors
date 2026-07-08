@@ -187,7 +187,7 @@ doors_test_module(test_libcpp_span
 )
 
 # Test that `abort()` actually terminates with a non-zero exit code.
-add_executable(test_libcpp_abort abort/test_abort.cc)
+add_executable(test_libcpp_abort libc++/stdlib/abort.cc)
 target_include_directories(test_libcpp_abort PRIVATE "${DOORS_LIBC_INC_DIR}")
 target_link_libraries(test_libcpp_abort PRIVATE libc++test)
 add_test(NAME test_libcpp_abort COMMAND test_libcpp_abort)
