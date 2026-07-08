@@ -1,33 +1,56 @@
 #ifndef TESTRUNNER_TESTS_H
 #define TESTRUNNER_TESTS_H
 
+// Terminal output.
+void runTerminalTests();
 void testSysWrite();
 void testSysWritestr();
+
+// Serial.
+void runSerialTests();
+void testSysSerialEdges();
+
+// Taskbar.
+void runTaskbarTests();
+void testSuppressTaskbar();
+
+// System info.
+void runSysinfoTests();
 void testSysinfoUptime();
+void testSysinfoUptimeIncreasing();
 void testSysinfoMemfree();
-void testSysTaskctlCount();
-void testSysinfoCpu();
+void testSysinfoMemblock();
 void testSysinfoDatetime();
+void testSysinfoDatetimeTime();
+void testSysinfoCpu();
+
+// Task control.
+void runTaskctlTests();
+void testSysTaskctlCount();
+void testTaskctlCountListConsistency();
 void testTaskctlList();
 void testTaskctlIdleDetail();
 void testTaskctlSelfDetail();
-void testExecmodInvalid();
-void testIoctlPollKey();
-void testSuppressTaskbar();
-void testSysinfoMemblock();
-void testSysinfoDatetimeTime();
-void testTaskctlCountListConsistency();
+void testTaskctlDetailInvalid();
 void testTaskctlKillInvalidId();
 void testTaskctlKillIdleNotKillable();
+void testTaskctlKillSelf();
+
+// I/O control.
+void runIoctlTests();
 void testIoctlClear();
 void testIoctlPut();
+void testIoctlPollKey();
 void testIoctlSaveRestoreScreen();
 void testIoctlCursorHideShow();
+
+// Execmod.
+void runExecmodTests();
+void testExecmodInvalid();
+
+// Heap.
+void runHeapTests();
 void testHeapAllocFreeAlloc();
-void testTaskctlKillSelf();
-void testTaskctlDetailInvalid();
-void testSysSerialEdges();
-void testSysinfoUptimeIncreasing();
 void testHeapMallocZero();
 void testHeapFreeNull();
 

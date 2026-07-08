@@ -5,8 +5,17 @@ set(TESTRUNNER_SOURCES
   Emit.h
   Framework.cc
   Framework.h
-  Tests.cc
   Tests.h
+
+  tests/Constants.h
+  tests/Terminal.cc
+  tests/Serial.cc
+  tests/Taskbar.cc
+  tests/Sysinfo.cc
+  tests/Taskctl.cc
+  tests/Ioctl.cc
+  tests/Execmod.cc
+  tests/Heap.cc
 )
 
 add_user_program(testrunner
