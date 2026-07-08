@@ -6,6 +6,10 @@ option(BUILD_TESTS
   "Build the test suite and include it in the default (all) target"
   ON)
 
+option(BUILD_INTEGRATION_TESTS
+  "Build the integration test runner ELF and enable test ISO/run targets"
+  OFF)
+
 option(VERBOSE_BUILD
   "Show raw compiler/linker command lines during build (propagated to sub-builds)"
   OFF)
