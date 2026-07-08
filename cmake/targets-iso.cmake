@@ -12,6 +12,7 @@ if (BUILD_INTEGRATION_TESTS)
   set(_GRUB_TESTING_ENTRY "menuentry \"doors (testing)\" {
   multiboot /boot/doors.kernel --test
   module /boot/testrunner-interactive.elf
+  module /boot/minimal.elf
 }")
 else()
   set(_GRUB_TESTING_ENTRY "")
@@ -47,6 +48,8 @@ if (_ISO_DEPS_OK)
                                           "${TMP_ISO}/boot/"
       COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/testrunner/testrunner-interactive.elf"
                                           "${TMP_ISO}/boot/"
+      COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/minimal/minimal.elf"
+                                          "${TMP_ISO}/boot/"
     )
   endif()
 
@@ -68,12 +71,14 @@ if (_ISO_DEPS_OK)
       COMMAND "${CMAKE_COMMAND}" -E copy "${KERNEL_IMG}" "${TMP_TEST_ISO}/boot/"
       COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/testrunner/testrunner.elf"
                                          "${TMP_TEST_ISO}/boot/"
+      COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/minimal/minimal.elf"
+                                         "${TMP_TEST_ISO}/boot/"
       COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_SOURCE_DIR}/grub-test.cfg"
                                          "${TMP_TEST_ISO}/boot/grub/grub.cfg"
       COMMAND "${GRUB_MKRESCUE_EXECUTABLE}" -o "${TEST_ISO_FILE}"
               --locale-directory=. "${TMP_TEST_ISO}"
       COMMAND "${CMAKE_COMMAND}" -E remove_directory "${TMP_TEST_ISO}"
-      DEPENDS doors_kernel testrunner
+      DEPENDS doors_kernel testrunner minimal
       VERBATIM
     )
 
