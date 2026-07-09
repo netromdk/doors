@@ -14,6 +14,7 @@ enum IoctlCmd {
   IOCTL_CURSOR_HIDE = 7,   // Tty::cursorDisable()
   IOCTL_CURSOR_SHOW = 8,   // Tty::cursorEnable()
   IOCTL_POLL_KEY = 9,      // returns (key<<8|ch) or -1 on no key
+  IOCTL_INJECT_CHAR = 10,  // push a character into the keyboard buffer
 };
 
 struct TaskEntry {

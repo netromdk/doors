@@ -229,6 +229,10 @@ uint32_t handleIoctl(uint32_t cmd, uint32_t arg)
     return (static_cast<uint32_t>(ke.key) << 8) | static_cast<uint32_t>(ke.ch);
   }
 
+  case IOCTL_INJECT_CHAR:
+    Kbd::pushChar(static_cast<char>(arg));
+    return 0;
+
   default:
     return static_cast<uint32_t>(-1);
   }

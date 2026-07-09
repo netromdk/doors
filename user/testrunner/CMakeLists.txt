@@ -16,6 +16,7 @@ set(TESTRUNNER_SOURCES
   tests/Ioctl.cc
   tests/Execmod.cc
   tests/Heap.cc
+  tests/Input.cc
 )
 
 add_user_program(testrunner

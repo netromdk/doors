@@ -26,6 +26,7 @@ void main()
   runTaskctlTests();
   runIoctlTests();
   runExecmodTests();
+  runInputTests();
   runHeapTests();
 
   const auto totalMs = static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0)) - suiteStart;
