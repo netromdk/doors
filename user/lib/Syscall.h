@@ -1,6 +1,7 @@
 #ifndef USER_SYSCALL_H
 #define USER_SYSCALL_H
 
+#include <cstddef>
 #include <sys/syscall.h>
 
 enum IoctlCmd {
@@ -167,6 +168,12 @@ static inline int sys_serial(const char *buf, unsigned int len)
                    : "a"(SYS_SERIAL), "b"((unsigned int) buf), "c"(len)
                    : "memory");
   return ret;
+}
+
+template <size_t N>
+static inline int sys_serial(const char (&buf)[N])
+{
+  return sys_serial(buf, static_cast<unsigned int>(N - 1));
 }
 
 __attribute__((noreturn)) static inline void sys_poweroff()
