@@ -1,0 +1,7 @@
+set default=0
+set timeout=0
+
+menuentry "doors (crash: @CRASH_NAME@)" {
+  multiboot /boot/doors.kernel --test
+  module /boot/@CRASH_MODULE@.elf
+}
