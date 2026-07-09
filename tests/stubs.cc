@@ -76,6 +76,12 @@ __attribute__((weak)) bool Cpu::interruptsEnabled()
   return true;
 }
 
+__attribute__((weak)) __attribute__((noreturn)) void Cpu::tripleFault()
+{
+  for (;;) {
+  }
+}
+
 __attribute__((weak)) void Tty::cursorEnable()
 {
 }

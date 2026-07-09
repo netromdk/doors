@@ -4,6 +4,7 @@
 
 #include <arch/i386/Paging.h>
 #include <kernel/Acpi.h>
+#include <kernel/Cpu.h>
 #include <kernel/Io.h>
 #include <kernel/Kbd.h>
 #include <kernel/Scheduler.h>
@@ -90,19 +91,9 @@ uint32_t handlePoweroff()
   // Attempt 2: QEMU `isa-debug-exit` device at port 0x402. No-op on real hardware.
   Io::outl(0x402, 1);
 
-  // Attempt 3: triple fault. Load a null IDT and fire an interrupt. With QEMU `-no-reboot` this
-  // exits, and on real hardware it reboots.
+  // Attempt 3: triple fault. With QEMU `-no-reboot` this exits, and on real hardware it reboots.
 #ifdef __IS_DOORS_KERNEL
-  struct {
-    uint16_t limit;
-    uint32_t base;
-  } __attribute__((packed)) nullIdt{};
-  __asm__ volatile("lidt %0" : : "m"(nullIdt));
-  __asm__ volatile("int $0x00");
-
-  // Safety: if the triple fault somehow doesn't trigger, halt the CPU.
-  Cpu::disableInterrupts();
-  Cpu::halt();
+  Cpu::tripleFault();
 #endif
 
   return 0;
