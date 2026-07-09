@@ -15,6 +15,7 @@ void runTaskctlTests()
   runTest("sys_taskctl_kill_invalid_id", testTaskctlKillInvalidId);
   runTest("sys_taskctl_kill_idle_not_killable", testTaskctlKillIdleNotKillable);
   runTest("sys_taskctl_kill_self", testTaskctlKillSelf);
+  runTest("sys_taskctl_kill_dead", testTaskctlKillDead);
 }
 
 void testSysTaskctlCount()
@@ -99,4 +100,13 @@ void testTaskctlKillSelf()
 {
   const int r = sys_taskctl(TASKCTL_KILL, TESTRUNNER_TASK_ID, 0);
   ASSERT_TRUE(r < 0, "kill self should fail");
+}
+
+void testTaskctlKillDead()
+{
+  const int tid = sys_execmod(MINIMAL_MODULE_IDX);
+  ASSERT_TRUE(tid >= 0, "execmod should succeed");
+
+  const int r = sys_taskctl(TASKCTL_KILL, static_cast<unsigned>(tid), 0);
+  ASSERT_TRUE(r < 0, "kill DEAD task should fail");
 }
