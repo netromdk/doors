@@ -32,6 +32,10 @@ void Io::outl(uint16_t, uint32_t)
 {
 }
 
+void Io::signalShutdown(uint32_t)
+{
+}
+
 void Serial::write(char)
 {
 }

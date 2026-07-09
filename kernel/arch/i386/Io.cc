@@ -21,3 +21,10 @@ void Io::outl(uint16_t port, uint32_t value)
 {
   __asm__("outl %%eax, %%dx" : : "d"(port), "a"(value));
 }
+
+void Io::signalShutdown(uint32_t code)
+{
+  // Port 0xf4 matches the `-device isa-debug-exit,iobase=0xf4` QEMU argument in
+  // "cmake/run-all-tests.cmake" and "cmake/run-qemu-timeout.cmake".
+  outl(0xf4, code);
+}
