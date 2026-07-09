@@ -9,6 +9,9 @@ public:
   static void outb(uint16_t port, uint8_t value);
   static void outw(uint16_t port, uint16_t value);
   static void outl(uint16_t port, uint32_t value);
+
+  // Signal QEMU to exit. No-op on real hardware.
+  static void signalShutdown(uint32_t code = 1);
 };
 
 #endif // KERNEL_IO_H

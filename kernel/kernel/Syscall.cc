@@ -170,6 +170,7 @@ uint32_t handleIoctl(uint32_t cmd, uint32_t arg)
 
   case IOCTL_HALT:
     printf("Halting system.\n");
+    Io::signalShutdown();
     Cpu::disableInterrupts();
     for (;;) {
       Cpu::halt();
@@ -426,6 +427,7 @@ uint32_t handleExecmod(int modIdx)
 
 uint32_t handlePanic(uint32_t userMsgAddr)
 {
+  Io::signalShutdown();
   char msg[PANIC_MSG_MAX]{};
   if (userMsgAddr != 0 && userMsgAddr < KERNEL_VIRTUAL_BASE) {
     auto *const src = reinterpret_cast<const char *>(static_cast<uintptr_t>(userMsgAddr));
