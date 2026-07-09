@@ -1,5 +1,6 @@
 find_program(GRUB_MKRESCUE_EXECUTABLE grub-mkrescue)
 find_program(MFORMAT_EXECUTABLE mformat)
+find_program(PYTHON3_EXECUTABLE python3)
 
 set(GRUB_I386_PC_DIR "/usr/lib/grub/i386-pc")
 
@@ -100,6 +101,11 @@ if (_ISO_DEPS_OK)
         VERBATIM
       )
     endif()
+
+    add_crash_test(panic crash-panic)
+    add_crash_test(halt crash-halt)
+    add_crash_test(reboot crash-reboot)
+    add_crash_test(poweroff crash-poweroff)
   endif()
 else()
   set(_ERR_CMDS
@@ -145,6 +151,15 @@ else()
       COMMAND "${CMAKE_COMMAND}" -E false
       VERBATIM
     )
+    foreach(_t panic halt reboot poweroff)
+      add_custom_target(crash-iso-${_t} ${_ERR_CMDS} VERBATIM)
+      add_custom_target(run-int-test-crash-${_t}
+        COMMAND "${CMAKE_COMMAND}" -E echo
+          "Error: run-int-test-crash-${_t} requires grub-mkrescue, mformat, and grub i386-pc modules."
+        COMMAND "${CMAKE_COMMAND}" -E false
+        VERBATIM
+      )
+    endforeach()
   endif()
 endif()
 
@@ -164,7 +179,6 @@ else()
 endif()
 
 if (BUILD_INTEGRATION_TESTS)
-  find_program(PYTHON3_EXECUTABLE python3)
   if (PYTHON3_EXECUTABLE)
     add_custom_target(check-int-test
       COMMAND "${PYTHON3_EXECUTABLE}"
@@ -180,4 +194,18 @@ if (BUILD_INTEGRATION_TESTS)
       VERBATIM
     )
   endif()
+
+  add_custom_target(check-int-test-all
+    COMMAND "${CMAKE_COMMAND}"
+            "-DQEMU=${QEMU_EXECUTABLE}"
+            "-DPYTHON3=${PYTHON3_EXECUTABLE}"
+            "-DDOORS_BINARY_DIR=${CMAKE_BINARY_DIR}"
+            "-DDOORS_SOURCE_DIR=${CMAKE_SOURCE_DIR}"
+            -P "${CMAKE_SOURCE_DIR}/cmake/run-all-tests.cmake"
+    DEPENDS test-iso
+            crash-iso-panic crash-iso-halt
+            crash-iso-reboot crash-iso-poweroff
+    USES_TERMINAL
+    VERBATIM
+  )
 endif()
