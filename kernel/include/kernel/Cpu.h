@@ -85,6 +85,11 @@ public:
   static void halt();
 
   /**
+   * Triple fault: with QEMU `-no-reboot` this exits, and on real hardware it reboots.
+   */
+  __attribute__((noreturn)) static void tripleFault();
+
+  /**
    * Read/write control registers for paging.
    */
   static uint32_t readCr0();

@@ -480,6 +480,21 @@ void Cpu::halt()
   __asm__("hlt");
 }
 
+__attribute__((noreturn)) void Cpu::tripleFault()
+{
+  // Load a null IDT and fire an interrupt.
+  struct {
+    uint16_t limit;
+    uint32_t base;
+  } __attribute__((packed)) nullIdt{};
+  __asm__ volatile("lidt %0" : : "m"(nullIdt));
+  __asm__ volatile("int $0x00");
+
+  disableInterrupts();
+  halt();
+  __builtin_unreachable();
+}
+
 void Cpu::readCpuInfo(CpuInfoRaw &out)
 {
   for (int i = 0; i < 12; ++i) {
