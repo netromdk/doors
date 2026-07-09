@@ -51,6 +51,11 @@ void testExecmodInvalid();
 void testExecmodSuccess();
 void testExecmodChildExits();
 
+// Input.
+void runInputTests();
+void testSysRead();
+void testSysReadline();
+
 // Heap.
 void runHeapTests();
 void testHeapAllocFreeAlloc();
