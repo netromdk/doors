@@ -179,6 +179,7 @@ uint32_t handleIoctl(uint32_t cmd, uint32_t arg)
     while ((Io::inb(0x64) & 0x02)) {
     }
     Io::outb(0x64, 0xFE);
+    Cpu::tripleFault(); // Fallback if the above does not work.
     return 0;
 
   case IOCTL_PUT: {
