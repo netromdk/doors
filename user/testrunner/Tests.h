@@ -49,6 +49,7 @@ void testIoctlCursorHideShow();
 void runExecmodTests();
 void testExecmodInvalid();
 void testExecmodSuccess();
+void testExecmodChildExits();
 
 // Heap.
 void runHeapTests();
