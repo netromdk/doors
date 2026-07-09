@@ -35,6 +35,7 @@ void testTaskctlDetailInvalid();
 void testTaskctlKillInvalidId();
 void testTaskctlKillIdleNotKillable();
 void testTaskctlKillSelf();
+void testTaskctlKillDead();
 
 // I/O control.
 void runIoctlTests();
