@@ -88,10 +88,7 @@ uint32_t handlePoweroff()
   // pc,acpi=on`.
   Io::outw(PM1_CNT_PORT, PM1_CNT_S5);
 
-  // Attempt 2: QEMU `isa-debug-exit` device at port 0x402. No-op on real hardware.
-  Io::outl(0x402, 1);
-
-  // Attempt 3: triple fault. With QEMU `-no-reboot` this exits, and on real hardware it reboots.
+  // Attempt 2: triple fault. With QEMU `-no-reboot` this exits, and on real hardware it reboots.
 #ifdef __IS_DOORS_KERNEL
   Cpu::tripleFault();
 #endif
