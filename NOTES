@@ -1,9 +1,38 @@
-Cross-compilation GCC toolkit with ELF ABI.
+# Doors of Open Run-time Systems
 
-Assembler: i386-elf-as
-Compiler: i386-elf-g++
+Architecture
+============
 
-GRUB on OSX: http://wiki.osdev.org/GRUB_2#Installing_GRUB2_on_Mac_OS_X
+The kernel lives in `kernel/`, with arch-specific stuff (`boot`, `interrupts`, `paging`) under
+`kernel/arch/i386/` and the rest in `kernel/kernel/`. It's a 32-bit higher-half monolithic kernel,
+loaded at 1 MiB (set in `kernel/arch/i386/Linker.ld`) by GRUB (GRand Unified Bootloader) Multiboot,
+with a higher-half virtual mapping at `0xC0000000`. Everything runs in ring 0 (kernel mode, full
+hardware access) except userland programs which get their own page directories and run in ring 3
+(user mode, restricted access, must use syscalls to talk to the kernel).
 
-Also, compile and install: https://www.gnu.org/software/xorriso/
-(You might want to use "glibtoolize" in autogen.sh instead of "libtoolize")
+C++ support comes from `libc++/`, a freestanding C++20 standard library that gets built three times:
+
+- `libc++_kernel.a` for the kernel,
+- `libc++_user.a` for userland,
+- and `libc++.a` for the hosted variant (same sources, not freestanding).
+
+The kernel and userland versions are freestanding with no exceptions or RTTI. Userland also gets a
+`malloc()` implementation since it doesn't have access to the kernel heap. Conditional compilation
+macros select the right code paths depending on who's calling, e.g., `putchar()` goes through VGA
+(Video Graphics Array) directly in the kernel but uses `INT 0x80` from userland.
+
+Userland programs are under `user/`. The main ones are `shell` (interactive CLI with built-in
+commands) and `snake` (VGA snake game). Built as freestanding, statically-linked ELF (Executable and
+Linkable Format) 32-bit binaries, with `user/User.ld` setting the output to `elf32-i386` and the
+base address to `0x10000000`. GRUB loads them as Multiboot modules and the kernel picks them up from
+there. Communication with the kernel happens through `INT 0x80` syscalls: 13 of them covering
+read/write, process control, system info, etc.
+
+Build system is CMake + Ninja. A prebuilt `i386-elf-gcc` cross-compiler toolchain sits in
+`bootstrap/` (can be built using `scripts/bootstrap.sh`). There are presets for debug, release,
+serial-debug, and testing.
+
+The kernel gets built in two passes. The first pass links with a stub symbol table so the linker can
+resolve everything (`doors_firstpass.kernel`). Then `scripts/gen-symbols.py` runs `nm -n` on the
+first-pass binary, demangles the names with `c++filt`, and writes out a sorted `symbol_table.cc`
+which gets linked into the final kernel (`doors.kernel`).
