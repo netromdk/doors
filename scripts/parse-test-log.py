@@ -12,6 +12,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import cast
 
 
 _INSTRUCTIONS = """\
@@ -34,7 +35,7 @@ To run it:
 """
 
 
-def parse_events(log_path):
+def parse_events(log_path: Path) -> list[dict[str, object]]:
   events = []
   with open(log_path, encoding="utf-8") as f:
     for line in f:
@@ -48,7 +49,7 @@ def parse_events(log_path):
   return events
 
 
-def check_normal(log_path, events):
+def check_normal(log_path: Path, events: list[dict[str, object]]) -> None:
   passed_evs = []
   failed_evs = []
   last_run = None
@@ -84,9 +85,9 @@ def check_normal(log_path, events):
   print()
 
   if done:
-    passed = done.get("passed", 0)
-    failed = done.get("failed", 0)
-    total = done.get("total", passed + failed)
+    passed = cast(int, done.get("passed", 0))
+    failed = cast(int, done.get("failed", 0))
+    total = cast(int, done.get("total", passed + failed))
     ms = done.get("ms", "?")
     status = "OK" if failed == 0 else "FAILED"
     print(f"Result: {status} "
@@ -102,7 +103,7 @@ def check_normal(log_path, events):
     sys.exit(2)
 
 
-def check_crash(events, crash_type, qemu_exit):
+def check_crash(events: list[dict[str, object]], crash_type: str, qemu_exit: str | None) -> None:
   crash_evs = [e for e in events if e.get("event") == "crash"]
 
   if not crash_evs:
@@ -112,7 +113,6 @@ def check_crash(events, crash_type, qemu_exit):
   ev = crash_evs[0]
   print(f"  [EVENT] {ev['name']}")
 
-  # qemu_exit is a string ("0", "1", "Timeout", etc.) or None
   is_clean = qemu_exit == "0"
 
   if crash_type in ("poweroff", "reboot"):
@@ -130,7 +130,7 @@ def check_crash(events, crash_type, qemu_exit):
   sys.exit(0)
 
 
-def check_log_file(log_path, args):
+def check_log_file(log_path: Path, args: argparse.Namespace) -> None:
   if not log_path.exists():
     print(f"Error: {log_path} not found.")
     print()
@@ -158,7 +158,7 @@ def check_log_file(log_path, args):
     check_normal(log_path, events)
 
 
-def main():
+def main() -> None:
   parser = argparse.ArgumentParser(description="Parse doors test log")
   parser.add_argument("--crash-type", choices=["panic", "halt", "reboot", "poweroff"],
                       help="Validate as a single-shot crash test of this type")
