@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <cstring>
 
+#include <arch/i386/Gdt.h>
 #include <arch/i386/Idt.h>
 #include <arch/i386/Pic.h>
 
@@ -49,23 +50,23 @@ void Idt::init()
   // Initialize IRQ (interrupt requests) with dummy routines because
   // the entries must be defined.
   for (size_t i = 0; i < IDT_SIZE; i++) {
-    fillDesc((uint32_t) asmIntDummy, IRQ_TIMER, INTR_GATE, &idt[i]);
+    fillDesc((uint32_t) asmIntDummy, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[i]);
   }
 
   // Exceptions.
-  fillDesc((uint32_t) asmExcDivZero, IRQ_TIMER, INTR_GATE, &idt[0]);
-  fillDesc((uint32_t) asmExcInvOp, IRQ_TIMER, INTR_GATE, &idt[6]);
-  fillDesc((uint32_t) asmExcSegNp, IRQ_TIMER, INTR_GATE, &idt[11]);
-  fillDesc((uint32_t) asmExcSf, IRQ_TIMER, INTR_GATE, &idt[12]);
-  fillDesc((uint32_t) asmExcGp, IRQ_TIMER, INTR_GATE, &idt[13]);
-  fillDesc((uint32_t) asmExcPf, IRQ_TIMER, INTR_GATE, &idt[14]);
+  fillDesc((uint32_t) asmExcDivZero, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[0]);
+  fillDesc((uint32_t) asmExcInvOp, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[6]);
+  fillDesc((uint32_t) asmExcSegNp, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[11]);
+  fillDesc((uint32_t) asmExcSf, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[12]);
+  fillDesc((uint32_t) asmExcGp, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[13]);
+  fillDesc((uint32_t) asmExcPf, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[14]);
 
   // Master interrupts.
-  fillDesc((uint32_t) asmIntTick, IRQ_TIMER, INTR_GATE, &idt[32]); // 0: Hardware timer
-  fillDesc((uint32_t) asmIntKbd, IRQ_TIMER, INTR_GATE, &idt[33]);  // 1: Keyboard
+  fillDesc((uint32_t) asmIntTick, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[32]); // 0: Hardware timer
+  fillDesc((uint32_t) asmIntKbd, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[33]);  // 1: Keyboard
 
   // INT 0x80 syscall handler.
-  fillDesc((uint32_t) asmInt80, IRQ_TIMER, TRAP_GATE_DPL3, &idt[0x80]);
+  fillDesc((uint32_t) asmInt80, GDT_KERNEL_CODE_SEL, TRAP_GATE_DPL3, &idt[0x80]);
 
   // Create idt register and put it at the base memory address.
   idtr.limit = IDT_SIZE * sizeof(IdtDesc);

@@ -114,7 +114,8 @@ struct Tss {
   uint16_t io_map_base; // 0x64 - offset to I/O permission bitmap.
 } __attribute__((packed));
 
-static constexpr uint16_t GDT_TSS_SEL = 0x28; // GDT[5] = 5 * 8
+static constexpr uint16_t GDT_KERNEL_CODE_SEL = 0x08; // GDT[1] = 1 * 8
+static constexpr uint16_t GDT_TSS_SEL = 0x28;         // GDT[5] = 5 * 8
 
 extern Tss tss;
 
