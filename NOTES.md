@@ -317,3 +317,36 @@ alive/running/blocked/dead counts), `LIST` (fill buffer with task entries), `KIL
 System info: `SYS_SYSINFO` (8) dispatches 5 sub-commands: `UPTIME` (milliseconds),
 `MEMFREE`/`MEMBLOCK` (heap stats), `DATETIME` (`CMOS` (Complementary Metal-Oxide-Semiconductor)
 `RTC` (Real-Time Clock)), `CPU` (`CPUID` data). `SYS_SUPPRESS_TASKBAR` (11) hides the taskbar row.
+
+
+ELF Loader
+==========
+
+The ELF loader lives in `kernel/kernel/ElfLoader.cc` and is called exclusively from the scheduler
+when creating a userland task. It only accepts statically-linked ELF 32-bit executables (`ET_EXEC`)
+for the i386 architecture.
+
+`ElfLoader::validate()` checks nine conditions in order: non-null buffer, minimum size, magic bytes
+(`\x7fELF`), 32-bit class, little-endian, current version, executable type, i386 machine, and that
+program headers fit within the buffer. Any failure returns false immediately.
+
+`ElfLoader::load()` iterates all program headers, skipping anything that isn't `PT_LOAD` or has zero
+memory size. For each segment, `validateSegment()` checks that the virtual address doesn't overflow,
+stays above `0x10000`, and doesn't cross into kernel space (`0xC0000000`). Then `mapSegmentRange()`
+allocates page frames from `Pmm`, maps them into the given page directory with `PAGE_USER |
+PAGE_RW`, zeros each frame, copies file-backed data, and zeroes the `BSS` (Block Starting Symbol)
+region (the gap between `p_filesz` and `p_memsz`). If a page was already mapped by a previous
+segment (overlapping boundary), the existing frame is reused. On any failure, `rollbackMapped()`
+unmaps and frees everything allocated so far.
+
+`Scheduler::addUserElfTask()` clones the kernel page directory, calls `ElfLoader::load()` to map
+segments into the clone, builds a ring-3 stack frame with the entry point, maps 4 pages (of 4 KiB
+each is 16 KiB) for the userland stack growing downward from `0xB0000000`, and updates the TSS. The
+`MappedPage` array is stored in the task struct so pages can be freed on exit.
+
+`killTask()` frees the ELF pages, userland stack pages, cloned page directory, and kernel stack.
+`exitCurrentTask()` frees everything except the kernel stack, which gets freed when the slot is
+reused. Counters are zeroed after freeing to prevent double-free.
+
+Max 64 ELF pages (256 KiB) and max 8 tasks total. No dynamic linking, no section headers, no PIE
+(Position-Independent Executable).
