@@ -38,6 +38,57 @@ first-pass binary, demangles the names with `c++filt`, and writes out a sorted `
 which gets linked into the final kernel (`doors.kernel`).
 
 
+C++ Runtime
+===========
+
+The kernel has a minimal C++ runtime (`kernel/kernel/Runtime.cc`, `kernel/include/kernel/Runtime.h`)
+that routes memory allocation to the kernel heap, makes function-local statics work, and stubs out
+static destruction. It's compiled with `-fno-exceptions` and `-fno-rtti`, so there's no exception
+support and no type information at runtime.
+
+`operator new` / `operator delete`
+----------------------------------
+
+All six standard `operator new` and `operator delete` overloads are implemented as thin wrappers:
+
+- `operator new(size_t)` and `operator new[](size_t)` delegate to `Heap::alloc(size)`.
+- `operator delete(void*)` and `operator delete[](void*)` delegate to `Heap::free(p)`.
+- The sized overloads `operator delete(void*, size_t)` and `operator delete[](void*, size_t)` accept
+  the size parameter but ignore it. The kernel heap tracks block sizes internally.
+
+This is what makes `new` and `delete` work in the kernel. Userland programs don't use these because
+they have their own `malloc()` in `libc++_user.a` and don't link against the kernel heap.
+
+Guard Variables
+---------------
+
+The compiler emits calls to `__cxa_guard_acquire` and `__cxa_guard_release` around function-local
+statics to ensure they're initialized exactly once. The kernel implements these as simple flag
+checks:
+
+- `__cxa_guard_acquire(__guard *g)` returns `!*g` (1 if uninitialized, 0 if already initialized).
+- `__cxa_guard_release(__guard *g)` sets `*g = 1`.
+
+The `__guard` type is an `int` in double-integer mode (32-bit on x86), matching the Itanium C++ ABI
+expectation. `__cxa_guard_abort` and `__cxa_guard_finalize` are not implemented (no exceptions means
+no aborted initialization). This is what makes `static` local variables work in the kernel.
+
+The implementation is non-atomic, which is safe because guard checks run with interrupts disabled or
+in single-threaded initialization contexts. For future work, in a preemptible multi-threaded
+environment, this would need a mutex or atomic compare-and-swap.
+
+Static Destruction
+------------------
+
+`__cxa_atexit` is a no-op that always returns 0. The kernel never exits, so destructors registered
+for static objects are never called.
+
+The `shell`'s command table uses `const char*` instead of `std::string` for another reason related
+to static storage: the `_init()` function (which calls global constructors) isn't fully implemented
+yet (`kernel/arch/i386/Boot.s`), so static storage duration objects with constructors may not get
+initialized before use.
+
+
 Initialization
 ==============
 
