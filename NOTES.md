@@ -350,3 +350,36 @@ reused. Counters are zeroed after freeing to prevent double-free.
 
 Max 64 ELF pages (256 KiB) and max 8 tasks total. No dynamic linking, no section headers, no PIE
 (Position-Independent Executable).
+
+
+Userland Programs
+=================
+
+Userland programs are compiled as freestanding ELF 32-bit binaries with `-ffreestanding -nostdlib
+-static -no-pie -std=c++20 -fno-exceptions -fno-rtti -fno-builtin`, linked against `libc++_user.a`
+(the freestanding userland variant of the C++20 standard library) and placed at virtual address
+`0x10000000` via `user/User.ld`. The build system provides `add_user_program()` in
+`cmake/user-programs.cmake` to handle compilation and linking. All kernel interaction goes through
+`INT 0x80` syscalls via inline wrappers in `user/lib/Syscall.h`.
+
+Shell (`user/shell/`): Interactive CLI with a `> ` prompt, line editing via the kernel's readline
+syscall (history, cursor movement, insert/delete), and 15 built-in commands: `help`, `clear`,
+`halt`, `reboot`, `panic`, `uptime`, `ticks`, `meminfo`, `heap`, `datetime`, `cpuinfo`, `echo`,
+`tasks`, `kill`, `snake`. Note that the command table uses `const char*` instead of `std::string`
+because the freestanding target has no C++ runtime support for static storage duration objects yet
+(needs `_init()` properly implemetend in `kernel/arch/i386/Boot.s` first).
+
+Snake (`user/snake/`): Full VGA text-mode game. Two modes: classic (walls kill) and wrap (snake
+wraps around edges). Progressive difficulty with base speed starts at 200ms per step, decreasing by
+8ms per snake length unit, clamped to 60ms minimum. Vertical movement is 1.5x slower to compensate
+for VGA's 80x25 aspect ratio. Features 10 initial obstacles (up to 20 max, spawning every 3 food
+items), bonus food (timed, 3 points), and up to 3 boost zones (double speed for 4 seconds). Tracks
+high score across rounds within a session. Uses `IOCTL_PUT` for direct VGA rendering and
+`IOCTL_POLL_KEY` for non-blocking keyboard input. Saves/restores the VGA buffer to overlay on top of
+the shell.
+
+Test Runner (`user/testrunner/`): Integration test harness running 34 tests across 9 suites:
+terminal, serial, taskbar, sysinfo, taskctl, ioctl, execmod, input, and heap. Emits
+newline-delimited `JSON` events to the serial port (`start`, `run`, `pass`, `fail`, `done`). Two
+build variants: `testrunner` (auto-powers-off) and `testrunner-interactive` (stays alive for
+debugging). A `minimal` payload provides a trivial userland program for execmod testing.
