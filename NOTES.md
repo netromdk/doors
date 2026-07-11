@@ -285,3 +285,35 @@ System call (`INT 0x80`): CPU transitions from ring 3 to ring 0, loads kernel `C
 the `TSS`, pushes user `SS`/`ESP`/`EFLAGS`/`CS`/`EIP` onto the kernel stack. Trap gate means` IF` is
 NOT cleared. Assembly stub pushes 4 args, calls `syscallHandler`, patches return value into `EAX`
 slot. `popal; iret` returns to userland
+
+
+System Calls
+============
+
+All 13 syscalls go through `INT 0x80`. The assembly stub passes the number in `EAX` and up to 3 args
+in `EBX`/`ECX`/`EDX`. Every syscall that takes a userland buffer pointer validates it first: the
+address must be non-null, below `KERNEL_VIRTUAL_BASE` (`0xC0000000`), and the buffer must not wrap
+around or cross into kernel space.
+
+I/O: `SYS_WRITE` (1) writes one char to the terminal. `SYS_WRITESTR` (4) writes a buffer.
+`SYS_READ` (3) blocks until keyboard input is available, then reads up to `N` chars. `SYS_READLINE`
+(5) reads a full line with editing and per-task history. `SYS_SERIAL` (12) writes directly to
+`COM1`.
+
+Process control: `SYS_EXIT` (2) terminates the current task and unblocks its parent if waiting.
+`SYS_EXECMOD` (9) loads a GRUB module as a userland ELF task and blocks until the child
+exits. `SYS_PANIC` (10) signals `ACPI` shutdown then triggers `panic()`. `SYS_POWEROFF` (13) does an
+`ACPI` `S5` (sleep state 5) shutdown with triple-fault fallback.
+
+Device control: `SYS_IOCTL` (6) dispatches 10 sub-commands: `CLEAR`, `HALT`, `REBOOT`, `PUT` (write
+char at packed row/col/char/color position), `SAVESCREEN`/`RESTORESCREEN` (VGA buffer snapshot for
+snake overlay), `CURSOR_HIDE`/`CURSOR_SHOW`, `POLL_KEY` (non-blocking for games), `INJECT_CHAR`
+(test support).
+
+Task management: `SYS_TASKCTL` (7) dispatches 4 sub-commands: `COUNT` (packed
+alive/running/blocked/dead counts), `LIST` (fill buffer with task entries), `KILL` (can't kill
+`idle`, self, or dead tasks), `DETAIL` (full task info struct).
+
+System info: `SYS_SYSINFO` (8) dispatches 5 sub-commands: `UPTIME` (milliseconds),
+`MEMFREE`/`MEMBLOCK` (heap stats), `DATETIME` (`CMOS` (Complementary Metal-Oxide-Semiconductor)
+`RTC` (Real-Time Clock)), `CPU` (`CPUID` data). `SYS_SUPPRESS_TASKBAR` (11) hides the taskbar row.
