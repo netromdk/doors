@@ -383,3 +383,81 @@ terminal, serial, taskbar, sysinfo, taskctl, ioctl, execmod, input, and heap. Em
 newline-delimited `JSON` events to the serial port (`start`, `run`, `pass`, `fail`, `done`). Two
 build variants: `testrunner` (auto-powers-off) and `testrunner-interactive` (stays alive for
 debugging). A `minimal` payload provides a trivial userland program for execmod testing.
+
+
+Terminal (TTY)
+==============
+
+The `Tty` class (`kernel/arch/i386/Tty.cc`, `kernel/include/kernel/Tty.h`) is a fully static VGA
+text-mode terminal. Every member is static, so it acts as a singleton. It handles character output,
+cursor management, scrolling, a 1000-line scrollback buffer, and screen save/restore for overlays
+(like the `snake` game). Methods that mutate terminal state acquire a semaphore before touching
+shared state, making it safe to call from multiple tasks. Read-only accessors like
+`scrollbackActive()`, `scrollbackSize()`, and `scrollbackLine()` skip the lock.
+
+Output
+------
+
+The standard VGA text-mode buffer lives at `0xB8000`. Each cell is a 16-bit value with this layout:
+
+```
+Bit:  15  14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
+      [    color byte     ]  [    character byte     ]
+        bg (4b) + fg (4b)         ASCII code (8b)
+```
+
+Bits 0-7 hold the ASCII character. Bits 8-11 hold the foreground color (4 bits, 16 colors). Bits
+12-15 hold the background color (4 bits, 16 colors).
+
+`putc()` writes a character at the current cursor position and advances it. It handles `\n` (new
+line), `\r` (carriage return), and `\b` (backspace). `puts()` writes a string. `putLine()` writes a
+string on a specific row and fills the rest of the row with spaces, which is useful for overwriting
+entire rows cleanly like the taskbar.
+
+`cls()` clears the screen, resets the cursor to (0,0), and resets the color to default. When
+`DEBUG_THROUGH_SERIAL_COM1` is defined, characters also go to the `COM1` serial port (backspace is
+excluded in `puts()`).
+
+Cursor
+------
+
+The hardware cursor is a blinking underline (scanlines 14-15 of a 16-scanline font), driven by the
+VGA 6845 CRTC (CRT Controller) at I/O ports `0x3D4`/`0x3D5`. Registers `0x0E` and `0x0F` set the
+cursor position, registers `0x0A` and `0x0B` control the shape and visibility.
+
+`cursorEnable()` writes `0x0E` (scanline 14, bit 5 clear = visible) to register `0x0A` and `0x0F`
+(scanline 15) to register `0x0B`, producing a two-scanline blinking underline. `cursorDisable()`
+writes `0x20` (bit 5 set = hidden) to register `0x0A`, hiding the cursor without affecting its
+position. `cursorSetPos()` moves it to a specific row/col. All cursor operations are thread-safe.
+
+Scrolling
+---------
+
+The terminal uses rows 0 through 23 (24 rows total). Row 24 is reserved for the taskbar. When the
+cursor reaches the bottom edge and scrolling is enabled, the top row gets copied into the scrollback
+ring buffer, all rows shift up by one, and the bottom row clears. If scrolling is disabled, the
+cursor wraps to row 0 instead, overwriting the top line.
+
+Scrollback
+----------
+
+The scrollback buffer is a circular ring of 1000 lines, each 80 characters plus a null terminator.
+When a row scrolls off the top of the screen, its contents get appended to the ring buffer. The ring
+uses a head pointer and count to track valid entries.
+
+`PageUp` enters scrollback view, displaying 23 rows of saved content with a status bar on row 0
+showing the current offset. `PageDown` moves forward one page, and exits scrollback when reaching
+the bottom. `Home` jumps to the oldest saved line. Line-by-line navigation is also available via
+`scrollbackLineUp()` (`Up` arrow) / `scrollbackLineDown()` (`Down` arrow).
+
+When scrollback is active, the current VGA RAM is saved to a `savedScreen_` buffer (`24 rows * 80
+cols * 2 bytes`, about 3.75 KiB). Exiting scrollback restores this buffer, re-enables the cursor,
+and resets keyboard navigation state. Writing a character via `putc()` automatically dismisses
+scrollback.
+
+Screen Save/Restore
+-------------------
+
+`IOCTL_SAVESCREEN` and `IOCTL_RESTORESCREEN` let userland programs snapshot and restore the VGA
+buffer. The `snake` game uses this to overlay its rendering on top of the shell, then restore the
+`shell`'s display when it exits.
