@@ -166,3 +166,122 @@ Userland programs communicate with the kernel through `INT 0x80` syscalls. The s
 userland code can trigger it. Unlike an interrupt gate, a trap gate leaves interrupts enabled when
 entered, so the handler runs without blocking other hardware interrupts. The handler dispatches to
 one of 13 syscall functions based on the number in `EAX`.
+
+
+Interrupts and Exception Handling
+=================================
+
+The interrupt and exception handling pipeline has three layers:
+
+- hardware (CPU + dual 8259 `PIC`),
+- assembly stubs (`kernel/arch/i386/Isr.s`),
+- and C++ handlers (`ExceptionHandlers.cc`, `InterruptHandlers.cc`).
+
+The `IDT` ties everything together by mapping each vector to the correct assembly stub.
+
+IDT Setup
+---------
+
+`Idt::init()` in `kernel/arch/i386/Idt.cc` fills 255 entries. All start as `asmIntDummy` (a safe
+fallback that prints a diagnostic and sends an `EOI` (End Of Interrupt)). Then specific vectors get
+wired up:
+
+- Exception vectors (CPU faults/traps): 0 (divide error), 6 (invalid opcode), 11 (segment not
+  present), 12 (stack fault), 13 (`GPF` (General Protection Fault)), 14 (page fault). The rest hit
+  the dummy fallback.
+- Hardware `IRQ` vectors: 32 (`PIT` timer, `IRQ` 0), 33 (keyboard, `IRQ` 1). The `PIC` remaps `IRQ`
+  0-7 to vectors 32-39 and `IRQ` 8-15 to vectors 40-47, so they don't overlap with CPU exceptions.
+- Syscall vector: `INT 0x80` at vector 128. This is the only entry using a trap gate with `DPL` 3,
+  meaning ring-3 code can invoke it and interrupts stay enabled during handling.
+
+Gate types: `INTR_GATE` (`0x8E`) clears `IF` (Interrupt Flag) on entry, disabling interrupts. Used
+for all exceptions and hardware interrupts. `TRAP_GATE_DPL3` (`0xEF`) does NOT clear `IF`. Used only
+for `INT 0x80` so the scheduler keeps ticking during syscalls.
+
+Assembly Stubs
+--------------
+
+`kernel/arch/i386/Isr.s` bridges the gap between CPU-generated stack frames and C++ function calls.
+Two macros define the patterns:
+
+- `EXCHANDLER` (exceptions): `pushal; cld; call exc<Name>; popal; iret`
+- `INTHANDLER` (interrupts): `pushal; cld; call int<Name>; popal; iret`
+
+Three stubs have custom assembly:
+
+- `asmExcInvOp` (invalid opcode) and `asmExcPf` (page fault) pass `%esp` as an argument so the C++
+  handler can read the full stack frame (error code, `EIP`, `CS`, `EFLAGS`, and user `ESP`/`SS` for
+  ring transitions).
+- `asmIntTick` (timer) is the key to preemptive scheduling. After calling `intTick()`, it checks the
+  return value. If non-zero, it swaps `ESP` to the new task's saved frame before `popal; iret`,
+  effectively switching the entire execution context to the next task.
+- `asmInt80` (syscall) pushes 4 arguments (syscall number in `EAX`, args in `EBX`/`ECX`/`EDX`),
+  calls `syscallHandler`, then patches the return value into the saved `EAX` slot in the `pushal`
+  frame. When `popal` runs, `EAX` gets the return value.
+
+Exception Handlers
+------------------
+
+`kernel/arch/i386/ExceptionHandlers.cc` has six `extern "C"` handlers, all calling `panic()` (none
+return):
+
+- `excDivZero()`, `excSegNp()`, `excSf()`, `excGp()` just panic with a message.
+- `excInvOp(frame)` prints `EIP` and `CS` from the stack frame, then panics.
+- `excPf(frame)` is the most detailed. Reads `CR2` (the faulting virtual address), decodes the error
+  code into human-readable flags (present/protection, read/write, user/supervisor, reserved-bit,
+  instruction fetch), dumps user `ESP`/`SS` if the fault came from ring 3 (detected via `CS & 3`),
+  then panics.
+
+Hardware Interrupt Handlers
+---------------------------
+
+`kernel/arch/i386/InterruptHandlers.cc` has three handlers:
+
+- `intTick(currentEsp)` is the heart of the scheduler. Calls `Pit::tick()` (increment uptime
+  counter), `Scheduler::tick(currentEsp)` (round-robin, returns new `ESP` or 0), `Pic::sendEoi()`,
+  and returns the new `ESP` (or 0 if no switch needed).
+- `intKbd()` delegates to `Kbd::isrHandler()` which reads the scancode from port `0x60`, processes
+  it, pushes the character to a ring buffer, and signals a semaphore. Then sends `EOI`.
+- `intDummy()` prints a diagnostic and sends `EOI`. Catch-all for unregistered `IRQ`s.
+
+PIC Setup
+---------
+
+`kernel/arch/i386/Pic.cc` performs the standard 8259 init sequence (`ICW` 1 through 4):
+
+- Master `PIC` at ports `0x20`/`0x21`, slave at `0xA0`/`0xA1`.
+- `IRQ` 0-7 mapped to vectors 32-39, `IRQ` 8-15 to vectors 40-47.
+- Cascade: master knows slave is on `IRQ` 2, slave knows its cascade identity is `IRQ` 2.
+- `sendEoi()` sends `0x20` to both `PIC` s unconditionally (simplified approach).
+- `setMask()` enables or disables individual `IRQ`s via the `IMR` (Interrupt Mask Register).
+
+End-to-End Flow
+---------------
+
+Hardware interrupt (for instance keyboard):
+
+1. Keyboard controller asserts `IRQ`1 on the master PIC.
+2. PIC checks if `IRQ`1 is unmasked and no higher-priority `IRQ` is in service. Asserts `INTR` to
+   CPU.
+3. CPU completes current instruction, clears `IF` (interrupts disabled because `IDT` entry is
+   `INTR_GATE`), pushes `SS`/`ESP` (if ring change), `EFLAGS`, `CS`, `EIP` onto the kernel stack,
+   looks up vector 33 in the `IDT`, jumps to `asmIntKbd`.
+4. `asmIntKbd`: `pushal; cld; call intKbd`.
+5. `intKbd()`: reads scancode, processes it, signals semaphore, sends `EOI`.
+6. Returns to assembly stub.
+7. `popal; iret` restores registers, pops `EIP`/`CS`/`EFLAGS` (and `SS`/`ESP` if ring
+   transition). CPU restores `IF` from saved `EFLAGS`, re-enabling interrupts.
+8. Execution resumes where it was interrupted.
+
+Timer interrupt with task switch: same as above except `intTick()` returns a new `ESP`. The assembly
+stub does `movl %eax, %esp` between `pushal` and `popal`, swapping to the new task's kernel stack.
+`popal; iret` then resumes the new task.
+
+CPU exception (for instance page fault): CPU pushes error code (in addition to the usual frame),
+jumps to `asmExcPf`. Handler reads `CR2`, decodes error code, calls `panic()`. Steps 7-8 don't
+execute because panic never returns.
+
+System call (`INT 0x80`): CPU transitions from ring 3 to ring 0, loads kernel `CS` and `ESP` from
+the `TSS`, pushes user `SS`/`ESP`/`EFLAGS`/`CS`/`EIP` onto the kernel stack. Trap gate means` IF` is
+NOT cleared. Assembly stub pushes 4 args, calls `syscallHandler`, patches return value into `EAX`
+slot. `popal; iret` returns to userland
