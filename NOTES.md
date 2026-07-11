@@ -566,6 +566,47 @@ buffer. The `snake` game uses this to overlay its rendering on top of the shell,
 `shell`'s display when it exits.
 
 
+Taskbar
+=======
+
+The `taskbar` (`kernel/kernel/Taskbar.cc`, `kernel/include/kernel/Taskbar.h`) is a dedicated kernel
+task that displays a status bar on VGA bottom row 24.
+
+The status bar has three sections, right-aligned in the 80-character row:
+
+- Uptime: formatted as `Xm Xs` (minutes and seconds, minutes omitted if under 60 seconds)
+- Task counts: `Xr Xx Xb` (running/ready, exited, blocked)
+- Wall-clock time: `HH:MM:SS` from the `CMOS` `RTC`
+
+Example: `Up 5m 32s | 2r 0x 1b | 14:23:07`
+
+Direct VGA RAM Writes
+---------------------
+
+The `taskbar` writes directly to VGA RAM, bypassing the `Tty` class. This avoids corrupting the
+terminal's cursor position and internal state. Even though it bypasses `Tty` for output, it still
+acquires `Tty::lock()` / `Tty::unlock()` around VGA writes to serialize access with screen
+save/restore operations.
+
+Row 24 is exclusively the `taskbar`'s domain. The `shell` uses rows 0-23. The `snake` game uses rows
+0-24. This row isolation means there's no data race under normal operation.
+
+Snake Suppression
+-----------------
+
+Before writing, the `taskbar` checks `Scheduler::isTaskbarSuppressed()`. The `snake` game sets this
+flag via `SYS_SUPPRESS_TASKBAR` when it starts, preventing the `taskbar` from overwriting row 24
+while the game is active. When the `snake` game exits, the flag is cleared and the `taskbar`
+resumes.
+
+Cleanup
+-------
+
+`taskbarMain()` registers `clearTaskbarRow` as a kill-callback via `Scheduler::setOnKill()`. If the
+`taskbar` task is ever terminated, this callback fills row 24 with blank spaces, leaving the screen
+clean.
+
+
 Keyboard
 ========
 
