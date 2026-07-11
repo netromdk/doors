@@ -36,3 +36,72 @@ The kernel gets built in two passes. The first pass links with a stub symbol tab
 resolve everything (`doors_firstpass.kernel`). Then `scripts/gen-symbols.py` runs `nm -n` on the
 first-pass binary, demangles the names with `c++filt`, and writes out a sorted `symbol_table.cc`
 which gets linked into the final kernel (`doors.kernel`).
+
+
+Initialization
+==============
+
+Boot starts in `kernel/arch/i386/Boot.s`. GRUB loads the ELF kernel and jumps to `_start`, which
+sets up a 16 KiB bootstrap stack (enough to handle the deep initialization call chain before
+per-task stacks take over), pushes the Multiboot magic and info pointer, then calls three functions
+in order: `kmainInit()`, `_init()` for global constructors, and `kmain()`.
+
+`kmainInit()` runs before any global constructors or paging is set up. It just does the bare
+minimum: inits the COM1 serial port, clears the VGA screen, validates the Multiboot magic
+(`0x2BADB002`) and checks that GRUB provided a physical memory map (Multiboot flags bit 6). Also
+parses the kernel command line for a `--test` flag. Stores the Multiboot info pointer for later use.
+
+`_init()` is intended for running the C++ global constructor prologue/epilogue. But is currently a
+no-op as there aren't any registered global constructors.
+
+`kmain()` is where the real work happens. It calls `Arch::init()` which orchestrates all the
+hardware setup:
+
+- CPU detection via `CPUID` (vendor, features, brand string)
+- Parses the Multiboot memory map into an array of available regions
+- Sets up the `GDT` (Global Descriptor Table with 6 entries: null, kernel code/data, user code/data,
+  `TSS` (Task State Segment))
+- Fills the `IDT` (Interrupt Descriptor Table) with exception handlers, `PIT` (Programmable Interval
+  Timer) timer (`IRQ` (interrupt request) 0), keyboard (`IRQ` 1), and the `INT 0x80` syscall gate
+- Remaps the 8259 `PIC` (Programmable Interrupt Controller) to avoid overlap with CPU exceptions
+  (master `IRQ` 32-39, slave `IRQ` 40-47)
+- Detects `ACPI` (Advanced Configuration and Power Interface with `RSDP` (Root System Description
+  Pointer)/`RSDT` (Root System Description Table)/`FADT` (Fixed ACPI Description Table), and caches
+  the century register)
+- Configures the `PIT` at 1000 Hz (1 ms per tick)
+
+After `Arch::init()`, `ACPI` physical pointers get nulled out since they won't be safe to
+dereference once paging is on.
+
+Then the physical memory manager (`Pmm`) scans the Multiboot memory map and builds a free list of 4
+KiB page frames, skipping the kernel image, GRUB modules, and the VGA buffer.
+
+Paging is set up next. A page directory is allocated and identity mappings (virtual == physical) are
+built from address 0 up to the top of the heap region. This covers the kernel image at 1 MiB, the
+VGA buffer at `0xB8000`, the future heap, and the page tables themselves. Those same `PDE` (Page
+Directory Entry)s are then copied to PDE index 768, which maps virtual addresses starting at
+`0xC0000000` (3 GiB). The standard x86 split with the lower 3 GiB is user space, and the upper 1 GiB
+is kernel space. The copy mirrors the identity map into the kernel's half of the address space. Once
+`CR0` (Control Register 0) `.PG` is set, paging is active but the kernel is still executing at the
+identity-mapped low addresses. The higher-half mappings exist and are ready, but the actual switch
+to `0xC0000000` doesn't happen until the first task switch or far jump targets that range.
+
+At this point, both mappings are live: the identity map at low addresses (what the kernel is
+actually running from) and the higher-half at `0xC0000000` (where the kernel will eventually
+live). The identity map is still in place and will remain so for now, though the plan is to remove
+it later once the kernel fully runs from the higher-half. The kernel stays at the identity-mapped
+addresses throughout initialization. The switch to the higher-half happens later, after the idle
+loop starts and the first timer interrupt triggers a context switch to a kernel task like `taskbar`.
+
+The heap gets initialized right after, sitting right after `_kernel_end` in memory with a best-fit
+free-list allocator.
+
+The scheduler is initialized with an idle task in slot 0, then the first userland program is
+loaded. In normal mode, it loads `shell.elf` from the first GRUB module and starts a kernel-mode
+`taskbar` task. In `--test` mode, it loads `testrunner.elf` instead. User ELF loading clones the
+kernel page directory, maps `PT_LOAD` segments with ring 3 permissions, sets up a ring-3 `iret`
+frame, and marks the task as ready.
+
+Finally `kmain()` drops into an infinite loop that enables interrupts and halts. From that point,
+the `PIT` timer drives everything: each tick calls the scheduler which does round-robin context
+switching with a 20ms quantum.
