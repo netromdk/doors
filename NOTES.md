@@ -461,3 +461,66 @@ Screen Save/Restore
 `IOCTL_SAVESCREEN` and `IOCTL_RESTORESCREEN` let userland programs snapshot and restore the VGA
 buffer. The `snake` game uses this to overlay its rendering on top of the shell, then restore the
 `shell`'s display when it exits.
+
+
+Keyboard
+========
+
+The keyboard driver (`kernel/arch/i386/Kbd.cc`, `kernel/include/kernel/Kbd.h`) handles PS/2
+scancodes via `IRQ` 1. It provides a 256-character ring buffer, full line editing with Emacs-style
+shortcuts, command history, and a non-blocking API for programs that need raw input without
+blocking.
+
+Scancode Processing
+-------------------
+
+The `ISR` reads a byte from PS/2 port `0x60`. A `0xE0` prefix sets the extended flag for the next
+byte. Otherwise `processScancode()` looks up the scancode in one of two 128-entry tables defined in
+`kernel/include/kernel/Scancodes.h`: standard keys and extended keys. Each entry maps a raw scancode
+to a `Key` enum value (`kernel/include/kernel/Keymap.h`) and a modifier classification (`MOD_SHIFT`,
+`MOD_CTRL`, `MOD_ALT`).
+
+Modifier keys update internal state and return. Navigation keys increment pending counters (counters
+instead of booleans so auto-repeat presses aren't lost). Printable keys get converted to characters
+via `KeyMap::toText()` (`kernel/kernel/Keymap.cc`): Ctrl+letter produces control characters
+(`0x01`-`0x1A`). For letters, `Shift` and `CapsLock` toggle case independently (either one flips the
+case, both cancel out). Digits produce symbols when `Shift` is held (e.g., `Shift+1` = `!`), and
+symbol keys have shifted variants (e.g., `-` becomes `_`).
+
+Ring Buffer
+-----------
+
+256 bytes with head/tail indices. Single-producer (`ISR`) / single-consumer (task), naturally
+lock-free. Three read APIs: `getChar()` busy-waits, `waitForChar()` blocks on a semaphore,
+`tryReadKey()` is non-blocking and checks navigation pending counters first.
+
+Line Editing
+------------
+
+`readLine()` is a non-blocking interactive editor. Supports cursor movement (arrows, `Ctrl-B/F`),
+line start/end (`Ctrl-A/E`), deletion (`Backspace`, `Ctrl-D/K/U`), history navigation (arrows,
+`Ctrl-P/N`), and `Ctrl-C` to cancel. When scrollback is active, navigation keys scroll through saved
+lines instead.
+
+History
+-------
+
+`HistoryCtx` tracks a circular buffer of past commands. `Up`/`Down` navigate through history. The
+`shell` stores one history context per session in the `Task` struct.
+
+Modifier Tracking
+-----------------
+
+`Shift`, `Ctrl`, `Alt`, and `CapsLock` state are tracked via booleans. `Shift`, `Ctrl`, and `Alt`
+are set on key press and cleared on release. `CapsLock` toggles on press only (the release event
+is ignored). When `CAPS_LOCK_IS_CTRL` is defined, pressing `CapsLock` sets `ctrlPressed_` instead,
+making it behave as an additional `Ctrl` key (enabled via `-DCAPS_LOCK_IS_CTRL=ON` when configuring
+CMake).
+
+Non-Blocking API
+----------------
+
+`tryReadKey()` lets userland programs poll for input without blocking. It returns a `KeyEvent` with
+a `Key` enum value (`Up`, `Down`, `Left`, `Right`, `PageUp`, `PageDown`, `Home`, `End`, `Char`, or
+`Unknown`) and an optional character for printable keys. This is useful for games, interactive
+menus, or any program that needs to react to key presses without entering a blocking readline loop.
