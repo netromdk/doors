@@ -105,3 +105,30 @@ frame, and marks the task as ready.
 Finally `kmain()` drops into an infinite loop that enables interrupts and halts. From that point,
 the `PIT` timer drives everything: each tick calls the scheduler which does round-robin context
 switching with a 20ms quantum.
+
+
+Memory Management
+=================
+
+The physical memory manager (`Pmm`) handles 4 KiB page frames. It uses an intrusive free list
+(linked-list pointers stored inside the free frames themselves, not in a separate data structure)
+where each free frame stores a pointer to the next free frame in its first bytes. Allocation pops
+the head of the list and zeroes the frame. Freeing pushes it back, with a double-free check that
+walks the list to catch duplicates. During init, `Pmm` walks the Multiboot memory map and adds every
+available frame to the free list, skipping the kernel image (`0x100000` to `_kernel_end`), GRUB
+modules, and the VGA buffer at `0xB8000`.
+
+The kernel heap (`Heap`) sits right after `_kernel_end` in memory. It's a best-fit allocator with a
+free list. Each block has a 16-byte header containing the size and a magic number (`0x48455041`,
+ASCII for "HEAP") for validation. Free blocks are kept in a linked list. On allocation, the
+allocator walks the free list for the smallest block that fits, splits it if there's enough
+leftover, and returns the caller pointer just past the header. On free, it clears the allocated flag
+and coalesces with adjacent free blocks. Forward coalescing checks if the next block in memory is
+free, and if so, unlinks it and merges the two. Backward coalescing walks the free list looking for
+a block that ends right where this one begins, and merges into it. Both directions can chain, so
+several small free blocks next to each other get combined into one larger block. Blocks are 16-byte
+aligned with a minimum block size of 32 bytes.
+
+The two allocators don't overlap. After paging is set up, `Pmm::reserveRegion()` removes the heap's
+physical pages from the free list so the page-level allocator never hands out frames that the
+byte-level heap is using.
