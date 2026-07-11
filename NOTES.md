@@ -287,6 +287,58 @@ NOT cleared. Assembly stub pushes 4 args, calls `syscallHandler`, patches return
 slot. `popal; iret` returns to userland
 
 
+Timer (PIT)
+===========
+
+The PIT is the system heartbeat. It fires `IRQ0` at ~1000 Hz, driving the scheduler, sleep/wakeup
+timing, and the global uptime counter. Configuration and access live in `kernel/arch/i386/Pit.cc`
+and `kernel/include/kernel/Pit.h`.
+
+Hardware Setup
+--------------
+
+`Pit::init()` programs `PIT` channel 0 with control word `0x36`: low-byte/high-byte access, mode 3
+(square wave generator), binary counting. The divisor is 1193, which gives approximately 1000 Hz
+from the PIT's 1.193182 MHz base clock (`1.193182 MHz / 1193 = ~1000.15 Hz`, so roughly 1 ms per
+tick). The 16-bit divisor is written to I/O port `0x40` in two byte writes (low first, then
+high). After programming, `Pic::setMask(IRQ_TIMER, true)` unmasks `IRQ0` on the `PIC`.
+
+There is no dynamic frequency change or tickless mode. The divisor is a compile-time constant.
+
+Tick Counter
+------------
+
+A single `volatile uint64_t pitTicks` global counter gets incremented by `Pit::tick()`, which is
+called from the timer `ISR` (`intTick()` in `kernel/arch/i386/InterruptHandlers.cc`). Since the
+counter is 64-bit but x86 is 32-bit, reads are protected by an `InterruptGuard` to prevent torn
+reads across `ISR` boundaries. The increment itself runs in interrupt context with interrupts
+already disabled, so it's safe without atomics.
+
+Uptime
+------
+
+`Pit::uptimeMs()` returns `pitTicks` directly. `Pit::uptimeSec()` returns `pitTicks /
+1000`. `Pit::msSince(last)` returns `pitTicks - last`, which correctly handles wrap-around for
+unsigned 64-bit values. All three use `InterruptGuard` for consistency.
+
+The `uptime` and `ticks` `shell` commands read these values via the `SYS_SYSINFO` syscall.
+
+Integration
+-----------
+
+The timer interrupt flows through the full `ISR` pipeline: `asmIntTick` (assembly stub) calls
+`intTick()`, which calls `Pit::tick()`, then `Scheduler::tick(currentEsp)`, then
+`Pic::sendEoi()`. If the scheduler decides to switch tasks, `intTick()` returns the new `ESP` and
+the assembly stub swaps to it before `popal; iret`.
+
+The scheduler charges 1 ms of runtime to the current task each tick and decrements a quantum
+counter. After 20 ticks, it round-robin picks the next `READY` task. Sleeping tasks have their
+`wakeupMs` deadline checked each tick via `Pit::uptimeMs()`.
+
+The `taskbar` uses `Pit::msSince()` to throttle its display updates to once per second. The `snake`
+game uses it for frame timing.
+
+
 System Calls
 ============
 
