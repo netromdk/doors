@@ -51,14 +51,14 @@ static constexpr uint8_t OCW3_RIS = 0x0A, // Read In-Service Register.
 /* Hardware interrupts */
 
 // PIC1 / Master
-static constexpr uint8_t IRQ0 = 0x08,
-  IRQ1 = 0x09,
-  IRQ2 = 0x0A,
-  IRQ3 = 0x0B,
-  IRQ4 = 0x0C,
-  IRQ5 = 0x0D,
-  IRQ6 = 0x0E,
-  IRQ7 = 0x0F,
+static constexpr uint8_t IRQ0 = 0,
+  IRQ1 = 1,
+  IRQ2 = 2,
+  IRQ3 = 3,
+  IRQ4 = 4,
+  IRQ5 = 5,
+  IRQ6 = 6,
+  IRQ7 = 7,
 
   IRQ_TIMER = IRQ0,
   IRQ_KEYBOARD = IRQ1,
@@ -70,14 +70,14 @@ static constexpr uint8_t IRQ0 = 0x08,
   IRQ_PPORT1 = IRQ7,
 
   // PIC2 / Slave
-  IRQ8 = 0x70,
-  IRQ9 = 0x71,
-  IRQ10 = 0x72,
-  IRQ11 = 0x73,
-  IRQ12 = 0x74,
-  IRQ13 = 0x75,
-  IRQ14 = 0x76,
-  IRQ15 = 0x77,
+  IRQ8 = 8,
+  IRQ9 = 9,
+  IRQ10 = 10,
+  IRQ11 = 11,
+  IRQ12 = 12,
+  IRQ13 = 13,
+  IRQ14 = 14,
+  IRQ15 = 15,
 
   IRQ_RTC = IRQ8,      // CMOS real-time clock
   IRQ_CGAVR = IRQ9,    // CGA vertical retrace.
