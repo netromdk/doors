@@ -161,8 +161,8 @@ walking the table round-robin, switches to its page directory if needed, updates
 field to point to the new task's kernel stack so the next `INT 0x80` from ring 3 switches to the
 correct stack, and returns the new stack pointer so `iret` resumes the chosen task.
 
-User programs communicate with the kernel through `INT 0x80` syscalls. The syscall gate in the `IDT`
-is set as a trap gate with DPL 3 (Descriptor Privilege Level 3, meaning ring-3 accessible) so
+Userland programs communicate with the kernel through `INT 0x80` syscalls. The syscall gate in the
+`IDT` is set as a trap gate with DPL 3 (Descriptor Privilege Level 3, meaning ring-3 accessible) so
 userland code can trigger it. Unlike an interrupt gate, a trap gate leaves interrupts enabled when
 entered, so the handler runs without blocking other hardware interrupts. The handler dispatches to
 one of 13 syscall functions based on the number in `EAX`.
