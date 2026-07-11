@@ -132,3 +132,37 @@ aligned with a minimum block size of 32 bytes.
 The two allocators don't overlap. After paging is set up, `Pmm::reserveRegion()` removes the heap's
 physical pages from the free list so the page-level allocator never hands out frames that the
 byte-level heap is using.
+
+
+Scheduling
+==========
+
+The scheduler is preemptive round-robin with 8 task slots and a 20 ms quantum (20 `PIT` ticks at
+1000 Hz). Slot 0 is always the `idle` task, which just halts until the next interrupt. Each task has
+its own 8 KiB kernel stack (16 KiB for userland tasks) and an optional page directory. Kernel tasks
+share the kernel page directory. Userland tasks get a cloned copy with their code and stack mapped
+at ring 3.
+
+Tasks go through four states:
+
+1. `DEAD` (unused slot),
+2. `READY` (in the run queue),
+3. `RUNNING` (currently on the CPU),
+4. and `BLOCKED` (waiting for an event or a timed sleep).
+
+When a task is created, its stack is set up with a register frame that `popal; iret` will pop on
+first schedule, so the task starts at its entry function with interrupts enabled.
+
+Every `PIT` tick, the timer `ISR` (Interrupt Service Routine) calls `Scheduler::tick()`. It saves
+the current task's stack pointer, checks a stack canary (`0xDEADBEEF`) for overflow, charges one
+tick of runtime, and wakes any sleeping tasks whose deadline has passed. If the quantum hasn't
+expired, the current task keeps running. Otherwise, the scheduler picks the next `READY` task by
+walking the table round-robin, switches to its page directory if needed, updates the `TSS` `esp0`
+field to point to the new task's kernel stack so the next `INT 0x80` from ring 3 switches to the
+correct stack, and returns the new stack pointer so `iret` resumes the chosen task.
+
+User programs communicate with the kernel through `INT 0x80` syscalls. The syscall gate in the `IDT`
+is set as a trap gate with DPL 3 (Descriptor Privilege Level 3, meaning ring-3 accessible) so
+userland code can trigger it. Unlike an interrupt gate, a trap gate leaves interrupts enabled when
+entered, so the handler runs without blocking other hardware interrupts. The handler dispatches to
+one of 13 syscall functions based on the number in `EAX`.
