@@ -110,7 +110,11 @@ no-op as there aren't any registered global constructors.
 hardware setup:
 
 - CPU detection via `CPUID` (vendor, features, brand string)
-- Parses the Multiboot memory map into an array of available regions
+- Parses the Multiboot memory map into an array of available regions (`kernel/kernel/Mem.cc`,
+  `kernel/include/kernel/Mem.h`). Only free chunks at or above 1 MiB are kept. Chunks at or above 4
+  GiB require `PAE` (Physical Address Extension) support. `availableAbove()` finds the free bytes from
+  a given address to the end of the containing chunk, which determines the heap size. The array
+  holds up to 255 pointers into the Multiboot info structure (which must remain below 1 MiB).
 - Sets up the `GDT` (Global Descriptor Table with 6 entries: null, kernel code/data, user code/data,
   `TSS` (Task State Segment))
 - Fills the `IDT` (Interrupt Descriptor Table) with exception handlers, `PIT` (Programmable Interval
@@ -172,10 +176,10 @@ Feature Detection
 `Cpu::init()` runs during `Arch::init()` and queries `CPUID` leaves `0`, `1`, `0x80000000`, and
 `0x80000001` to build a complete picture of the processor. Leaf 0 yields the 12-byte vendor string,
 like `"GenuineIntel"`, and the maximum supported `CPUID` function. Leaf 1 provides stepping, model,
-family, and a 32-bit feature flags bitfield covering `FPU` (Floating Point Unit), `PAE` (Physical
-Address Extension), `TSC` (Time Stamp Counter), `SSE` (Streaming SIMD Extensions), `MMX` (Multimedia
-Extensions), `APIC` (Advanced Programmable Interrupt Controller), etc. Extended leaves add
-`SYSCALL`, `NX` bit, and long mode support.
+family, and a 32-bit feature flags bitfield covering `FPU` (Floating Point Unit), `PAE`, `TSC` (Time
+Stamp Counter), `SSE` (Streaming SIMD Extensions), `MMX` (Multimedia Extensions), `APIC` (Advanced
+Programmable Interrupt Controller), etc. Extended leaves add `SYSCALL`, `NX` bit, and long mode
+support.
 
 The brand string is assembled from leaves `0x80000002`-`0x80000004` into a 48-byte null-terminated
 buffer. A hard check fails initialization if `SYSENTER` is unsupported. `hasSysEnter()` also returns
