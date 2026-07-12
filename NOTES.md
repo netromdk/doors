@@ -158,6 +158,41 @@ the `PIT` timer drives everything: each tick calls the scheduler which does roun
 switching with a 20ms quantum.
 
 
+CPU Detection and Control
+=========================
+
+The kernel detects CPU features at boot via `CPUID` and exposes them through the sysinfo syscall.
+Utility functions for register access, interrupt control, and `TLB` (Translation Lookaside Buffer)
+management live in `kernel/arch/i386/Cpu.cc` and `kernel/include/kernel/Cpu.h`.
+
+Feature Detection
+-----------------
+
+`Cpu::init()` runs during `Arch::init()` and queries `CPUID` leaves `0`, `1`, `0x80000000`, and
+`0x80000001` to build a complete picture of the processor. Leaf 0 yields the 12-byte vendor string,
+like `"GenuineIntel"`, and the maximum supported `CPUID` function. Leaf 1 provides stepping, model,
+family, and a 32-bit feature flags bitfield covering `FPU` (Floating Point Unit), `PAE` (Physical
+Address Extension), `TSC` (Time Stamp Counter), `SSE` (Streaming SIMD Extensions), `MMX` (Multimedia
+Extensions), `APIC` (Advanced Programmable Interrupt Controller), etc. Extended leaves add
+`SYSCALL`, `NX` bit, and long mode support.
+
+The brand string is assembled from leaves `0x80000002`-`0x80000004` into a 48-byte null-terminated
+buffer. A hard check fails initialization if `SYSENTER` is unsupported. `hasSysEnter()` also returns
+false for early Pentium Pro steppings (family 6, model < 3, stepping < 3) that advertised broken
+`SEP` in `CPUID`.
+
+Utility Functions
+-----------------
+
+`EFLAGS` read/write, interrupt enable/disable (`cli`/`sti`), `CR0`/`CR2`/`CR3` read/write, single
+`TLB` flush (`INVLPG`), and `HLT` are thin inline-asm wrappers used throughout the kernel.
+`tripleFault()` loads a null `IDT`, fires `int $0x00`, then `cli; hlt`. This reboots on real
+hardware and exits QEMU with `-no-reboot`.
+
+The `readCpuInfo()` function copies the detection results into a struct exposed to userland via the
+`SYS_SYSINFO` syscall, giving the `shell`'s `cpuinfo` command its data.
+
+
 Memory Management
 =================
 
