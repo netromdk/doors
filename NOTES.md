@@ -147,7 +147,7 @@ loop starts and the first timer interrupt triggers a context switch to a kernel 
 The heap gets initialized right after, sitting right after `_kernel_end` in memory with a best-fit
 free-list allocator.
 
-The scheduler is initialized with an idle task in slot 0, then the first userland program is
+The scheduler is initialized with an `idle` task in slot 0, then the first userland program is
 loaded. In normal mode, it loads `shell.elf` from the first GRUB module and starts a kernel-mode
 `taskbar` task. In `--test` mode, it loads `testrunner.elf` instead. User ELF loading clones the
 kernel page directory, maps `PT_LOAD` segments with ring 3 permissions, sets up a ring-3 `iret`
@@ -341,7 +341,7 @@ slot. `popal; iret` returns to userland
 Timer (PIT)
 ===========
 
-The PIT is the system heartbeat. It fires `IRQ0` at ~1000 Hz, driving the scheduler, sleep/wakeup
+The `PIT` is the system heartbeat. It fires `IRQ0` at ~1000 Hz, driving the scheduler, sleep/wakeup
 timing, and the global uptime counter. Configuration and access live in `kernel/arch/i386/Pit.cc`
 and `kernel/include/kernel/Pit.h`.
 
@@ -350,7 +350,7 @@ Hardware Setup
 
 `Pit::init()` programs `PIT` channel 0 with control word `0x36`: low-byte/high-byte access, mode 3
 (square wave generator), binary counting. The divisor is 1193, which gives approximately 1000 Hz
-from the PIT's 1.193182 MHz base clock (`1.193182 MHz / 1193 = ~1000.15 Hz`, so roughly 1 ms per
+from the `PIT`'s 1.193182 MHz base clock (`1.193182 MHz / 1193 = ~1000.15 Hz`, so roughly 1 ms per
 tick). The 16-bit divisor is written to I/O port `0x40` in two byte writes (low first, then
 high). After programming, `Pic::setMask(IRQ_TIMER, true)` unmasks `IRQ0` on the `PIC`.
 
@@ -410,7 +410,7 @@ exits. `SYS_PANIC` (10) signals `ACPI` shutdown then triggers `panic()`. `SYS_PO
 
 Device control: `SYS_IOCTL` (6) dispatches 10 sub-commands: `CLEAR`, `HALT`, `REBOOT`, `PUT` (write
 char at packed row/col/char/color position), `SAVESCREEN`/`RESTORESCREEN` (VGA buffer snapshot for
-snake overlay), `CURSOR_HIDE`/`CURSOR_SHOW`, `POLL_KEY` (non-blocking for games), `INJECT_CHAR`
+`snake` overlay), `CURSOR_HIDE`/`CURSOR_SHOW`, `POLL_KEY` (non-blocking for games), `INJECT_CHAR`
 (test support).
 
 Task management: `SYS_TASKCTL` (7) dispatches 4 sub-commands: `COUNT` (packed
@@ -419,7 +419,7 @@ alive/running/blocked/dead counts), `LIST` (fill buffer with task entries), `KIL
 
 System info: `SYS_SYSINFO` (8) dispatches 5 sub-commands: `UPTIME` (milliseconds),
 `MEMFREE`/`MEMBLOCK` (heap stats), `DATETIME` (`CMOS` (Complementary Metal-Oxide-Semiconductor)
-`RTC` (Real-Time Clock)), `CPU` (`CPUID` data). `SYS_SUPPRESS_TASKBAR` (11) hides the taskbar row.
+`RTC` (Real-Time Clock)), `CPU` (`CPUID` data). `SYS_SUPPRESS_TASKBAR` (11) hides the `taskbar` row.
 
 
 ELF Loader
@@ -479,7 +479,7 @@ for VGA's 80x25 aspect ratio. Features 10 initial obstacles (up to 20 max, spawn
 items), bonus food (timed, 3 points), and up to 3 boost zones (double speed for 4 seconds). Tracks
 high score across rounds within a session. Uses `IOCTL_PUT` for direct VGA rendering and
 `IOCTL_POLL_KEY` for non-blocking keyboard input. Saves/restores the VGA buffer to overlay on top of
-the shell.
+the `shell`.
 
 Test Runner (`user/testrunner/`): Integration test harness running 34 tests across 9 suites:
 terminal, serial, taskbar, sysinfo, taskctl, ioctl, execmod, input, and heap. Emits
@@ -515,7 +515,7 @@ Bits 0-7 hold the ASCII character. Bits 8-11 hold the foreground color (4 bits, 
 `putc()` writes a character at the current cursor position and advances it. It handles `\n` (new
 line), `\r` (carriage return), and `\b` (backspace). `puts()` writes a string. `putLine()` writes a
 string on a specific row and fills the rest of the row with spaces, which is useful for overwriting
-entire rows cleanly like the taskbar.
+entire rows cleanly like the `taskbar`.
 
 `cls()` clears the screen, resets the cursor to (0,0), and resets the color to default. When
 `DEBUG_THROUGH_SERIAL_COM1` is defined, characters also go to the `COM1` serial port (backspace is
@@ -536,7 +536,7 @@ position. `cursorSetPos()` moves it to a specific row/col. All cursor operations
 Scrolling
 ---------
 
-The terminal uses rows 0 through 23 (24 rows total). Row 24 is reserved for the taskbar. When the
+The terminal uses rows 0 through 23 (24 rows total). Row 24 is reserved for the `taskbar`. When the
 cursor reaches the bottom edge and scrolling is enabled, the top row gets copied into the scrollback
 ring buffer, all rows shift up by one, and the bottom row clears. If scrolling is disabled, the
 cursor wraps to row 0 instead, overwriting the top line.
@@ -562,7 +562,7 @@ Screen Save/Restore
 -------------------
 
 `IOCTL_SAVESCREEN` and `IOCTL_RESTORESCREEN` let userland programs snapshot and restore the VGA
-buffer. The `snake` game uses this to overlay its rendering on top of the shell, then restore the
+buffer. The `snake` game uses this to overlay its rendering on top of the `shell`, then restore the
 `shell`'s display when it exits.
 
 
