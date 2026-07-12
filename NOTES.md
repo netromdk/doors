@@ -567,9 +567,7 @@ Terminal (TTY)
 The `Tty` class (`kernel/arch/i386/Tty.cc`, `kernel/include/kernel/Tty.h`) is a fully static VGA
 text-mode terminal. Every member is static, so it acts as a singleton. It handles character output,
 cursor management, scrolling, a 1000-line scrollback buffer, and screen save/restore for overlays
-(like the `snake` game). Methods that mutate terminal state acquire a semaphore before touching
-shared state, making it safe to call from multiple tasks. Read-only accessors like
-`scrollbackActive()`, `scrollbackSize()`, and `scrollbackLine()` skip the lock.
+(like the `snake` game).
 
 Output
 ------
@@ -637,6 +635,16 @@ Screen Save/Restore
 `IOCTL_SAVESCREEN` and `IOCTL_RESTORESCREEN` let userland programs snapshot and restore the VGA
 buffer. The `snake` game uses this to overlay its rendering on top of the `shell`, then restore the
 `shell`'s display when it exits.
+
+Thread Safety
+-------------
+
+The terminal uses a counting semaphore (`kernel/kernel/Semaphore.cc`,
+`kernel/include/kernel/Semaphore.h`) to serialize access from multiple tasks. `wait()` blocks when
+the count is zero, `signal()` wakes the longest-waiting task. Mutating methods acquire the semaphore
+before touching shared state. Read-only accessors like `scrollbackActive()`, `scrollbackSize()`, and
+`scrollbackLine()` skip the lock. The implementation uses `volatileLoad`/`volatileStore` for safe
+access.
 
 
 Taskbar
