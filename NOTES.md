@@ -95,7 +95,8 @@ Initialization
 Boot starts in `kernel/arch/i386/Boot.s`. GRUB loads the ELF kernel and jumps to `_start`, which
 sets up a 16 KiB bootstrap stack (enough to handle the deep initialization call chain before
 per-task stacks take over), pushes the Multiboot magic and info pointer, then calls three functions
-in order: `kmainInit()`, `_init()` for global constructors, and `kmain()`.
+in order: `kmainInit()`, `_init()` for global constructors, and `kmain()`
+(`kernel/kernel/Kernel.cc`).
 
 `kmainInit()` runs before any global constructors or paging is set up. It just does the bare
 minimum: inits the COM1 serial port, clears the VGA screen, validates the Multiboot magic
@@ -196,24 +197,25 @@ The `readCpuInfo()` function copies the detection results into a struct exposed 
 Memory Management
 =================
 
-The physical memory manager (`Pmm`) handles 4 KiB page frames. It uses an intrusive free list
-(linked-list pointers stored inside the free frames themselves, not in a separate data structure)
-where each free frame stores a pointer to the next free frame in its first bytes. Allocation pops
-the head of the list and zeroes the frame. Freeing pushes it back, with a double-free check that
-walks the list to catch duplicates. During init, `Pmm` walks the Multiboot memory map and adds every
-available frame to the free list, skipping the kernel image (`0x100000` to `_kernel_end`), GRUB
-modules, and the VGA buffer at `0xB8000`.
+The physical memory manager (`Pmm`, `kernel/kernel/Pmm.cc`, `kernel/include/kernel/Pmm.h`) handles 4
+KiB page frames. It uses an intrusive free list (linked-list pointers stored inside the free frames
+themselves, not in a separate data structure) where each free frame stores a pointer to the next
+free frame in its first bytes. Allocation pops the head of the list and zeroes the frame. Freeing
+pushes it back, with a double-free check that walks the list to catch duplicates. During init, `Pmm`
+walks the Multiboot memory map and adds every available frame to the free list, skipping the kernel
+image (`0x100000` to `_kernel_end`), GRUB modules, and the VGA buffer at `0xB8000`.
 
-The kernel heap (`Heap`) sits right after `_kernel_end` in memory. It's a best-fit allocator with a
-free list. Each block has a 16-byte header containing the size and a magic number (`0x48455041`,
-ASCII for "HEAP") for validation. Free blocks are kept in a linked list. On allocation, the
-allocator walks the free list for the smallest block that fits, splits it if there's enough
-leftover, and returns the caller pointer just past the header. On free, it clears the allocated flag
-and coalesces with adjacent free blocks. Forward coalescing checks if the next block in memory is
-free, and if so, unlinks it and merges the two. Backward coalescing walks the free list looking for
-a block that ends right where this one begins, and merges into it. Both directions can chain, so
-several small free blocks next to each other get combined into one larger block. Blocks are 16-byte
-aligned with a minimum block size of 32 bytes.
+The kernel heap (`Heap`, `kernel/kernel/Heap.cc`, `kernel/include/kernel/Heap.h`) sits right after
+`_kernel_end` in memory. It's a best-fit allocator with a free list. Each block has a 16-byte header
+containing the size and a magic number (`0x48455041`, ASCII for "HEAP") for validation. Free blocks
+are kept in a linked list. On allocation, the allocator walks the free list for the smallest block
+that fits, splits it if there's enough leftover, and returns the caller pointer just past the
+header. On free, it clears the allocated flag and coalesces with adjacent free blocks. Forward
+coalescing checks if the next block in memory is free, and if so, unlinks it and merges the
+two. Backward coalescing walks the free list looking for a block that ends right where this one
+begins, and merges into it. Both directions can chain, so several small free blocks next to each
+other get combined into one larger block. Blocks are 16-byte aligned with a minimum block size of 32
+bytes.
 
 The two allocators don't overlap. After paging is set up, `Pmm::reserveRegion()` removes the heap's
 physical pages from the free list so the page-level allocator never hands out frames that the
@@ -223,9 +225,10 @@ byte-level heap is using.
 Advanced Configuration and Power Interface
 ==========================================
 
-The `ACPI` subsystem detects and validates `ACPI` tables from firmware, caches the century register
-for `RTC` support, and provides `S5` (soft-off) shutdown via the PIIX4 chipset. `ACPI` v2+ (`XSDT`
-with 64-bit table pointers) is not yet supported.
+The `ACPI` subsystem (`kernel/kernel/Acpi.cc`, `kernel/include/kernel/Acpi.h`) detects and validates
+`ACPI` tables from firmware, caches the century register for `RTC` support, and provides `S5`
+(soft-off) shutdown via the PIIX4 chipset. `ACPI` v2+ (`XSDT` with 64-bit table pointers) is not yet
+supported.
 
 Table Discovery
 ---------------
@@ -257,11 +260,11 @@ respond to the PIIX4 write.
 Scheduling
 ==========
 
-The scheduler is preemptive round-robin with 8 task slots and a 20 ms quantum (20 `PIT` ticks at
-1000 Hz). Slot 0 is always the `idle` task, which just halts until the next interrupt. Each task has
-its own 8 KiB kernel stack (16 KiB for userland tasks) and an optional page directory. Kernel tasks
-share the kernel page directory. Userland tasks get a cloned copy with their code and stack mapped
-at ring 3.
+The scheduler (`kernel/kernel/Scheduler.cc`, `kernel/include/kernel/Scheduler.h`) is preemptive
+round-robin with 8 task slots and a 20 ms quantum (20 `PIT` ticks at 1000 Hz). Slot 0 is always the
+`idle` task, which just halts until the next interrupt. Each task has its own 8 KiB kernel stack (16
+KiB for userland tasks) and an optional page directory. Kernel tasks share the kernel page
+directory. Userland tasks get a cloned copy with their code and stack mapped at ring 3.
 
 Tasks go through four states:
 
@@ -462,8 +465,9 @@ game uses it for frame timing.
 System Calls
 ============
 
-All 13 syscalls go through `INT 0x80`. The assembly stub passes the number in `EAX` and up to 3 args
-in `EBX`/`ECX`/`EDX`. Every syscall that takes a userland buffer pointer validates it first: the
+All 13 syscalls go through `INT 0x80` (`kernel/kernel/Syscall.cc`,
+`kernel/include/kernel/Syscall.h`). The assembly stub passes the number in `EAX` and up to 3 args in
+`EBX`/`ECX`/`EDX`. Every syscall that takes a userland buffer pointer validates it first: the
 address must be non-null, below `KERNEL_VIRTUAL_BASE` (`0xC0000000`), and the buffer must not wrap
 around or cross into kernel space.
 
@@ -527,10 +531,10 @@ Max 64 ELF pages (256 KiB) and max 8 tasks total. No dynamic linking, no section
 Userland Programs
 =================
 
-Userland programs are compiled as freestanding ELF 32-bit binaries with `-ffreestanding -nostdlib
--static -no-pie -std=c++20 -fno-exceptions -fno-rtti -fno-builtin`, linked against `libc++_user.a`
-(the freestanding userland variant of the C++20 standard library) and placed at virtual address
-`0x10000000` via `user/User.ld`. The build system provides `add_user_program()` in
+Userland programs (`user/`) are compiled as freestanding ELF 32-bit binaries with `-ffreestanding
+-nostdlib -static -no-pie -std=c++20 -fno-exceptions -fno-rtti -fno-builtin`, linked against
+`libc++_user.a` (the freestanding userland variant of the C++20 standard library) and placed at
+virtual address `0x10000000` via `user/User.ld`. The build system provides `add_user_program()` in
 `cmake/user-programs.cmake` to handle compilation and linking. All kernel interaction goes through
 `INT 0x80` syscalls via inline wrappers in `user/lib/Syscall.h`.
 
