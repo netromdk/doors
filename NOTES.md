@@ -185,6 +185,40 @@ physical pages from the free list so the page-level allocator never hands out fr
 byte-level heap is using.
 
 
+Advanced Configuration and Power Interface
+==========================================
+
+The `ACPI` subsystem detects and validates `ACPI` tables from firmware, caches the century register
+for `RTC` support, and provides `S5` (soft-off) shutdown via the PIIX4 chipset. `ACPI` v2+ (`XSDT`
+with 64-bit table pointers) is not yet supported.
+
+Table Discovery
+---------------
+
+The init sequence scans two memory regions for the `RSDP` signature `"RSD PTR "`: the first 1024
+bytes of the `EBDA` (Extended BIOS Data Area) at `0x40E`, and the BIOS read-only area from
+`0x000E0000` to `0x000FFFFF`. Once found, the checksum is validated (byte sum must be zero).
+
+The `RSDP` points to the `RSDT`, which contains 32-bit pointers to other `ACPI` tables. The kernel
+scans for the `"FACP"` signature to find the `FADT`. Both checksums are validated. The `RSDT`
+pointer array may not be 4-byte aligned, so a `PackedU32` wrapper avoids `UBSan` (Undefined Behavior
+Sanitizer) alignment errors.
+
+The `FADT`'s century field is cached during `init()` because the `FADT` pointer is physical and
+won't be valid after paging. The init sequence also writes the `ACPI` enable byte to the `SMI`
+(System Management Interrupt) command port if the `FADT` fields are non-zero, transitioning from
+legacy `SMI` mode. Before paging is enabled, all physical table pointers are preemptively nulled out
+so they can never be dereferenced once paging is active.
+
+S5 Shutdown
+-----------
+
+The kernel provides `S5` shutdown via the PIIX4 PMCNTRL (PM1 Control) register at I/O port
+`0x604`. Writing `0x3400` (sleep type 5 in bits 10-12, sleep enable in bit 13) triggers immediate
+power-off. This is used by `SYS_POWEROFF`. A triple-fault fallback handles hardware that doesn't
+respond to the PIIX4 write.
+
+
 Scheduling
 ==========
 
