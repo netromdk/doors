@@ -28,14 +28,51 @@ base address to `0x10000000`. GRUB loads them as Multiboot modules and the kerne
 there. Communication with the kernel happens through `INT 0x80` syscalls: 13 of them covering
 read/write, process control, system info, etc.
 
-Build system is CMake + Ninja. A prebuilt `i386-elf-gcc` cross-compiler toolchain sits in
-`bootstrap/` (can be built using `scripts/bootstrap.sh`). There are presets for debug, release,
-serial-debug, and testing.
+
+Build System
+============
+
+The build system uses CMake and Ninja. The toolchain file (`cmake/i386-elf-toolchain.cmake`) targets
+`i386-elf` and locates the cross-compiler in `bootstrap/bin/` or on `PATH`. It sets the sysroot to
+`sysroot/` and prevents CMake from trying to link host-executable test binaries by setting
+`CMAKE_TRY_COMPILE_TARGET_TYPE` to `STATIC_LIBRARY`.
+
+Compilation settings (`cmake/compilation.cmake`): C++20 required, no extensions. Debug uses `-O0
+-g`. Release uses `-O2 -DNDEBUG -fno-omit-frame-pointer -fwrapv -fno-strict-aliasing`. Both use
+`-Wall -Wextra -Wpedantic -Werror`.
 
 The kernel gets built in two passes. The first pass links with a stub symbol table so the linker can
 resolve everything (`doors_firstpass.kernel`). Then `scripts/gen-symbols.py` runs `nm -n` on the
 first-pass binary, demangles the names with `c++filt`, and writes out a sorted `symbol_table.cc`
 which gets linked into the final kernel (`doors.kernel`).
+
+Userland programs are built with `add_user_program()` (`cmake/user-programs.cmake`), which compiles
+freestanding, statically-linked ELFs with `user/User.ld` and links them against `libc++_user.a`.
+`add_crash_test()` creates per-crash-type ISOs, QEMU run targets, and log parsing targets.
+
+QEMU integration (`cmake/targets-run.cmake`): the `run-direct` target boots the kernel directly in
+QEMU, capturing serial output to `doors.log` when debug mode is on. ISO creation
+(`cmake/targets-iso.cmake`) builds `doors.iso` (kernel + `shell` + `snake` as Multiboot modules) and
+`doors-test.iso` (kernel + `testrunner` + `minimal`) using `grub-mkrescue`.
+
+`scripts/bootstrap.sh` builds an `i386-elf` cross-compiler from source (binutils 2.42 and GCC
+14.2.0) into `bootstrap/bin/`.
+
+Tests use Doctest (single-header at `tests/doctest/doctest.h`). Tests are compiled for the host, not
+cross-compiled. A custom `libc++test.a` recompiles the kernel's libc++ sources for host-side
+testing. 27 test modules cover the kernel heap, scheduler, keyboard, TTY, paging, PIT timer, panic
+handler, ELF loader, symbol table, CMOS, CPU, syscalls, and userland programs (`shell`, `snake`). An
+additional abort test verifies non-zero exit.
+
+Integration tests (`cmake/run-qemu-timeout.cmake`) boot QEMU with a 30-second timeout, `ACPI`
+enabled, and an `isa-debug-exit` device. `cmake/run-all-tests.cmake` runs 5 sequential phases:
+normal tests (the `testrunner`), crash-poweroff, crash-panic, crash-reboot, and crash-halt. Each
+phase's serial log is parsed by `scripts/parse-test-log.py` which validates JSON events and exit
+codes.
+
+GRUB has 3 config variants: normal (`grub.cfg.in`, 5-second timeout, loads `shell` + `snake`), test
+(`grub-test.cfg`, zero timeout, passes `--test` flag, loads `testrunner` + `minimal`), and crash
+test template (`grub-crash.cfg.in`, module name substituted at configure time for each crash type).
 
 
 C++ Runtime
