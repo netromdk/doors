@@ -246,11 +246,14 @@ scans for the `"FACP"` signature to find the `FADT`. Both checksums are validate
 pointer array may not be 4-byte aligned, so a `PackedU32` wrapper avoids `UBSan` (Undefined Behavior
 Sanitizer) alignment errors.
 
-The `FADT`'s century field is cached during `init()` because the `FADT` pointer is physical and
-won't be valid after paging. The init sequence also writes the `ACPI` enable byte to the `SMI`
-(System Management Interrupt) command port if the `FADT` fields are non-zero, transitioning from
-legacy `SMI` mode. Before paging is enabled, all physical table pointers are preemptively nulled out
-so they can never be dereferenced once paging is active.
+The `FADT`'s century field specifies the `CMOS` register offset for the century byte. It is cached
+during `init()` because the `FADT` pointer is physical and won't be valid after paging. The `RTC`
+driver (`kernel/kernel/Cmos.cc`, `kernel/include/kernel/Cmos.h`) uses this value via
+`Acpi::centuryRegister()` to compute the full 4-digit year. When `ACPI` is unsupported or the field
+is 0, the century defaults to `2000`. The init sequence also writes the `ACPI` enable byte to the
+`SMI` (System Management Interrupt) command port if the `FADT` fields are non-zero, transitioning
+from legacy `SMI` mode. Before paging is enabled, all physical table pointers are preemptively
+nulled out so they can never be dereferenced once paging is active.
 
 S5 Shutdown
 -----------
