@@ -5,10 +5,10 @@ Architecture
 
 The kernel lives in `kernel/`, with boot, interrupt handling, and paging code under
 `kernel/arch/i386/` and the rest in `kernel/kernel/`. It's a 32-bit higher-half monolithic kernel,
-loaded at 1 MiB (set in `kernel/arch/i386/Linker.ld`) by GRUB (GRand Unified Bootloader) Multiboot,
-with a higher-half virtual mapping at `0xC0000000`. Everything runs in ring 0 (kernel mode, full
-hardware access) except userland programs which get their own page directories and run in ring 3
-(user mode, restricted access, must use syscalls to talk to the kernel).
+loaded at 1 MiB (set in `kernel/arch/i386/Linker.ld`) by GRUB (GRand Unified Bootloader [1])
+Multiboot [2], with a higher-half virtual mapping at `0xC0000000`. Everything runs in ring 0 (kernel
+mode, full hardware access) except userland programs which get their own page directories and run in
+ring 3 (user mode, restricted access, must use syscalls to talk to the kernel).
 
 C++ support comes from `libc++/`, a freestanding C++20 standard library that gets built three times:
 
@@ -18,12 +18,12 @@ C++ support comes from `libc++/`, a freestanding C++20 standard library that get
 
 The kernel and userland versions are freestanding. Userland also gets a `malloc()` implementation
 since it doesn't have access to the kernel heap. Conditional compilation macros select the right
-code paths depending on who's calling, e.g., `putchar()` goes through VGA (Video Graphics Array)
+code paths depending on who's calling, e.g., `putchar()` goes through VGA (Video Graphics Array [3])
 directly in the kernel but uses `INT 0x80` from userland.
 
 Userland programs are under `user/`. The main ones are `shell` (interactive CLI with built-in
 commands) and `snake` (VGA snake game). Built as freestanding, statically-linked ELF (Executable and
-Linkable Format) 32-bit binaries, with `user/User.ld` setting the output to `elf32-i386` and the
+Linkable Format [4]) 32-bit binaries, with `user/User.ld` setting the output to `elf32-i386` and the
 base address to `0x10000000`. GRUB loads them as Multiboot modules and the kernel picks them up from
 there. Communication with the kernel happens through `INT 0x80` syscalls: 13 of them covering
 read/write, process control, system info, etc.
@@ -65,10 +65,10 @@ handler, ELF loader, symbol table, CMOS, CPU, syscalls, and userland programs (`
 additional abort test verifies non-zero exit.
 
 Integration tests (`cmake/run-qemu-timeout.cmake`) boot QEMU with a 30-second timeout, `ACPI`
-enabled, and an `isa-debug-exit` device. `cmake/run-all-tests.cmake` runs 5 sequential phases:
-normal tests (the `testrunner`), crash-poweroff, crash-panic, crash-reboot, and crash-halt. Each
-phase's serial log is parsed by `scripts/parse-test-log.py` which validates JSON events and exit
-codes.
+(Advanced Configuration and Power Interface [5]) enabled, and an `isa-debug-exit`
+device. `cmake/run-all-tests.cmake` runs 5 sequential phases: normal tests (the `testrunner`),
+crash-poweroff, crash-panic, crash-reboot, and crash-halt. Each phase's serial log is parsed by
+`scripts/parse-test-log.py` which validates JSON events and exit codes.
 
 GRUB has 3 config variants: normal (`grub.cfg.in`, 5-second timeout, loads `shell` + `snake`), test
 (`grub-test.cfg`, zero timeout, passes `--test` flag, loads `testrunner` + `minimal`), and crash
@@ -108,7 +108,7 @@ checks:
 
 The `__guard` type is `int` decorated with `__attribute__((mode(__DI__)))`, GCC's "double-integer"
 mode. This forces the type to exactly 32 bits regardless of the platform's default `int` size,
-matching the Itanium C++ ABI expectation for guard variables [1]. `__cxa_guard_abort` and
+matching the Itanium C++ ABI expectation for guard variables [6]. `__cxa_guard_abort` and
 `__cxa_guard_finalize` are not implemented (no exceptions means no aborted initialization). This is
 what makes `static` local variables work in the kernel.
 
@@ -148,21 +148,22 @@ no-op as there aren't any registered global constructors.
 `kmain()` is where the real work happens. It calls `Arch::init()` which orchestrates all the
 hardware setup:
 
-- CPU detection via `CPUID` (vendor, features, brand string)
+- CPU detection via `CPUID` (CPU Identification [7], vendor, features, brand string)
 - Parses the Multiboot memory map into an array of available regions (`kernel/kernel/Mem.cc`,
   `kernel/include/kernel/Mem.h`). Only free chunks at or above 1 MiB are kept. Chunks at or above 4
   GiB require `PAE` (Physical Address Extension) support. `availableAbove()` finds the free bytes from
   a given address to the end of the containing chunk, which determines the heap size. The array
   holds up to 255 pointers into the Multiboot info structure (which must remain below 1 MiB).
-- Sets up the `GDT` (Global Descriptor Table) at address `0x500`. 6 entries: null (unused), kernel
-  code (`PL0`, selector `0x08`, for `SYSENTER`), kernel data (`PL0`, selector `0x10`, `SYSENTER`
-  stack), user code (`PL3`, selector `0x18`, after `SYSEXIT`), user data (`PL3`, selector `0x20`),
-  and `TSS` (Task State Segment, selector `0x28`). The `TSS` stores `ESP0` and `SS0`. Loaded via
-  `LGDT`, segments reloaded via far jump to `0x08`, `TSS` loaded via `LTR`.
+- Sets up the `GDT` (Global Descriptor Table [8]) at address `0x500`. 6 entries: null (unused),
+  kernel code (`PL0`, selector `0x08`, for `SYSENTER`), kernel data (`PL0`, selector `0x10`,
+  `SYSENTER` stack), user code (`PL3`, selector `0x18`, after `SYSEXIT`), user data (`PL3`, selector
+  `0x20`), and `TSS` (Task State Segment, selector `0x28`). The `TSS` stores `ESP0` and
+  `SS0`. Loaded via `LGDT`, segments reloaded via far jump to `0x08`, `TSS` loaded via `LTR`.
 - Fills the `IDT` (Interrupt Descriptor Table) with exception handlers, `PIT` (Programmable Interval
-  Timer) timer (`IRQ` (interrupt request) 0), keyboard (`IRQ` 1), and the `INT 0x80` syscall gate
-- Remaps the 8259 `PIC` (Programmable Interrupt Controller) to avoid overlap with CPU exceptions
-  (master `IRQ` 32-39, slave `IRQ` 40-47)
+  Timer [9]) timer (`IRQ` (interrupt request) 0), keyboard (`IRQ` 1), and the `INT 0x80` syscall
+  gate
+- Remaps the 8259 `PIC` (Programmable Interrupt Controller [10]) to avoid overlap with CPU
+  exceptions (master `IRQ` 32-39, slave `IRQ` 40-47)
 - Detects `ACPI` (Advanced Configuration and Power Interface with `RSDP` (Root System Description
   Pointer)/`RSDT` (Root System Description Table)/`FADT` (Fixed ACPI Description Table), and caches
   the century register)
@@ -244,7 +245,7 @@ The `readCpuInfo()` function copies the detection results into a struct exposed 
 Paging (Runtime)
 ================
 
-Standard 32-bit x86 4 KiB paging (`kernel/arch/i386/Paging.cc`,
+Standard 32-bit x86 4 KiB paging [11] (`kernel/arch/i386/Paging.cc`,
 `kernel/include/arch/i386/Paging.h`). Each page directory has 1024 `PDE`s, each pointing to a page
 table with 1024 `PTE` (Page Table Entry)s. `PDE` index 768 maps virtual addresses starting at
 `0xC0000000` (the higher-half), mirroring the identity map at `PDE` 0 so the kernel can use
@@ -804,10 +805,10 @@ clean.
 Keyboard
 ========
 
-The keyboard driver (`kernel/include/kernel/Kbd.h`, `kernel/arch/i386/Kbd.cc`) handles PS/2
-scancodes via `IRQ` 1. It provides a 256-character ring buffer, full line editing with Emacs-style
-shortcuts, command history, and a non-blocking API for programs that need raw input without
-blocking.
+The keyboard driver (`kernel/include/kernel/Kbd.h`, `kernel/arch/i386/Kbd.cc`) handles PS/2 (PS/2
+keyboard interface [12]) scancodes via `IRQ` 1. It provides a 256-character ring buffer, full line
+editing with Emacs-style shortcuts, command history, and a non-blocking API for programs that need
+raw input without blocking.
 
 Scancode Processing
 -------------------
@@ -862,3 +863,20 @@ Non-Blocking API
 a `Key` enum value (`Up`, `Down`, `Left`, `Right`, `PageUp`, `PageDown`, `Home`, `End`, `Char`, or
 `Unknown`) and an optional character for printable keys. This is useful for games, interactive
 menus, or any program that needs to react to key presses without entering a blocking readline loop.
+
+
+References
+==========
+
+[1]: https://www.gnu.org/software/grub/manual/grub/
+[2]: https://www.gnu.org/software/grub/manual/multiboot/
+[3]: https://wiki.osdev.org/VGA_Hardware
+[4]: https://wiki.osdev.org/ELF
+[5]: https://wiki.osdev.org/ACPI
+[6]: https://itanium-cxx-abi.github.io/cxx-abi/abi.html#guard-variables
+[7]: https://wiki.osdev.org/CPUID
+[8]: https://wiki.osdev.org/GDT
+[9]: https://wiki.osdev.org/Programmable_Interval_Timer
+[10]: https://wiki.osdev.org/PIC
+[11]: https://wiki.osdev.org/Paging
+[12]: https://wiki.osdev.org/PS/2_Keyboard
