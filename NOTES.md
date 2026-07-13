@@ -3,7 +3,7 @@
 Architecture
 ============
 
-The kernel lives in `kernel/`, with arch-specific stuff (`boot`, `interrupts`, `paging`) under
+The kernel lives in `kernel/`, with boot, interrupt handling, and paging code under
 `kernel/arch/i386/` and the rest in `kernel/kernel/`. It's a 32-bit higher-half monolithic kernel,
 loaded at 1 MiB (set in `kernel/arch/i386/Linker.ld`) by GRUB (GRand Unified Bootloader) Multiboot,
 with a higher-half virtual mapping at `0xC0000000`. Everything runs in ring 0 (kernel mode, full
@@ -14,12 +14,12 @@ C++ support comes from `libc++/`, a freestanding C++20 standard library that get
 
 - `libc++_kernel.a` for the kernel,
 - `libc++_user.a` for userland,
-- and `libc++.a` for the hosted variant (same sources, not freestanding).
+- and `libc++.a` for the hosted variant.
 
-The kernel and userland versions are freestanding with no exceptions or RTTI. Userland also gets a
-`malloc()` implementation since it doesn't have access to the kernel heap. Conditional compilation
-macros select the right code paths depending on who's calling, e.g., `putchar()` goes through VGA
-(Video Graphics Array) directly in the kernel but uses `INT 0x80` from userland.
+The kernel and userland versions are freestanding. Userland also gets a `malloc()` implementation
+since it doesn't have access to the kernel heap. Conditional compilation macros select the right
+code paths depending on who's calling, e.g., `putchar()` goes through VGA (Video Graphics Array)
+directly in the kernel but uses `INT 0x80` from userland.
 
 Userland programs are under `user/`. The main ones are `shell` (interactive CLI with built-in
 commands) and `snake` (VGA snake game). Built as freestanding, statically-linked ELF (Executable and
@@ -59,7 +59,7 @@ QEMU, capturing serial output to `doors.log` when debug mode is on. ISO creation
 14.2.0) into `bootstrap/bin/`.
 
 Tests use Doctest (single-header at `tests/doctest/doctest.h`). Tests are compiled for the host, not
-cross-compiled. A custom `libc++test.a` recompiles the kernel's libc++ sources for host-side
+cross-compiled. A custom `liblibc++test.a` recompiles the kernel's libc++ sources for host-side
 testing. 27 test modules cover the kernel heap, scheduler, keyboard, TTY, paging, PIT timer, panic
 handler, ELF loader, symbol table, CMOS, CPU, syscalls, and userland programs (`shell`, `snake`). An
 additional abort test verifies non-zero exit.
@@ -78,10 +78,10 @@ test template (`grub-crash.cfg.in`, module name substituted at configure time fo
 C++ Runtime
 ===========
 
-The kernel has a minimal C++ runtime (`kernel/kernel/Runtime.cc`, `kernel/include/kernel/Runtime.h`)
+The kernel has a minimal C++ runtime (`kernel/include/kernel/Runtime.h`, `kernel/kernel/Runtime.cc`)
 that routes memory allocation to the kernel heap, makes function-local statics work, and stubs out
-static destruction. It's compiled with `-fno-exceptions` and `-fno-rtti`, so there's no exception
-support and no type information at runtime.
+static destruction. It's compiled with `-fno-exceptions` and `-fno-rtti`, so no exceptions are
+thrown and no RTTI (Run-Time Type Information) is available.
 
 `operator new` / `operator delete`
 ----------------------------------
@@ -106,9 +106,11 @@ checks:
 - `__cxa_guard_acquire(__guard *g)` returns `!*g` (1 if uninitialized, 0 if already initialized).
 - `__cxa_guard_release(__guard *g)` sets `*g = 1`.
 
-The `__guard` type is an `int` in double-integer mode (32-bit on x86), matching the Itanium C++ ABI
-expectation. `__cxa_guard_abort` and `__cxa_guard_finalize` are not implemented (no exceptions means
-no aborted initialization). This is what makes `static` local variables work in the kernel.
+The `__guard` type is `int` decorated with `__attribute__((mode(__DI__)))`, GCC's "double-integer"
+mode. This forces the type to exactly 32 bits regardless of the platform's default `int` size,
+matching the Itanium C++ ABI expectation for guard variables [1]. `__cxa_guard_abort` and
+`__cxa_guard_finalize` are not implemented (no exceptions means no aborted initialization). This is
+what makes `static` local variables work in the kernel.
 
 The implementation is non-atomic, which is safe because guard checks run with interrupts disabled or
 in single-threaded initialization contexts. For future work, in a preemptible multi-threaded
@@ -182,12 +184,13 @@ is kernel space. The copy mirrors the identity map into the kernel's half of the
 identity-mapped low addresses. The higher-half mappings exist and are ready, but the actual switch
 to `0xC0000000` doesn't happen until the first task switch or far jump targets that range.
 
-At this point, both mappings are live: the identity map at low addresses (what the kernel is
-actually running from) and the higher-half at `0xC0000000` (where the kernel will eventually
-live). The identity map is still in place and will remain so for now, though the plan is to remove
-it later once the kernel fully runs from the higher-half. The kernel stays at the identity-mapped
-addresses throughout initialization. The switch to the higher-half happens later, after the idle
-loop starts and the first timer interrupt triggers a context switch to a kernel task like `taskbar`.
+At this point, both mappings are live: the identity map at low addresses and the higher-half at
+`0xC0000000`. The instruction pointer is already in higher-half space (the kernel code is linked at
+`0xC0000000+`), but the identity map stays in place so the kernel can still access physical
+addresses directly. The identity map will be removed later once it's no longer needed. When the
+scheduler context-switches for the first time, it writes `CR3` with a cloned page directory, but
+both the old and new directories contain both mappings. The higher-half has been active since
+`Paging::init()`.
 
 The heap gets initialized right after, sitting right after `_kernel_end` in memory with a best-fit
 free-list allocator.
@@ -208,7 +211,7 @@ CPU Detection and Control
 
 The kernel detects CPU features at boot via `CPUID` and exposes them through the sysinfo syscall.
 Utility functions for register access, interrupt control, and `TLB` (Translation Lookaside Buffer)
-management live in `kernel/arch/i386/Cpu.cc` and `kernel/include/kernel/Cpu.h`.
+management live in `kernel/include/kernel/Cpu.h` and `kernel/arch/i386/Cpu.cc`.
 
 Feature Detection
 -----------------
@@ -301,7 +304,7 @@ one. This avoids corrupting a shared kernel page table when a userland task's pa
 Memory Management
 =================
 
-The physical memory manager (`Pmm`, `kernel/kernel/Pmm.cc`, `kernel/include/kernel/Pmm.h`) handles 4
+The physical memory manager (`Pmm`, `kernel/include/kernel/Pmm.h`, `kernel/kernel/Pmm.cc`) handles 4
 KiB page frames. It uses an intrusive free list (linked-list pointers stored inside the free frames
 themselves, not in a separate data structure) where each free frame stores a pointer to the next
 free frame in its first bytes. Allocation pops the head of the list and zeroes the frame. Freeing
@@ -309,7 +312,7 @@ pushes it back, with a double-free check that walks the list to catch duplicates
 walks the Multiboot memory map and adds every available frame to the free list, skipping the kernel
 image (`0x100000` to `_kernel_end`), GRUB modules, and the VGA buffer at `0xB8000`.
 
-The kernel heap (`Heap`, `kernel/kernel/Heap.cc`, `kernel/include/kernel/Heap.h`) sits right after
+The kernel heap (`Heap`, `kernel/include/kernel/Heap.h`, `kernel/kernel/Heap.cc`) sits right after
 `_kernel_end` in memory. It's a best-fit allocator with a free list. Each block has a 16-byte header
 containing the size and a magic number (`0x48455041`, ASCII for "HEAP") for validation. Free blocks
 are kept in a linked list. On allocation, the allocator walks the free list for the smallest block
@@ -329,7 +332,7 @@ byte-level heap is using.
 Advanced Configuration and Power Interface
 ==========================================
 
-The `ACPI` subsystem (`kernel/kernel/Acpi.cc`, `kernel/include/kernel/Acpi.h`) detects and validates
+The `ACPI` subsystem (`kernel/include/kernel/Acpi.h`, `kernel/kernel/Acpi.cc`) detects and validates
 `ACPI` tables from firmware, caches the century register for `RTC` support, and provides `S5`
 (soft-off) shutdown via the PIIX4 chipset. `ACPI` v2+ (`XSDT` with 64-bit table pointers) is not yet
 supported.
@@ -348,7 +351,7 @@ Sanitizer) alignment errors.
 
 The `FADT`'s century field specifies the `CMOS` register offset for the century byte. It is cached
 during `init()` because the `FADT` pointer is physical and won't be valid after paging. The `RTC`
-driver (`kernel/kernel/Cmos.cc`, `kernel/include/kernel/Cmos.h`) uses this value via
+driver (`kernel/include/kernel/Cmos.h`, `kernel/kernel/Cmos.cc`) uses this value via
 `Acpi::centuryRegister()` to compute the full 4-digit year. When `ACPI` is unsupported or the field
 is 0, the century defaults to `2000`. The init sequence also writes the `ACPI` enable byte to the
 `SMI` (System Management Interrupt) command port if the `FADT` fields are non-zero, transitioning
@@ -367,7 +370,7 @@ respond to the PIIX4 write.
 Scheduling
 ==========
 
-The scheduler (`kernel/kernel/Scheduler.cc`, `kernel/include/kernel/Scheduler.h`) is preemptive
+The scheduler (`kernel/include/kernel/Scheduler.h`, `kernel/kernel/Scheduler.cc`) is preemptive
 round-robin with 8 task slots and a 20 ms quantum (20 `PIT` ticks at 1000 Hz). Slot 0 is always the
 `idle` task, which just halts until the next interrupt. Each task has its own 8 KiB kernel stack (16
 KiB for userland tasks) and an optional page directory. Kernel tasks share the kernel page
@@ -515,7 +518,7 @@ jumps to `asmExcPf`. Handler reads `CR2`, decodes error code, calls `panic()`. S
 execute because panic never returns.
 
 System call (`INT 0x80`): CPU transitions from ring 3 to ring 0, loads kernel `CS` and `ESP` from
-the `TSS`, pushes user `SS`/`ESP`/`EFLAGS`/`CS`/`EIP` onto the kernel stack. Trap gate means` IF` is
+the `TSS`, pushes user `SS`/`ESP`/`EFLAGS`/`CS`/`EIP` onto the kernel stack. Trap gate means `IF` is
 NOT cleared. Assembly stub pushes 4 args, calls `syscallHandler`, patches return value into `EAX`
 slot. `popal; iret` returns to userland
 
@@ -674,7 +677,7 @@ debugging). A `minimal` payload provides a trivial userland program for execmod 
 Terminal (TTY)
 ==============
 
-The `Tty` class (`kernel/arch/i386/Tty.cc`, `kernel/include/kernel/Tty.h`) is a fully static VGA
+The `Tty` class (`kernel/include/kernel/Tty.h`, `kernel/arch/i386/Tty.cc`) is a fully static VGA
 text-mode terminal. Every member is static, so it acts as a singleton. It handles character output,
 cursor management, scrolling, a 1000-line scrollback buffer, and screen save/restore for overlays
 (like the `snake` game).
@@ -760,7 +763,7 @@ access.
 Taskbar
 =======
 
-The `taskbar` (`kernel/kernel/Taskbar.cc`, `kernel/include/kernel/Taskbar.h`) is a dedicated kernel
+The `taskbar` (`kernel/include/kernel/Taskbar.h`, `kernel/kernel/Taskbar.cc`) is a dedicated kernel
 task that displays a status bar on VGA bottom row 24.
 
 The status bar has three sections, right-aligned in the 80-character row:
@@ -801,7 +804,7 @@ clean.
 Keyboard
 ========
 
-The keyboard driver (`kernel/arch/i386/Kbd.cc`, `kernel/include/kernel/Kbd.h`) handles PS/2
+The keyboard driver (`kernel/include/kernel/Kbd.h`, `kernel/arch/i386/Kbd.cc`) handles PS/2
 scancodes via `IRQ` 1. It provides a 256-character ring buffer, full line editing with Emacs-style
 shortcuts, command history, and a non-blocking API for programs that need raw input without
 blocking.
