@@ -152,8 +152,11 @@ hardware setup:
   GiB require `PAE` (Physical Address Extension) support. `availableAbove()` finds the free bytes from
   a given address to the end of the containing chunk, which determines the heap size. The array
   holds up to 255 pointers into the Multiboot info structure (which must remain below 1 MiB).
-- Sets up the `GDT` (Global Descriptor Table with 6 entries: null, kernel code/data, user code/data,
-  `TSS` (Task State Segment))
+- Sets up the `GDT` (Global Descriptor Table) at address `0x500`. 6 entries: null (unused), kernel
+  code (`PL0`, selector `0x08`, for `SYSENTER`), kernel data (`PL0`, selector `0x10`, `SYSENTER`
+  stack), user code (`PL3`, selector `0x18`, after `SYSEXIT`), user data (`PL3`, selector `0x20`),
+  and `TSS` (Task State Segment, selector `0x28`). The `TSS` stores `ESP0` and `SS0`. Loaded via
+  `LGDT`, segments reloaded via far jump to `0x08`, `TSS` loaded via `LTR`.
 - Fills the `IDT` (Interrupt Descriptor Table) with exception handlers, `PIT` (Programmable Interval
   Timer) timer (`IRQ` (interrupt request) 0), keyboard (`IRQ` 1), and the `INT 0x80` syscall gate
 - Remaps the 8259 `PIC` (Programmable Interrupt Controller) to avoid overlap with CPU exceptions
