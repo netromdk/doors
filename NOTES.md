@@ -424,6 +424,9 @@ PIC Setup
 - Cascade: master knows slave is on `IRQ` 2, slave knows its cascade identity is `IRQ` 2.
 - `sendEoi()` sends `0x20` to both `PIC` s unconditionally (simplified approach).
 - `setMask()` enables or disables individual `IRQ`s via the `IMR` (Interrupt Mask Register).
+- `getIsr()` and `getIrr()` read the In-Service and Interrupt Request registers from both PICs for
+  diagnostics.
+- Init saves existing masks before remapping and restores them afterward, preserving BIOS settings.
 
 End-to-End Flow
 ---------------
