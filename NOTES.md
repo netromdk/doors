@@ -238,6 +238,66 @@ The `readCpuInfo()` function copies the detection results into a struct exposed 
 `SYS_SYSINFO` syscall, giving the `shell`'s `cpuinfo` command its data.
 
 
+Paging (Runtime)
+================
+
+Standard 32-bit x86 4 KiB paging (`kernel/arch/i386/Paging.cc`,
+`kernel/include/arch/i386/Paging.h`). Each page directory has 1024 `PDE`s, each pointing to a page
+table with 1024 `PTE` (Page Table Entry)s. `PDE` index 768 maps virtual addresses starting at
+`0xC0000000` (the higher-half), mirroring the identity map at `PDE` 0 so the kernel can use
+`physToVirt()`/`virtToPhys()` after paging is enabled. `physToVirt()` adds `KERNEL_VIRTUAL_BASE` to
+a physical address. `virtToPhys()` subtracts it. `physToVirt32()` and `virtToPhys32()` are
+`uint32_t` variants used for page-table manipulation.
+
+Page Mapping
+------------
+
+`mapPage()` resolves the virtual address into `PDE`/`PTE` indices. If the page table doesn't exist,
+`ensurePageTable()` allocates a frame from `Pmm`, zeroes it, fills the `PDE`, and flushes the `TLB`
+by reloading `CR3`. The `PTE` is set with the physical address and flags (`PAGE_PRESENT`, `PAGE_RW`,
+`PAGE_USER`). `INVLPG` flushes the single entry. Interrupts are disabled during mapping via
+`InterruptGuard` to prevent race conditions.
+
+`unmapPage()` clears the `PTE` and flushes the `TLB` entry. If the entire page table is empty,
+`tryFreePageTable()` frees its frame back to `Pmm` and clears the `PDE`.
+
+Page Directory Cloning
+----------------------
+
+`clonePageDir()` allocates a new page directory frame, copies the kernel page directory, and for
+each `PDE` marked `PAGE_USER`: allocates a new page table, copies the old entries into it, and
+points the new `PDE` at the copy. Kernel-only `PDE` entries are shared (shallow copy). Returns the
+physical address of the new page directory. Used by the scheduler when creating a userland task with
+its own address space. Includes rollback on OOM: frees any partially-allocated page tables.
+
+Trampoline Page
+---------------
+
+A single page mapped at `TRAMPOLINE_VADDR` (`0xBF000000`) in every page directory. When the
+scheduler switches to a new task's page directory via `CR3`, the code and stack both change
+simultaneously. The trampoline page is identically mapped in all page directories, giving the switch
+code a stable virtual address to execute from during the transition. Allocated during `init()` via
+`mapTrampoline()`.
+
+The problem it solves: `Scheduler::switchTo()` calls `Cpu::writeCr3()` to change the active page
+directory. After that instruction, every virtual address resolves through the new page directory.
+If the code executing the switch were not mapped in the new directory, the CPU would page-fault with
+no way to recover. The kernel's higher-half mappings (`0xC0000000+`) are also shared by
+`clonePageDir()` and already provide this guarantee, but the trampoline page adds an additional
+safety net at a distinct address. It is always present because `clonePageDir()` shallow-copies all
+kernel-only `PDE` entries, and `mapTrampoline()` doesn't set `PAGE_USER`.
+
+The full sequence: `switchTo()` disables interrupts via `InterruptGuard`, writes the new task's page
+directory to `CR3` (safe because the trampoline page and kernel mappings are present in every page
+directory), updates `TSS.ESP0` if the task is userland, then returns the new task's saved `ESP`. The
+assembly stub (`asmIntTick`) does `movl %eax, %esp` to swap to the new task's kernel stack, then
+`popal; iret` resumes it.
+
+`clearPageTable()` allocates a fresh page table and swaps it in, rather than zeroing the existing
+one. This avoids corrupting a shared kernel page table when a userland task's page table shares a
+`PDE` with the kernel.
+
+
 Memory Management
 =================
 
