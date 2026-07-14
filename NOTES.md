@@ -106,9 +106,7 @@ checks:
 - `__cxa_guard_acquire(__guard *g)` returns `!*g` (1 if uninitialized, 0 if already initialized).
 - `__cxa_guard_release(__guard *g)` sets `*g = 1`.
 
-The `__guard` type is `int` decorated with `__attribute__((mode(__DI__)))`, GCC's "double-integer"
-mode. This forces the type to exactly 32 bits regardless of the platform's default `int` size,
-matching the Itanium C++ ABI expectation for guard variables [6]. `__cxa_guard_abort` and
+The `__guard` type is a 32-bit `int`. `__cxa_guard_abort` and
 `__cxa_guard_finalize` are not implemented (no exceptions means no aborted initialization). This is
 what makes `static` local variables work in the kernel.
 
