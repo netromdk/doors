@@ -17,6 +17,7 @@ set(TESTRUNNER_SOURCES
   tests/Execmod.cc
   tests/Heap.cc
   tests/Input.cc
+  tests/PageFault.cc
 )
 
 add_user_program(testrunner
