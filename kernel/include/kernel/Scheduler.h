@@ -84,6 +84,9 @@ private:
 
   static int totalExited_;
 
+  // Monotonically increasing PID counter. PID 0 is reserved for `idle`.
+  static uint8_t nextPid_;
+
   static optional<int> findSlot();
   static uint32_t initStackFrame(uint8_t *stack, void (*entry)());
   static uint32_t initUserStackFrame(uint8_t *stack, uint32_t userEip, uint32_t userEsp);
@@ -92,6 +95,8 @@ private:
   static uint32_t switchTo(int next);
   static void checkCanary(const Task &t);
   static void taskWrapper();
+  static void initProcessFields(Task &t);
+  static void reparentChildren(uint8_t parentId);
 
   // Count tasks whose state matches the given predicate.
   using StatePred = bool (*)(TaskState);
