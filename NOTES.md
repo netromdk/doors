@@ -400,7 +400,11 @@ Tasks go through four states:
 4. and `BLOCKED` (waiting for an event or a timed sleep).
 
 When a task is created, its stack is set up with a register frame that `popal; iret` will pop on
-first schedule, so the task starts at its entry function with interrupts enabled.
+first schedule, so the task starts at its entry function with interrupts enabled. Each task has a
+unique `pid` (process ID) assigned from a static counter, and a `ppid` (parent PID) set from the
+creating task. When a task exits, its children are reparented to PID 0 (the `idle` task). The task
+struct also tracks `exitCode`, an array of child PIDs, and a `childCount`. These fields form the
+foundation for `fork()`, `exec()`, and `waitpid()`.
 
 Every `PIT` tick, the timer `ISR` ([Interrupt Service Routine](https://wiki.osdev.org/Interrupts))
 calls `Scheduler::tick()`. It saves the current task's stack pointer, checks a stack canary

@@ -45,6 +45,14 @@ struct Task {
   uint32_t elfVaddr[ELF_PAGE_MAX]{};
   uint32_t elfPhys[ELF_PAGE_MAX]{};
 
+  // Process hierarchy fields.
+  uint8_t pid{};  // Unique process ID. 0 = `idle` task.
+  uint8_t ppid{}; // Parent PID. 0 = no parent (kernel tasks).
+  int exitCode{}; // Exit status. 0 = not yet exited.
+  static constexpr int MAX_CHILDREN = 8;
+  uint8_t children[MAX_CHILDREN]{}; // Child PIDs.
+  int childCount{};                 // Number of active children.
+
   // Per-session history for SYS_READLINE. Allocated on first call, freed on task exit.
   string *historyBuf_{}; // Array of HISTORY_MAX strings. nullptr = not yet allocated.
   int historyCount_{};   // Number of entries in history.

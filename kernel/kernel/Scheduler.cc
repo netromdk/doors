@@ -25,6 +25,7 @@ volatile int Scheduler::currentIdx_{0};
 volatile int Scheduler::quantumRemaining_{0};
 volatile bool Scheduler::initialized_{false};
 int Scheduler::totalExited_{0};
+uint8_t Scheduler::nextPid_{0};
 
 int Scheduler::countIf(StatePred pred)
 {
@@ -57,6 +58,8 @@ void Scheduler::init()
   fill(tasks_.begin(), tasks_.end(), Task{});
   tasks_[0].state = TaskState::RUNNING;
   tasks_[0].id = 0;
+  tasks_[0].pid = 0;
+  tasks_[0].ppid = 0;
   tasks_[0].entry = nullptr;
   tasks_[0].stackBuf = nullptr;
   tasks_[0].stackSize = 0;
@@ -179,6 +182,7 @@ optional<int> Scheduler::addTaskImpl(string_view name, void (*entry)(), uint32_t
   t.entry = entry;
   t.state = TaskState::READY;
   t.id = static_cast<uint8_t>(slot);
+  initProcessFields(t);
   t.stackBuf = stack;
   t.stackSize = TASK_STACK_SIZE;
   const auto len = name.copy(t.name.data(), t.name.size() - 1);
@@ -278,6 +282,23 @@ uint32_t Scheduler::switchTo(int next)
 #endif
 
   return tasks_[currentIdx_].esp;
+}
+
+void Scheduler::initProcessFields(Task &t)
+{
+  t.pid = nextPid_++;
+  t.ppid = (currentIdx_ >= 0 && currentIdx_ < MAX_TASKS) ? tasks_[currentIdx_].pid : 0;
+  t.exitCode = 0;
+  t.childCount = 0;
+}
+
+void Scheduler::reparentChildren(uint8_t parentId)
+{
+  for (int i = 0; i < taskCount_; ++i) {
+    if (tasks_[i].state != TaskState::DEAD && tasks_[i].ppid == parentId) {
+      tasks_[i].ppid = 0;
+    }
+  }
 }
 
 optional<int> Scheduler::addTaskAndBlock(string_view name, void (*entry)(), uint32_t pageDir)
@@ -437,6 +458,7 @@ optional<int> Scheduler::addUserTask(string_view name)
   t.entry = nullptr;
   t.state = TaskState::READY;
   t.id = static_cast<uint8_t>(slot);
+  initProcessFields(t);
   t.stackBuf = static_cast<uint8_t *>(kstack.ptr);
   t.stackSize = TASK_STACK_SIZE;
   name.copy(t.name.data(), t.name.size() - 1);
@@ -491,6 +513,7 @@ optional<int> Scheduler::addUserElfTask(string_view name, const void *elfData, s
   t.entry = nullptr;
   t.state = TaskState::READY;
   t.id = static_cast<uint8_t>(slot);
+  initProcessFields(t);
   t.stackBuf = static_cast<uint8_t *>(kstack.ptr);
   t.stackSize = TASK_STACK_SIZE;
   name.copy(t.name.data(), t.name.size() - 1);
@@ -542,6 +565,9 @@ optional<int> Scheduler::addUserElfTask(string_view, const void *, size_t)
 
   tasks_[currentIdx_].state = TaskState::DEAD;
   ++totalExited_;
+
+  // Reparent children to PID 0 (idle) so they are not orphaned.
+  reparentChildren(tasks_[currentIdx_].pid);
 
   // Free per-task history buffer.
   if (tasks_[currentIdx_].historyBuf_ != nullptr) {
@@ -775,6 +801,9 @@ void Scheduler::killTask(int id)
 
   tasks_[id].state = TaskState::DEAD;
   ++totalExited_;
+
+  // Reparent children to PID 0 (idle).
+  reparentChildren(tasks_[id].pid);
 
   // Free memory used by task.
   if (tasks_[id].stackBuf != nullptr) {
