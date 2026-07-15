@@ -82,4 +82,8 @@ static_assert(sizeof(CpuInfoRaw) == 76, "CpuInfoRaw size mismatch");
 
 extern "C" uint32_t syscallHandler(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx);
 
+// Set by `asmInt80` before calling `syscallHandler`. Points to the parent's `pushal` frame on the
+// kernel stack. Used by `SYS_FORK` to copy the parent's register state into the child.
+extern "C" uint32_t syscallFrameEsp;
+
 #endif // KERNEL_SYSCALL_H

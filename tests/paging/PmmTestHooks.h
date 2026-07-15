@@ -3,5 +3,6 @@
 
 int pmmTestAllocCount();
 int pmmTestFreeCount();
+void pmmTestResetCounts();
 
 #endif

@@ -22,6 +22,11 @@ struct SchedulerTestAccess {
   {
     Scheduler::totalExited_ = 0;
   }
+
+  static void setCurrentIdx(int idx)
+  {
+    Scheduler::currentIdx_ = idx;
+  }
 };
 
 #endif // TESTS_SCHEDULER_SCHEDULERTESTACCESS_H

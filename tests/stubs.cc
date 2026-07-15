@@ -188,3 +188,5 @@ __attribute__((weak)) uint8_t userTestStart = 0xC3; // ret instruction
 __attribute__((weak)) uint8_t userTestEnd = 0;
 }
 __attribute__((weak)) Tss tss{};
+
+uint32_t syscallFrameEsp = 0;

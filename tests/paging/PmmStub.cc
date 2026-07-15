@@ -89,3 +89,10 @@ int pmmTestFreeCount()
 {
   return freeCountCalls;
 }
+
+void pmmTestResetCounts()
+{
+  allocCount = 0;
+  freeCountCalls = 0;
+  freeCount = 0;
+}
