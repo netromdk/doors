@@ -323,6 +323,7 @@ doors_test_module(test_kernel_paging_sched
   paging/SchedulerPageDir.cc
   paging/Fork.cc
   paging/Exec.cc
+  paging/Waitpid.cc
   paging/PagingStub.cc
   paging/PmmStub.cc
   stubs.cc

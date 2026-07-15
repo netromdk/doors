@@ -301,6 +301,25 @@ void Scheduler::reparentChildren(uint8_t parentId)
   }
 }
 
+uint32_t Scheduler::reapDeadChild(Task &parent, int *status)
+{
+  for (int i = 0; i < parent.childCount; ++i) {
+    const auto childPid = parent.children[i];
+    for (int t = 0; t < taskCount_; ++t) {
+      if (tasks_[t].pid == childPid && tasks_[t].state == TaskState::DEAD) {
+        if (status != nullptr) {
+          *status = tasks_[t].exitCode;
+        }
+        const auto result = tasks_[t].pid;
+        parent.children[i] = parent.children[parent.childCount - 1];
+        --parent.childCount;
+        return static_cast<uint32_t>(result);
+      }
+    }
+  }
+  return static_cast<uint32_t>(-1);
+}
+
 optional<int> Scheduler::addTaskAndBlock(string_view name, void (*entry)(), uint32_t pageDir)
 {
   InterruptGuard guard;
@@ -767,6 +786,52 @@ uint32_t Scheduler::exec(int modIdx)
 
   return 0;
 }
+
+uint32_t Scheduler::waitpid(int *status)
+{
+  if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
+    return static_cast<uint32_t>(-1);
+  }
+
+  Task &parent = tasks_[currentIdx_];
+
+  // Validate the status pointer if provided.
+#if defined(__IS_DOORS_KERNEL) && defined(__i386__)
+  if (status != nullptr) {
+    if (reinterpret_cast<uint32_t>(status) >= KERNEL_VIRTUAL_BASE) {
+      return static_cast<uint32_t>(-1);
+    }
+  }
+#endif
+
+  // Try to reap a dead child immediately.
+  if (const auto reaped = reapDeadChild(parent, status); reaped != static_cast<uint32_t>(-1)) {
+    return reaped;
+  }
+
+  // No dead child found.
+  if (parent.childCount == 0) {
+    return static_cast<uint32_t>(-1);
+  }
+
+  // Set `unblockOnExit` on all non-DEAD children so the current task (the one calling `waitpid()`)
+  // is woken when a child exits. This reuses the existing per-task unblock mechanism: each child
+  // will call `unblockTask()` on exit.
+  for (int i = 0; i < parent.childCount; ++i) {
+    const auto childPid = parent.children[i];
+    for (int t = 0; t < taskCount_; ++t) {
+      if (tasks_[t].pid == childPid && tasks_[t].state != TaskState::DEAD) {
+        tasks_[t].unblockOnExit = static_cast<int8_t>(currentIdx_);
+      }
+    }
+  }
+
+  blockCurrentTaskAndYield();
+
+  // After being unblocked, a child has exited. Try to reap again.
+  return reapDeadChild(parent, status);
+}
+
 #else
 
 optional<int> Scheduler::addUserTask(string_view)
@@ -785,6 +850,11 @@ uint32_t Scheduler::fork()
 }
 
 uint32_t Scheduler::exec(int)
+{
+  return static_cast<uint32_t>(-1);
+}
+
+uint32_t Scheduler::waitpid(int *)
 {
   return static_cast<uint32_t>(-1);
 }
