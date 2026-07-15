@@ -621,8 +621,12 @@ I/O: `SYS_WRITE` (1) writes one char to the terminal. `SYS_WRITESTR` (4) writes 
 
 Process control: `SYS_EXIT` (2) terminates the current task and unblocks its parent if waiting.
 `SYS_EXECMOD` (9) loads a GRUB module as a userland ELF task and blocks until the child
-exits. `SYS_PANIC` (10) signals `ACPI` shutdown then triggers `panic()`. `SYS_POWEROFF` (13) does an
-`ACPI` `S5` (sleep state 5) shutdown with triple-fault fallback.
+exits. `SYS_FORK` (14) duplicates the calling process: clones the address space and register state,
+returns the child's PID to the parent and 0 to the child. `SYS_EXEC` (15) replaces the current
+process image with a new ELF binary from a GRUB module, keeping the same PID. `SYS_WAITPID` (16)
+blocks until a child process exits, returning the child's PID and exit code. `SYS_PANIC` (10)
+signals `ACPI` shutdown then triggers `panic()`. `SYS_POWEROFF` (13) does an `ACPI` `S5` (sleep
+state 5) shutdown with triple-fault fallback.
 
 Device control: `SYS_IOCTL` (6) dispatches 10 sub-commands: `CLEAR`, `HALT`, `REBOOT`, `PUT` (write
 char at packed row/col/char/color position), `SAVESCREEN`/`RESTORESCREEN` (VGA buffer snapshot for
