@@ -26,6 +26,7 @@ void main()
   runTaskctlTests();
   runIoctlTests();
   runExecmodTests();
+  runForkExecWaitpidTests();
   runInputTests();
   runHeapTests();
   runPageFaultTests();

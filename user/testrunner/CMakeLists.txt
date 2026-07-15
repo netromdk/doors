@@ -15,6 +15,7 @@ set(TESTRUNNER_SOURCES
   tests/Taskctl.cc
   tests/Ioctl.cc
   tests/Execmod.cc
+  tests/ForkExecWaitpid.cc
   tests/Heap.cc
   tests/Input.cc
   tests/PageFault.cc
