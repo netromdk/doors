@@ -288,6 +288,10 @@ points the new `PDE` at the copy. Kernel-only `PDE` entries are shared (shallow 
 physical address of the new page directory. Used by the scheduler when creating a userland task with
 its own address space. Includes rollback on OOM: frees any partially-allocated page tables.
 
+The no-arg version clones from the kernel page directory. A `clonePageDir(uint32_t srcDirPhys)`
+overload clones from an arbitrary source page directory, will be used by `fork()` to duplicate a
+task's full address space (including user pages mapped after task creation).
+
 Trampoline Page
 ---------------
 

@@ -75,9 +75,10 @@ public:
   static void clearPageTable(uint32_t virtAddr);
   static void clearPageTable(uint32_t virtAddr, uint32_t pageDir);
 
-  // Allocate a new page directory from Pmm, copy the kernel page directory into it, and return its
-  // physical address. It is used by the scheduler when creating a task with its own address space.
+  // Clone a page directory. The no-arg version clones from the kernel page directory. The overload
+  // clones from an arbitrary source page directory.
   static uint32_t clonePageDir();
+  static uint32_t clonePageDir(uint32_t srcDirPhys);
 
   // Physical address of the kernel's page directory. Used by the scheduler when switching to a task
   // that does not have its own page directory.

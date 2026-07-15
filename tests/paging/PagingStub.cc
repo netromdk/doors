@@ -43,6 +43,19 @@ uint32_t Paging::clonePageDir()
   return static_cast<uint32_t>(phys);
 }
 
+uint32_t Paging::clonePageDir(uint32_t)
+{
+  void *frame = Pmm::allocFrame();
+  if (frame == nullptr) {
+    return 0;
+  }
+
+  __builtin_memset(frame, 0, Pmm::PAGE_SIZE);
+  const int phys = nextPhysAddr;
+  nextPhysAddr += 0x1000;
+  return static_cast<uint32_t>(phys);
+}
+
 bool Paging::mapPage(uint32_t, uint32_t, uint32_t)
 {
   return true;
