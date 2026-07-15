@@ -51,6 +51,20 @@ void testExecmodInvalid();
 void testExecmodSuccess();
 void testExecmodChildExits();
 
+// Fork / exec / waitpid.
+void runForkExecWaitpidTests();
+void testWaitpidNoChildren();
+void testForkSimple();
+void testForkWaitpid();
+void testForkWaitpidExitCode();
+void testForkExecWaitpid();
+void testMultipleChildren();
+void testForkInLoop();
+void testWaitpidNullStatus();
+void testWaitpidInvalidStatus();
+void testWaitpidAlreadyExited();
+void testForkExecInvalidModule();
+
 // Input.
 void runInputTests();
 void testSysRead();
