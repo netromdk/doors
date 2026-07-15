@@ -91,6 +91,7 @@ private:
   static uint8_t nextPid_;
 
   static optional<int> findSlot();
+  static uint8_t *allocKernelStack();
   static uint32_t initStackFrame(uint8_t *stack, void (*entry)());
   static uint32_t initUserStackFrame(uint8_t *stack, uint32_t userEip, uint32_t userEsp);
   static optional<int> addTaskImpl(string_view name, void (*entry)(), uint32_t pageDir = 0);

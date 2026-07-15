@@ -94,11 +94,18 @@ optional<int> Scheduler::findSlot()
   return n;
 }
 
+uint8_t *Scheduler::allocKernelStack()
+{
+  auto *stack = static_cast<uint8_t *>(Heap::alloc(TASK_STACK_SIZE));
+  if (stack != nullptr) {
+    // Canary at the base of the buffer to detect overflow.
+    reinterpret_cast<uint32_t *>(stack)[0] = Task::STACK_CANARY;
+  }
+  return stack;
+}
+
 uint32_t Scheduler::initStackFrame(uint8_t *stack, void (*entry)())
 {
-  // Canary at the base of the buffer to detect overflow.
-  reinterpret_cast<uint32_t *>(stack)[0] = Task::STACK_CANARY;
-
   // Build the register frame that `popal; iret` will pop when the task first runs. Frame layout
   // matches what the timer ISR pushed: the top 12 bytes are consumed by `iret` (EIP -> CS ->
   // EFLAGS, popped high-to-low), and the preceding 32 bytes are consumed by `popal` (EDI -> ESI ->
@@ -130,9 +137,6 @@ uint32_t Scheduler::initStackFrame(uint8_t *stack, void (*entry)())
 
 uint32_t Scheduler::initUserStackFrame(uint8_t *stack, uint32_t userEip, uint32_t userEsp)
 {
-  // Canary at the base of the buffer to detect overflow.
-  reinterpret_cast<uint32_t *>(stack)[0] = Task::STACK_CANARY;
-
   const auto stackTop = reinterpret_cast<uint32_t *>(stack + TASK_STACK_SIZE);
 
   // iret frame for ring 3 -> ring 0 -> ring 3 (20 bytes).
@@ -173,7 +177,7 @@ optional<int> Scheduler::addTaskImpl(string_view name, void (*entry)(), uint32_t
   t.onKill = nullptr;
   t.pageDir = pageDir;
 
-  auto *stack = static_cast<uint8_t *>(Heap::alloc(TASK_STACK_SIZE));
+  auto *stack = allocKernelStack();
   if (stack == nullptr) {
     return {};
   }
@@ -491,7 +495,7 @@ optional<int> Scheduler::addUserTask(string_view name)
   }
   t = {};
 
-  HeapAlloc kstack{Heap::alloc(TASK_STACK_SIZE), true};
+  HeapAlloc kstack{allocKernelStack(), true};
   if (!kstack.ptr) {
     return {};
   }
@@ -546,7 +550,7 @@ optional<int> Scheduler::addUserElfTask(string_view name, const void *elfData, s
   }
   t = {};
 
-  HeapAlloc kstack{Heap::alloc(TASK_STACK_SIZE), true};
+  HeapAlloc kstack{allocKernelStack(), true};
   if (!kstack.ptr) {
     return {};
   }
@@ -623,8 +627,8 @@ uint32_t Scheduler::fork()
   }
   child = {};
 
-  // Allocate kernel stack for the child.
-  auto *childStack = static_cast<uint8_t *>(Heap::alloc(TASK_STACK_SIZE));
+  // Allocate kernel stack for the child (includes canary).
+  auto *childStack = allocKernelStack();
   if (childStack == nullptr) {
     return static_cast<uint32_t>(-1);
   }
