@@ -12,6 +12,13 @@ at `0xC0000000`. Everything runs in ring 0 ([CPU Rings](https://wiki.osdev.org/S
 kernel mode, full hardware access) except userland programs which get their own page directories and
 run in ring 3 (user mode, restricted access, must use syscalls to talk to the kernel).
 
+The minimum target ISA ([Instruction Set
+Architecture](https://en.wikipedia.org/wiki/Instruction_set_architecture)) is configurable via
+`DOORS_TARGET_ISA` (CMake cache variable, default `586`). Instructions above the target level are
+conditionally compiled out: `invlpg` (i486) falls back to a CR3 reload, `cpuid`/`rdtsc` (i586) are
+replaced with zero-return stubs. Below i586, `CPUID` is unavailable and `Cpu::init()` returns false,
+preventing boot.
+
 C++ support comes from `libc++/`, a freestanding C++20 standard library that gets built three times:
 
 - `libc++_kernel.a` for the kernel,
@@ -42,7 +49,8 @@ The build system uses CMake and Ninja. The toolchain file (`cmake/i386-elf-toolc
 
 Compilation settings (`cmake/compilation.cmake`): C++20 required, no extensions. Debug uses `-O0
 -g`. Release uses `-O2 -DNDEBUG -fno-omit-frame-pointer -fwrapv -fno-strict-aliasing`. Both use
-`-Wall -Wextra -Wpedantic -Werror`.
+`-Wall -Wextra -Wpedantic -Werror`. The `DOORS_TARGET_ISA` cache variable controls which ISA-level
+instructions are available (see Architecture section for details).
 
 The kernel gets built in two passes. The first pass links with a stub symbol table so the linker can
 resolve everything (`doors_firstpass.kernel`). Then `scripts/gen-symbols.py` runs `nm -n` on the

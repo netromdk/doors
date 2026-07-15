@@ -74,6 +74,9 @@ using CpuExtFeatures2 = union CpuExtFeatures2_;
 
 bool cpuidSupported()
 {
+#if DOORS_TARGET_ISA < 586
+  return false;
+#else
   // This method uses the ID flag in bit 21 of the EFLAGS register. If software can change the value
   // of this flag, the CPUID instruction is executable.
 
@@ -92,11 +95,17 @@ bool cpuidSupported()
           :
           : "cc");
   return res == 1;
+#endif
 }
 
 void cpuid(int code, uint32_t res[4])
 {
+#if DOORS_TARGET_ISA >= 586
   __asm__("cpuid" : "=a"(res[0]), "=b"(res[1]), "=c"(res[2]), "=d"(res[3]) : "a"(code));
+#else
+  (void) code;
+  res[0] = res[1] = res[2] = res[3] = 0;
+#endif
 }
 
 void cpuVendorId(char result[13], uint32_t &funcMax)
@@ -341,11 +350,16 @@ bool Cpu::hasSysEnter()
 
 uint32_t Cpu::getTimeStamp()
 {
+#if DOORS_TARGET_ISA >= 586
   uint32_t cycles;
   __asm__("rdtsc" : "=a"(cycles));
   return cycles;
+#else
+  return 0;
+#endif
 }
 
+#if DOORS_TARGET_ISA >= 586
 uint32_t __cycle, __base, __time;
 float __x = 42.0;
 namespace {
@@ -395,6 +409,7 @@ uint32_t _getCyclesPrFDiv()
 }
 
 } // namespace
+#endif
 
 /**
  * Get a baseline and subtract from values to try to elminate data and
@@ -402,12 +417,16 @@ uint32_t _getCyclesPrFDiv()
  */
 uint32_t Cpu::getCyclesPrFDiv()
 {
+#if DOORS_TARGET_ISA >= 586
   uint32_t cycles = 0, base = 0, count = 1024;
   for (size_t i = 0; i < count; i++) {
     base += _getCyclesOverhead();
     cycles += _getCyclesPrFDiv();
   }
   return (cycles / count) - (base / count);
+#else
+  return 0;
+#endif
 }
 
 uint32_t Cpu::getEflags()
@@ -472,7 +491,16 @@ void Cpu::writeCr3(uint32_t value)
 
 void Cpu::invlpg(uint32_t virtAddr)
 {
+#if DOORS_TARGET_ISA >= 486
   __asm__("invlpg (%0)" : : "r"(virtAddr) : "memory");
+#else
+  // `invlpg` is not available on i386.
+  // Reload CR3 to flush the entire TLB.
+  (void) virtAddr;
+  uint32_t cr3;
+  __asm__("mov %%cr3, %0" : "=r"(cr3));
+  __asm__("mov %0, %%cr3" : : "r"(cr3) : "memory");
+#endif
 }
 
 void Cpu::halt()

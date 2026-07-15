@@ -2,6 +2,12 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Minimum target ISA level. Instructions above this level are conditionally compiled out or using
+# lower level instructions. Valid values: 386, 486, 586, 686.
+set(DOORS_TARGET_ISA 586 CACHE STRING "Minimum target ISA level (386, 486, 586, 686)")
+add_compile_definitions(DOORS_TARGET_ISA=${DOORS_TARGET_ISA})
+message(STATUS "Target ISA: i${DOORS_TARGET_ISA}")
+
 # Build-type-specific flags.
 if (DOORS_BUILD_TYPE STREQUAL "Release")
   add_compile_options(
