@@ -509,6 +509,9 @@ extern "C" uint32_t syscallHandler(uint32_t eax, uint32_t ebx, uint32_t ecx, uin
 
   case SYS_FORK:
     return Scheduler::fork();
+
+  case SYS_EXEC:
+    return Scheduler::exec(static_cast<int>(ebx));
 #endif
 
   default:

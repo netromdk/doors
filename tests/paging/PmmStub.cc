@@ -96,3 +96,18 @@ void pmmTestResetCounts()
   freeCountCalls = 0;
   freeCount = 0;
 }
+
+int Pmm::moduleCount()
+{
+  return 0;
+}
+
+uint32_t Pmm::modulePhysStart(int)
+{
+  return 0;
+}
+
+uint32_t Pmm::modulePhysSize(int)
+{
+  return 0;
+}

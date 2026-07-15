@@ -190,4 +190,11 @@ static inline int sys_fork()
   return ret;
 }
 
+static inline int sys_exec(unsigned int module_index)
+{
+  int ret;
+  __asm__ volatile("int $0x80" : "=a"(ret) : "a"(SYS_EXEC), "b"(module_index) : "memory");
+  return ret;
+}
+
 #endif

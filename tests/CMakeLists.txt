@@ -322,6 +322,7 @@ doors_test_module(test_kernel_paging_sched
   paging/PhysToVirt.cc
   paging/SchedulerPageDir.cc
   paging/Fork.cc
+  paging/Exec.cc
   paging/PagingStub.cc
   paging/PmmStub.cc
   stubs.cc
