@@ -62,3 +62,9 @@ TEST_CASE("Paging::unmapPage compiles")
   // Smoke test: unmapPage exists and links.
   Paging::unmapPage(0x1000);
 }
+
+TEST_CASE("Paging::clonePageDir(srcDirPhys) returns non-zero")
+{
+  const auto result = Paging::clonePageDir(0x200000);
+  CHECK(result != 0);
+}

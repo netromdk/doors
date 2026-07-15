@@ -255,6 +255,11 @@ void Paging::clearPageTable(uint32_t virtAddr, uint32_t pageDir)
 
 uint32_t Paging::clonePageDir()
 {
+  return clonePageDir(kernelPageDirPhys());
+}
+
+uint32_t Paging::clonePageDir(uint32_t srcDirPhys)
+{
   void *pdFrame = Pmm::allocFrame();
   if (pdFrame == nullptr) {
     printf("Paging::clonePageDir: OOM\n");
@@ -272,8 +277,9 @@ uint32_t Paging::clonePageDir()
     Pmm::freeFrame(virtToPhys(newPd));
   };
 
+  const auto *srcPd = physToVirt32(reinterpret_cast<void *>(srcDirPhys));
   for (int i = 0; i < PDE_COUNT; ++i) {
-    const uint32_t pde = kernelPageDir_[i];
+    const uint32_t pde = srcPd[i];
     if (!(pde & PAGE_PRESENT)) {
       continue;
     }
