@@ -64,6 +64,7 @@ void testWaitpidNullStatus();
 void testWaitpidInvalidStatus();
 void testWaitpidAlreadyExited();
 void testForkExecInvalidModule();
+void testForkChildWork();
 
 // Input.
 void runInputTests();

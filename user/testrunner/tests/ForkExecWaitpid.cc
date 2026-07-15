@@ -17,6 +17,7 @@ void runForkExecWaitpidTests()
   runTest("waitpid_invalid_status", testWaitpidInvalidStatus);
   runTest("waitpid_already_exited", testWaitpidAlreadyExited);
   runTest("fork_exec_invalid_module", testForkExecInvalidModule);
+  runTest("fork_child_work", testForkChildWork);
 }
 
 void testWaitpidNoChildren()
@@ -188,4 +189,21 @@ void testForkExecInvalidModule()
   int status{};
   const auto reaped = sys_waitpid(&status);
   ASSERT_TRUE(reaped == pid, "should reap child after failed exec");
+}
+
+void testForkChildWork()
+{
+  const auto pid = sys_fork();
+  ASSERT_TRUE(pid >= 0, "fork should succeed");
+
+  if (pid == 0) {
+    // Child: do computation, report result via exit code.
+    sys_exit(6 * 7);
+  }
+
+  // Parent: wait and verify the child's result.
+  int status = -1;
+  const auto reaped = sys_waitpid(&status);
+  ASSERT_TRUE(reaped == pid, "should reap the correct child");
+  ASSERT_TRUE(status == 42, "child should report 6 * 7 = 42");
 }

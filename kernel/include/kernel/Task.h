@@ -62,6 +62,10 @@ struct Task {
   // When set, the taskbar task should not display while this task is alive.
   static constexpr uint8_t FLAG_SUPPRESS_TASKBAR = 1;
 
+  // Exit code conventions (matching POSIX).
+  static constexpr int EXIT_CODE_SIGNAL_BASE = 128;
+  static constexpr int SIGSEGV = 11;
+
   static constexpr int HISTORY_MAX = 100;
 
   // The stack canary is written at the base of each task's stack buffer. It is checked by

@@ -324,6 +324,7 @@ doors_test_module(test_kernel_paging_sched
   paging/Fork.cc
   paging/Exec.cc
   paging/Waitpid.cc
+  paging/ExitCode.cc
   paging/PagingStub.cc
   paging/PmmStub.cc
   stubs.cc
