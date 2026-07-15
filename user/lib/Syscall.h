@@ -83,9 +83,9 @@ static inline void sys_write(char c)
   __asm__ volatile("int $0x80" : : "a"(SYS_WRITE), "b"((unsigned int) c) : "memory");
 }
 
-__attribute__((noreturn)) static inline void sys_exit()
+__attribute__((noreturn)) static inline void sys_exit(int code = 0)
 {
-  __asm__ volatile("int $0x80" : : "a"(SYS_EXIT));
+  __asm__ volatile("int $0x80" : : "a"(SYS_EXIT), "b"(static_cast<unsigned int>(code)));
   __builtin_unreachable();
 }
 

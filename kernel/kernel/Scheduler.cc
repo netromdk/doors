@@ -199,7 +199,7 @@ void Scheduler::taskWrapper()
   if (tasks_[currentIdx_].entry) {
     tasks_[currentIdx_].entry();
   }
-  exitCurrentTask();
+  exitCurrentTask(0);
 }
 
 uint32_t Scheduler::tick(uint32_t currentEsp)
@@ -861,7 +861,7 @@ uint32_t Scheduler::waitpid(int *)
 
 #endif
 
-[[noreturn]] void Scheduler::exitCurrentTask()
+[[noreturn]] void Scheduler::exitCurrentTask(int code)
 {
   // Disable interrupts so the current task's state transition to DEAD and the CR3 switch in
   // `switchTo()` are not interrupted. This function never returns, so the InterruptGuard destructor
@@ -876,6 +876,7 @@ uint32_t Scheduler::waitpid(int *)
     tasks_[currentIdx_].onKill();
   }
 
+  tasks_[currentIdx_].exitCode = code;
   tasks_[currentIdx_].state = TaskState::DEAD;
   ++totalExited_;
 
@@ -956,7 +957,7 @@ uint32_t Scheduler::waitpid(int *)
 {
   printf("Scheduler: killing task %d \"%s\" due to page fault\n", currentIdx_,
          tasks_[currentIdx_].name.data());
-  exitCurrentTask();
+  exitCurrentTask(Task::EXIT_CODE_SIGNAL_BASE + Task::SIGSEGV);
 }
 
 void Scheduler::unblockTask(int id)

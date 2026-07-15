@@ -461,7 +461,7 @@ extern "C" uint32_t syscallHandler(uint32_t eax, uint32_t ebx, uint32_t ecx, uin
     return 1;
 
   case SYS_EXIT:
-    Scheduler::exitCurrentTask();
+    Scheduler::exitCurrentTask(static_cast<int>(ebx));
     return 0; // unreachable
 
   case SYS_READ:
