@@ -5,8 +5,10 @@ Architecture
 
 The kernel lives in `kernel/`, with boot, interrupt handling, and paging code under
 `kernel/arch/i386/` and the rest in `kernel/kernel/`. It's a 32-bit higher-half monolithic kernel,
-loaded at 1 MiB (set in `kernel/arch/i386/Linker.ld`) by GRUB (GRand Unified Bootloader [1])
-Multiboot [2], with a higher-half virtual mapping at `0xC0000000`. Everything runs in ring 0 ([3]
+loaded at 1 MiB (set in `kernel/arch/i386/Linker.ld`) by GRUB ([GRand Unified
+Bootloader](https://www.gnu.org/software/grub/manual/grub/))
+[Multiboot](https://www.gnu.org/software/grub/manual/multiboot/), with a higher-half virtual mapping
+at `0xC0000000`. Everything runs in ring 0 ([CPU Rings](https://wiki.osdev.org/Security#Rings),
 kernel mode, full hardware access) except userland programs which get their own page directories and
 run in ring 3 (user mode, restricted access, must use syscalls to talk to the kernel).
 
@@ -18,15 +20,16 @@ C++ support comes from `libc++/`, a freestanding C++20 standard library that get
 
 The kernel and userland versions are freestanding. Userland also gets a `malloc()` implementation
 since it doesn't have access to the kernel heap. Conditional compilation macros select the right
-code paths depending on who's calling, e.g., `putchar()` goes through VGA (Video Graphics Array [4])
-directly in the kernel but uses `INT 0x80` from userland.
+code paths depending on who's calling, e.g., `putchar()` goes through VGA ([Video Graphics
+Array](https://wiki.osdev.org/VGA_Hardware)) directly in the kernel but uses `INT 0x80` from
+userland.
 
 Userland programs are under `user/`. The main ones are `shell` (interactive CLI with built-in
-commands) and `snake` (VGA snake game). Built as freestanding, statically-linked ELF (Executable and
-Linkable Format [5]) 32-bit binaries, with `user/User.ld` setting the output to `elf32-i386` and the
-base address to `0x10000000`. GRUB loads them as Multiboot modules and the kernel picks them up from
-there. Communication with the kernel happens through `INT 0x80` syscalls: 13 of them covering
-read/write, process control, system info, etc.
+commands) and `snake` (VGA snake game). Built as freestanding, statically-linked ELF ([Executable
+and Linkable Format](https://wiki.osdev.org/ELF)) 32-bit binaries, with `user/User.ld` setting the
+output to `elf32-i386` and the base address to `0x10000000`. GRUB loads them as Multiboot modules
+and the kernel picks them up from there. Communication with the kernel happens through `INT 0x80`
+syscalls: 13 of them covering read/write, process control, system info, etc.
 
 
 Build System
@@ -65,10 +68,10 @@ handler, ELF loader, symbol table, CMOS, CPU, syscalls, and userland programs (`
 additional abort test verifies non-zero exit.
 
 Integration tests (`cmake/run-qemu-timeout.cmake`) boot QEMU with a 30-second timeout, `ACPI`
-(Advanced Configuration and Power Interface [6]) enabled, and an `isa-debug-exit`
-device. `cmake/run-all-tests.cmake` runs 5 sequential phases: normal tests (the `testrunner`),
-crash-poweroff, crash-panic, crash-reboot, and crash-halt. Each phase's serial log is parsed by
-`scripts/parse-test-log.py` which validates JSON events and exit codes.
+([Advanced Configuration and Power Interface](https://wiki.osdev.org/ACPI)) enabled, and an
+`isa-debug-exit` device. `cmake/run-all-tests.cmake` runs 5 sequential phases: normal tests (the
+`testrunner`), crash-poweroff, crash-panic, crash-reboot, and crash-halt. Each phase's serial log is
+parsed by `scripts/parse-test-log.py` which validates JSON events and exit codes.
 
 GRUB has 3 config variants: normal (`grub.cfg.in`, 5-second timeout, loads `shell` + `snake`), test
 (`grub-test.cfg`, zero timeout, passes `--test` flag, loads `testrunner` + `minimal`), and crash
@@ -146,22 +149,26 @@ no-op as there aren't any registered global constructors.
 `kmain()` is where the real work happens. It calls `Arch::init()` which orchestrates all the
 hardware setup:
 
-- CPU detection via `CPUID` (CPU Identification [7], vendor, features, brand string)
+- CPU detection via `CPUID` ([CPU Identification](https://wiki.osdev.org/CPUID), vendor, features,
+  brand string)
 - Parses the Multiboot memory map into an array of available regions (`kernel/kernel/Mem.cc`,
   `kernel/include/kernel/Mem.h`). Only free chunks at or above 1 MiB are kept. Chunks at or above 4
-  GiB require `PAE` (Physical Address Extension [8]) support. `availableAbove()` finds the free
-  bytes from a given address to the end of the containing chunk, which determines the heap size. The
-  array holds up to 255 pointers into the Multiboot info structure (which must remain below 1 MiB).
-- Sets up the `GDT` (Global Descriptor Table [9]) at address `0x500`. 6 entries: null (unused),
-  kernel code (`PL0`, selector `0x08`, for `SYSENTER`), kernel data (`PL0`, selector `0x10`,
-  `SYSENTER` stack), user code (`PL3`, selector `0x18`, after `SYSEXIT`), user data (`PL3`, selector
-  `0x20`), and `TSS` (Task State Segment [10], selector `0x28`). The `TSS` stores `ESP0` and
+  GiB require `PAE` ([Physical Address Extension](https://wiki.osdev.org/PAE))
+  support. `availableAbove()` finds the free bytes from a given address to the end of the containing
+  chunk, which determines the heap size. The array holds up to 255 pointers into the Multiboot info
+  structure (which must remain below 1 MiB).
+- Sets up the `GDT` ([Global Descriptor Table](https://wiki.osdev.org/GDT)) at address `0x500`. 6
+  entries: null (unused), kernel code (`PL0`, selector `0x08`, for `SYSENTER`), kernel data (`PL0`,
+  selector `0x10`, `SYSENTER` stack), user code (`PL3`, selector `0x18`, after `SYSEXIT`), user data
+  (`PL3`, selector `0x20`), and `TSS` ([Task State
+  Segment](https://wiki.osdev.org/Task_State_Segment), selector `0x28`). The `TSS` stores `ESP0` and
   `SS0`. Loaded via `LGDT`, segments reloaded via far jump to `0x08`, `TSS` loaded via `LTR`.
-- Fills the `IDT` (Interrupt Descriptor Table [11]) with exception handlers, `PIT` (Programmable
-  Interval Timer [12]) timer (`IRQ` (interrupt request) 0), keyboard (`IRQ` 1), and the `INT 0x80`
-  syscall gate
-- Remaps the 8259 `PIC` (Programmable Interrupt Controller [13]) to avoid overlap with CPU
-  exceptions (master `IRQ` 32-39, slave `IRQ` 40-47)
+- Fills the `IDT` ([Interrupt Descriptor Table](https://wiki.osdev.org/IDT)) with exception
+  handlers, `PIT` ([Programmable Interval
+  Timer](https://wiki.osdev.org/Programmable_Interval_Timer)) timer (`IRQ` (interrupt request) 0),
+  keyboard (`IRQ` 1), and the `INT 0x80` syscall gate
+- Remaps the 8259 `PIC` ([Programmable Interrupt Controller](https://wiki.osdev.org/PIC)) to avoid
+  overlap with CPU exceptions (master `IRQ` 32-39, slave `IRQ` 40-47)
 - Detects `ACPI` (Advanced Configuration and Power Interface with `RSDP` (Root System Description
   Pointer)/`RSDT` (Root System Description Table)/`FADT` (Fixed ACPI Description Table), and caches
   the century register)
@@ -209,8 +216,9 @@ CPU Detection and Control
 =========================
 
 The kernel detects CPU features at boot via `CPUID` and exposes them through the sysinfo syscall.
-Utility functions for register access, interrupt control, and `TLB` (Translation Lookaside Buffer
-[14]) management live in `kernel/include/kernel/Cpu.h` and `kernel/arch/i386/Cpu.cc`.
+Utility functions for register access, interrupt control, and `TLB` ([Translation Lookaside
+Buffer](https://wiki.osdev.org/TLB)) management live in `kernel/include/kernel/Cpu.h` and
+`kernel/arch/i386/Cpu.cc`.
 
 Feature Detection
 -----------------
@@ -220,7 +228,7 @@ Feature Detection
 like `"GenuineIntel"`, and the maximum supported `CPUID` function. Leaf 1 provides stepping, model,
 family, and a 32-bit feature flags bitfield covering `FPU` (Floating Point Unit), `PAE`, `TSC` (Time
 Stamp Counter), `SSE` (Streaming SIMD Extensions), `MMX` (Multimedia Extensions), `APIC` (Advanced
-Programmable Interrupt Controller [15]), etc. Extended leaves add `SYSCALL`, `NX` bit, and long mode
+Programmable Interrupt Controller), etc. Extended leaves add `SYSCALL`, `NX` bit, and long mode
 support.
 
 The brand string is assembled from leaves `0x80000002`-`0x80000004` into a 48-byte null-terminated
@@ -243,7 +251,7 @@ The `readCpuInfo()` function copies the detection results into a struct exposed 
 Paging (Runtime)
 ================
 
-Standard 32-bit x86 4 KiB paging [16] (`kernel/arch/i386/Paging.cc`,
+Standard 32-bit x86 4 KiB [Paging](https://wiki.osdev.org/Paging) (`kernel/arch/i386/Paging.cc`,
 `kernel/include/arch/i386/Paging.h`). Each page directory has 1024 `PDE`s, each pointing to a page
 table with 1024 `PTE` (Page Table Entry)s. `PDE` index 768 maps virtual addresses starting at
 `0xC0000000` (the higher-half), mirroring the identity map at `PDE` 0 so the kernel can use
@@ -370,10 +378,11 @@ Scheduling
 ==========
 
 The scheduler (`kernel/include/kernel/Scheduler.h`, `kernel/kernel/Scheduler.cc`) is preemptive,
-Round Robin [17] with 8 task slots and a 20 ms quantum (20 `PIT` ticks at 1000 Hz). Slot 0 is always
-the `idle` task, which just halts until the next interrupt. Each task has its own 8 KiB kernel stack
-(16 KiB for userland tasks) and an optional page directory. Kernel tasks share the kernel page
-directory. Userland tasks get a cloned copy with their code and stack mapped at ring 3.
+[Round Robin](https://wiki.osdev.org/Scheduling_Algorithms) with 8 task slots and a 20 ms quantum
+(20 `PIT` ticks at 1000 Hz). Slot 0 is always the `idle` task, which just halts until the next
+interrupt. Each task has its own 8 KiB kernel stack (16 KiB for userland tasks) and an optional page
+directory. Kernel tasks share the kernel page directory. Userland tasks get a cloned copy with their
+code and stack mapped at ring 3.
 
 Tasks go through four states:
 
@@ -385,13 +394,14 @@ Tasks go through four states:
 When a task is created, its stack is set up with a register frame that `popal; iret` will pop on
 first schedule, so the task starts at its entry function with interrupts enabled.
 
-Every `PIT` tick, the timer `ISR` (Interrupt Service Routine [18]) calls `Scheduler::tick()`. It
-saves the current task's stack pointer, checks a stack canary (`0xDEADBEEF`) for overflow, charges
-one tick of runtime, and wakes any sleeping tasks whose deadline has passed. If the quantum hasn't
-expired, the current task keeps running. Otherwise, the scheduler picks the next `READY` task by
-walking the table round-robin, switches to its page directory if needed, updates the `TSS` `esp0`
-field to point to the new task's kernel stack so the next `INT 0x80` from ring 3 switches to the
-correct stack, and returns the new stack pointer so `iret` resumes the chosen task.
+Every `PIT` tick, the timer `ISR` ([Interrupt Service Routine](https://wiki.osdev.org/Interrupts))
+calls `Scheduler::tick()`. It saves the current task's stack pointer, checks a stack canary
+(`0xDEADBEEF`) for overflow, charges one tick of runtime, and wakes any sleeping tasks whose
+deadline has passed. If the quantum hasn't expired, the current task keeps running. Otherwise, the
+scheduler picks the next `READY` task by walking the table round-robin, switches to its page
+directory if needed, updates the `TSS` `esp0` field to point to the new task's kernel stack so the
+next `INT 0x80` from ring 3 switches to the correct stack, and returns the new stack pointer so
+`iret` resumes the chosen task.
 
 Userland programs communicate with the kernel through `INT 0x80` syscalls. The syscall gate in the
 `IDT` is set as a trap gate with DPL 3 (Descriptor Privilege Level 3, meaning ring-3 accessible) so
@@ -419,8 +429,8 @@ fallback that prints a diagnostic and sends an `EOI` (End Of Interrupt)). Then s
 wired up:
 
 - Exception vectors (CPU faults/traps): 0 (divide error), 6 (invalid opcode), 11 (segment not
-  present), 12 (stack fault), 13 (`GPF` (General Protection Fault [19])), 14 (page fault). The rest
-  hit the dummy fallback.
+  present), 12 (stack fault), 13 (`GPF` ([General Protection
+  Fault](https://wiki.osdev.org/Exceptions))), 14 (page fault). The rest hit the dummy fallback.
 - Hardware `IRQ` vectors: 32 (`PIT` timer, `IRQ` 0), 33 (keyboard, `IRQ` 1). The `PIC` remaps `IRQ`
   0-7 to vectors 32-39 and `IRQ` 8-15 to vectors 40-47, so they don't overlap with CPU exceptions.
 - Syscall vector: `INT 0x80` at vector 128. This is the only entry using a trap gate with `DPL` 3,
@@ -608,9 +618,10 @@ alive/running/blocked/dead counts), `LIST` (fill buffer with task entries), `KIL
 `idle`, self, or dead tasks), `DETAIL` (full task info struct).
 
 System info: `SYS_SYSINFO` (8) dispatches 5 sub-commands: `UPTIME` (milliseconds),
-`MEMFREE`/`MEMBLOCK` (heap stats), `DATETIME` (`CMOS` (Complementary Metal-Oxide-Semiconductor [20])
-`RTC` (Real-Time Clock [21])), `CPU` (`CPUID` data). `SYS_SUPPRESS_TASKBAR` (11) hides the `taskbar`
-row.
+`MEMFREE`/`MEMBLOCK` (heap stats), `DATETIME` (`CMOS` ([Complementary
+Metal-Oxide-Semiconductor](https://wiki.osdev.org/CMOS)) `RTC` ([Real-Time
+Clock](https://wiki.osdev.org/RTC))), `CPU` (`CPUID` data). `SYS_SUPPRESS_TASKBAR` (11) hides the
+`taskbar` row.
 
 
 ELF Loader
@@ -809,10 +820,10 @@ clean.
 Keyboard
 ========
 
-The keyboard driver (`kernel/include/kernel/Kbd.h`, `kernel/arch/i386/Kbd.cc`) handles PS/2 (PS/2
-keyboard interface [22]) scancodes via `IRQ` 1. It provides a 256-character ring buffer, full line
-editing with Emacs-style shortcuts, command history, and a non-blocking API for programs that need
-raw input without blocking.
+The keyboard driver (`kernel/include/kernel/Kbd.h`, `kernel/arch/i386/Kbd.cc`) handles [PS/2
+Keyboard](https://wiki.osdev.org/PS/2_Keyboard) scancodes via `IRQ` 1. It provides a 256-character
+ring buffer, full line editing with Emacs-style shortcuts, command history, and a non-blocking API
+for programs that need raw input without blocking.
 
 Scancode Processing
 -------------------
@@ -867,30 +878,3 @@ Non-Blocking API
 a `Key` enum value (`Up`, `Down`, `Left`, `Right`, `PageUp`, `PageDown`, `Home`, `End`, `Char`, or
 `Unknown`) and an optional character for printable keys. This is useful for games, interactive
 menus, or any program that needs to react to key presses without entering a blocking readline loop.
-
-
-References
-==========
-
-[1]: https://www.gnu.org/software/grub/manual/grub/
-[2]: https://www.gnu.org/software/grub/manual/multiboot/
-[3]: https://wiki.osdev.org/Security#Rings
-[4]: https://wiki.osdev.org/VGA_Hardware
-[5]: https://wiki.osdev.org/ELF
-[6]: https://wiki.osdev.org/ACPI
-[7]: https://wiki.osdev.org/CPUID
-[8]: https://wiki.osdev.org/PAE
-[9]: https://wiki.osdev.org/GDT
-[10]: https://wiki.osdev.org/Task_State_Segment
-[11]: https://wiki.osdev.org/IDT
-[12]: https://wiki.osdev.org/Programmable_Interval_Timer
-[13]: https://wiki.osdev.org/PIC
-[14]: https://wiki.osdev.org/TLB
-[15]: https://wiki.osdev.org/APIC
-[16]: https://wiki.osdev.org/Paging
-[17]: https://wiki.osdev.org/Scheduling_Algorithms
-[18]: https://wiki.osdev.org/Interrupts
-[19]: https://wiki.osdev.org/Exceptions
-[20]: https://wiki.osdev.org/CMOS
-[21]: https://wiki.osdev.org/RTC
-[22]: https://wiki.osdev.org/PS/2_Keyboard
