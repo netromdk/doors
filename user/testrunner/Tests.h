@@ -62,4 +62,8 @@ void testHeapAllocFreeAlloc();
 void testHeapMallocZero();
 void testHeapFreeNull();
 
+// Page fault recovery.
+void runPageFaultTests();
+void testPagefaultChildKilled();
+
 #endif

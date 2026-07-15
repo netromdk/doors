@@ -440,6 +440,7 @@ optional<int> Scheduler::addUserTask(string_view name)
   t.stackBuf = static_cast<uint8_t *>(kstack.ptr);
   t.stackSize = TASK_STACK_SIZE;
   name.copy(t.name.data(), t.name.size() - 1);
+  t.name[name.size()] = '\0';
   t.userCodeBuf = codeFrame.phys;
 
   tss.esp0 = static_cast<uint32_t>(
@@ -493,6 +494,7 @@ optional<int> Scheduler::addUserElfTask(string_view name, const void *elfData, s
   t.stackBuf = static_cast<uint8_t *>(kstack.ptr);
   t.stackSize = TASK_STACK_SIZE;
   name.copy(t.name.data(), t.name.size() - 1);
+  t.name[name.size()] = '\0';
 
   // Track ELF-loaded pages so they are freed on task exit.
   t.elfPageCount = loadResult->numPages;
@@ -609,6 +611,13 @@ optional<int> Scheduler::addUserElfTask(string_view, const void *, size_t)
     // This is unreachable in tests. Spin forever.
 #endif
   }
+}
+
+[[noreturn]] void Scheduler::killFaultingTask()
+{
+  printf("Scheduler: killing task %d \"%s\" due to page fault\n", currentIdx_,
+         tasks_[currentIdx_].name.data());
+  exitCurrentTask();
 }
 
 void Scheduler::unblockTask(int id)

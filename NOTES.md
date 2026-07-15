@@ -454,15 +454,18 @@ Three stubs have custom assembly:
 Exception Handlers
 ------------------
 
-`kernel/arch/i386/ExceptionHandlers.cc` has six `extern "C"` handlers, all calling `panic()` (none
-return):
+`kernel/arch/i386/ExceptionHandlers.cc` has six `extern "C"` handlers:
 
-- `excDivZero()`, `excSegNp()`, `excSf()`, `excGp()` just panic with a message.
+- `excDivZero()`, `excSegNp()`, `excSf()`, `excGp()` just panic with a message (none return).
 - `excInvOp(frame)` prints `EIP` and `CS` from the stack frame, then panics.
 - `excPf(frame)` is the most detailed. Reads `CR2` (the faulting virtual address), decodes the error
   code into human-readable flags (present/protection, read/write, user/supervisor, reserved-bit,
   instruction fetch), dumps user `ESP`/`SS` if the fault came from ring 3 (detected via `CS & 3`),
-  then panics.
+  then either kills the faulting userland task (ring 3) or panics (ring 0). Ring-3 faults call
+  `Scheduler::killFaultingTask()` which delegates to `Scheduler::exitCurrentTask()` to cleanly
+  terminate the task: frees its ELF pages, user stack pages, cloned page directory, and unblocks any
+  waiting parent. The fault address, error code, `EIP`, `CS`, and user `ESP`/`SS` are logged before
+  the kill.
 
 Hardware Interrupt Handlers
 ---------------------------
@@ -513,8 +516,10 @@ stub does `movl %eax, %esp` between `pushal` and `popal`, swapping to the new ta
 `popal; iret` then resumes the new task.
 
 CPU exception (for instance page fault): CPU pushes error code (in addition to the usual frame),
-jumps to `asmExcPf`. Handler reads `CR2`, decodes error code, calls `panic()`. Steps 7-8 don't
-execute because panic never returns.
+jumps to `asmExcPf`. Handler reads `CR2`, decodes error code. If the fault came from ring 3, it logs
+diagnostics and calls `Scheduler::killFaultingTask()` which terminates the faulting task and
+switches to the next ready task (steps 7-8 apply to the new task). If the fault came from ring 0, it
+panics (steps 7-8 don't execute because panic never returns).
 
 System call (`INT 0x80`): CPU transitions from ring 3 to ring 0, loads kernel `CS` and `ESP` from
 the `TSS`, pushes user `SS`/`ESP`/`EFLAGS`/`CS`/`EIP` onto the kernel stack. Trap gate means `IF` is
@@ -667,11 +672,11 @@ high score across rounds within a session. Uses `IOCTL_PUT` for direct VGA rende
 `IOCTL_POLL_KEY` for non-blocking keyboard input. Saves/restores the VGA buffer to overlay on top of
 the `shell`.
 
-Test Runner (`user/testrunner/`): Integration test harness running 34 tests across 9 suites:
-terminal, serial, taskbar, sysinfo, taskctl, ioctl, execmod, input, and heap. Emits
-newline-delimited `JSON` events to the serial port (`start`, `run`, `pass`, `fail`, `done`). Two
-build variants: `testrunner` (auto-powers-off) and `testrunner-interactive` (stays alive for
-debugging). A `minimal` payload provides a trivial userland program for execmod testing.
+Test Runner (`user/testrunner/`): Integration test harness running 35 tests across 10 suites:
+terminal, serial, taskbar, sysinfo, taskctl, ioctl, execmod, input, heap, and page fault
+recovery. Emits newline-delimited `JSON` events to the serial port (`start`, `run`, `pass`, `fail`,
+`done`). Two build variants: `testrunner` (auto-powers-off) and `testrunner-interactive` (stays
+alive for debugging). A `minimal` payload provides a trivial userland program for execmod testing.
 
 
 Terminal (TTY)

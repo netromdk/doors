@@ -37,6 +37,7 @@ public:
   static optional<int> addTaskAndBlock(string_view name, void (*entry)(), uint32_t pageDir = 0);
   static uint32_t tick(uint32_t currentEsp);
   [[noreturn]] static void exitCurrentTask();
+  [[noreturn]] static void killFaultingTask();
   static void unblockTask(int id);
   static int currentTaskId();
   static Task &currentTask();
