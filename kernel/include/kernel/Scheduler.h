@@ -67,6 +67,7 @@ public:
   static void setOnKill(void (*handler)());
   static uint32_t fork();
   static uint32_t exec(int modIdx);
+  static uint32_t waitpid(int *status);
 
 #if !defined(__IS_DOORS_KERNEL) || defined(__DOORS_TESTING)
   friend struct SchedulerTestAccess;
@@ -99,6 +100,7 @@ private:
   static void taskWrapper();
   static void initProcessFields(Task &t);
   static void reparentChildren(uint8_t parentId);
+  static uint32_t reapDeadChild(Task &parent, int *status);
 
   // Count tasks whose state matches the given predicate.
   using StatePred = bool (*)(TaskState);

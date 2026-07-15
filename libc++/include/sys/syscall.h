@@ -18,6 +18,7 @@ enum Syscall {
   SYS_POWEROFF = 13,         // Shut down the machine.
   SYS_FORK = 14,             // Fork current process (returns child pid to parent, 0 to child).
   SYS_EXEC = 15,             // Replace process image with GRUB module ELF (ebx=index).
+  SYS_WAITPID = 16,          // Wait for child to exit (ebx=status buf ptr). Returns child pid.
 };
 
 #endif // SYS_SYSCALL_H

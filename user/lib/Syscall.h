@@ -197,4 +197,14 @@ static inline int sys_exec(unsigned int module_index)
   return ret;
 }
 
+static inline int sys_waitpid(int *status)
+{
+  int ret;
+  __asm__ volatile("int $0x80"
+                   : "=a"(ret)
+                   : "a"(SYS_WAITPID), "b"((unsigned int) status)
+                   : "memory");
+  return ret;
+}
+
 #endif

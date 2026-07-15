@@ -512,6 +512,9 @@ extern "C" uint32_t syscallHandler(uint32_t eax, uint32_t ebx, uint32_t ecx, uin
 
   case SYS_EXEC:
     return Scheduler::exec(static_cast<int>(ebx));
+
+  case SYS_WAITPID:
+    return Scheduler::waitpid(reinterpret_cast<int *>(static_cast<uintptr_t>(ebx)));
 #endif
 
   default:
