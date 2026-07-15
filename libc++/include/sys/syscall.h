@@ -17,6 +17,7 @@ enum Syscall {
   SYS_SERIAL = 12,           // Write buffer directly to COM1 (ebx=buf, ecx=len).
   SYS_POWEROFF = 13,         // Shut down the machine.
   SYS_FORK = 14,             // Fork current process (returns child pid to parent, 0 to child).
+  SYS_EXEC = 15,             // Replace process image with GRUB module ELF (ebx=index).
 };
 
 #endif // SYS_SYSCALL_H

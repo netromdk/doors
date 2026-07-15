@@ -661,6 +661,112 @@ uint32_t Scheduler::fork()
 
   return static_cast<uint32_t>(child.pid);
 }
+
+uint32_t Scheduler::exec(int modIdx)
+{
+  if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
+    return static_cast<uint32_t>(-1);
+  }
+
+  if (modIdx < 0 || modIdx >= static_cast<int>(Pmm::moduleCount())) {
+    return static_cast<uint32_t>(-1);
+  }
+
+  Task &t = tasks_[currentIdx_];
+
+  // Ring-0 tasks without a user page directory cannot `exec()`.
+  if (t.pageDir == 0) {
+    return static_cast<uint32_t>(-1);
+  }
+
+  const auto *modPtr =
+    physToVirt(reinterpret_cast<void *>(static_cast<uintptr_t>(Pmm::modulePhysStart(modIdx))));
+  const auto modSize = Pmm::modulePhysSize(modIdx);
+
+  // Validate the ELF before freeing anything so the old image is not destroyed on bad input.
+  if (!ElfLoader::validate(modPtr, modSize)) {
+    return static_cast<uint32_t>(-1);
+  }
+
+  // Free old ELF pages.
+  freePageArray(t.elfPageCount, t.elfVaddr, t.elfPhys);
+  t.elfPageCount = 0;
+
+  // Free old user stack pages.
+  freePageArray(t.userStackPageCount, t.userStackVaddr, t.userStackPhys);
+  t.userStackPageCount = 0;
+
+  // Free old code page if this was a non-ELF user task (loaded via `addUserTask()`).
+  if (t.userCodeBuf != 0) {
+    Paging::unmapPage(USER_BASE);
+    Pmm::freeFrame(reinterpret_cast<void *>(t.userCodeBuf));
+    t.userCodeBuf = 0;
+  }
+
+  // Map a fresh user stack.
+  if (!mapUserStackPages(t)) {
+    return static_cast<uint32_t>(-1);
+  }
+
+  // Load the new ELF into the current page directory. `ElfLoader::load()` calls `clearPageTable()`
+  // internally to wipe old PDEs in the ELF address range.
+  const auto loadResult = ElfLoader::load(modPtr, modSize, t.pageDir);
+  if (!loadResult) {
+    // ELF load failed after freeing old pages. The task is effectively dead and recovery is not
+    // possible.
+    freePageArray(t.userStackPageCount, t.userStackVaddr, t.userStackPhys);
+    t.userStackPageCount = 0;
+    return static_cast<uint32_t>(-1);
+  }
+
+  // Track new ELF pages for future cleanup.
+  t.elfPageCount = loadResult->numPages;
+  for (int i = 0; i < t.elfPageCount; ++i) {
+    t.elfVaddr[i] = loadResult->pages[i].vaddr;
+    t.elfPhys[i] = loadResult->pages[i].phys;
+  }
+
+  // Modify the `iret` frame on the current kernel stack so that when `asmInt80` returns, execution
+  // resumes at the new ELF entry point with a fresh user stack.
+  //
+  // Kernel stack layout from `syscallFrameEsp` (set by `asmInt80`):
+  //
+  //   `pushal` frame (`asmInt80`):
+  //     +0  EDI
+  //     +4  ESI
+  //     +8  EBP
+  //     +12 ESP
+  //     +16 EBX
+  //     +20 EDX
+  //     +24 ECX
+  //     +28 EAX
+  //
+  //   `iret` frame (CPU):
+  //     +32 EIP
+  //     +36 CS
+  //     +40 EFLAGS
+  //     +44 user ESP
+  //     +48 user SS
+  auto *frame = reinterpret_cast<uint32_t *>(syscallFrameEsp);
+
+  // EIP (+32/4 = 8) = ELF entry point.
+  frame[8] = loadResult->entry;
+
+  // EFLAGS (+40/4 = 10):
+  //   0x202 means
+  //     bit 9: IF=1 (interrupts on for PIT),
+  //     bit 1: reserved=1 (required by Intel)
+  frame[10] = 0x00000202;
+
+  // User ESP (+44/4 = 11): top of new stack.
+  frame[11] = USER_STACK_VADDR + Pmm::PAGE_SIZE;
+
+  // Clear EBX (+16/4 = 4) so stale register values from the SYS_EXEC don't leak into the new
+  // process. The old process's EBX may hold the module index or other argument.
+  frame[4] = 0;
+
+  return 0;
+}
 #else
 
 optional<int> Scheduler::addUserTask(string_view)
@@ -674,6 +780,11 @@ optional<int> Scheduler::addUserElfTask(string_view, const void *, size_t)
 }
 
 uint32_t Scheduler::fork()
+{
+  return static_cast<uint32_t>(-1);
+}
+
+uint32_t Scheduler::exec(int)
 {
   return static_cast<uint32_t>(-1);
 }
