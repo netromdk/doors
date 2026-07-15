@@ -18,6 +18,7 @@ struct SchedulerPagingFixture {
     pitTicks = 0;
     Heap::init({pool, sizeof(pool)});
     Scheduler::init();
+    pmmTestResetCounts();
   }
 };
 

@@ -16,6 +16,7 @@ enum Syscall {
   SYS_SUPPRESS_TASKBAR = 11, // Hide taskbar.
   SYS_SERIAL = 12,           // Write buffer directly to COM1 (ebx=buf, ecx=len).
   SYS_POWEROFF = 13,         // Shut down the machine.
+  SYS_FORK = 14,             // Fork current process (returns child pid to parent, 0 to child).
 };
 
 #endif // SYS_SYSCALL_H

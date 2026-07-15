@@ -183,4 +183,11 @@ __attribute__((noreturn)) static inline void sys_poweroff()
   __builtin_unreachable();
 }
 
+static inline int sys_fork()
+{
+  int ret;
+  __asm__ volatile("int $0x80" : "=a"(ret) : "a"(SYS_FORK) : "memory");
+  return ret;
+}
+
 #endif

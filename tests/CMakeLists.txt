@@ -321,6 +321,7 @@ doors_test_module(test_kernel_paging
 doors_test_module(test_kernel_paging_sched
   paging/PhysToVirt.cc
   paging/SchedulerPageDir.cc
+  paging/Fork.cc
   paging/PagingStub.cc
   paging/PmmStub.cc
   stubs.cc
@@ -333,7 +334,10 @@ doors_test_module(test_kernel_paging_sched
   "${SYMBOLS_SRC}"
   "${ELF_SRC}"
 )
-target_compile_definitions(test_kernel_paging_sched PRIVATE __IS_DOORS_KERNEL)
+target_compile_definitions(test_kernel_paging_sched PRIVATE __IS_DOORS_KERNEL __DOORS_TESTING)
+target_include_directories(test_kernel_paging_sched PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/scheduler"
+)
 
 doors_test_module(test_kernel_syscalls
   syscall/SyscallRead.cc
@@ -372,7 +376,7 @@ doors_test_module(test_kernel_elf_user
   "${SYMBOLS_SRC}"
   "${ELF_SRC}"
 )
-target_compile_definitions(test_kernel_elf_user PRIVATE __IS_DOORS_KERNEL)
+target_compile_definitions(test_kernel_elf_user PRIVATE __IS_DOORS_KERNEL __DOORS_TESTING)
 
 doors_test_module(test_kernel_cmos
   kernel/Cmos.cc

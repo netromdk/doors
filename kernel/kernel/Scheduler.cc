@@ -417,6 +417,45 @@ void freePageArray(int count, const uint32_t *vaddrs, const uint32_t *phys)
   }
 }
 
+// Copy parent's user stack pages into the child's page directory. Each page is mapped at the same
+// virtual address and the parent's contents are copied. On failure, unrolls all pages mapped so far
+// and frees the child's page directory. The caller is responsible for freeing `childStack` on
+// failure.
+bool cloneChildStackPages(Task &child, const Task &parent)
+{
+  for (int i = 0; i < parent.userStackPageCount; ++i) {
+    void *newPhys = Pmm::allocFrame();
+    if (newPhys == nullptr) {
+      freePageArray(i, child.userStackVaddr, child.userStackPhys);
+      Pmm::freeFrame(reinterpret_cast<void *>(child.pageDir));
+      child.pageDir = 0;
+      return false;
+    }
+
+    const auto newPhys32 = static_cast<uint32_t>(reinterpret_cast<unsigned long long>(newPhys));
+    const auto vaddr = parent.userStackVaddr[i];
+
+    if (!Paging::mapPage(vaddr, newPhys32, PAGE_PRESENT | PAGE_RW | PAGE_USER, child.pageDir)) {
+      Pmm::freeFrame(newPhys);
+      freePageArray(i, child.userStackVaddr, child.userStackPhys);
+      Pmm::freeFrame(reinterpret_cast<void *>(child.pageDir));
+      child.pageDir = 0;
+      return false;
+    }
+
+    const auto *src =
+      static_cast<const uint8_t *>(physToVirt(reinterpret_cast<void *>(parent.userStackPhys[i])));
+    auto *dst = static_cast<uint8_t *>(physToVirt(reinterpret_cast<void *>(newPhys32)));
+    __builtin_memcpy(dst, src, Pmm::PAGE_SIZE);
+
+    child.userStackVaddr[i] = vaddr;
+    child.userStackPhys[i] = newPhys32;
+  }
+
+  child.userStackPageCount = static_cast<int>(parent.userStackPageCount);
+  return true;
+}
+
 } // namespace
 
 optional<int> Scheduler::addUserTask(string_view name)
@@ -534,6 +573,94 @@ optional<int> Scheduler::addUserElfTask(string_view name, const void *elfData, s
   return slot;
 }
 
+uint32_t Scheduler::fork()
+{
+  if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
+    return static_cast<uint32_t>(-1);
+  }
+
+  Task &parent = tasks_[currentIdx_];
+
+  // Only ring-3 user tasks can fork.
+  if (parent.userStackPageCount == 0) {
+    return static_cast<uint32_t>(-1);
+  }
+
+  // Must have a valid frame saved by `asmInt80`.
+  if (syscallFrameEsp == 0) {
+    return static_cast<uint32_t>(-1);
+  }
+
+  const auto slotOpt = findSlot();
+  if (!slotOpt) {
+    return static_cast<uint32_t>(-1);
+  }
+  const int slot = *slotOpt;
+
+  Task &child = tasks_[slot];
+  if (child.stackBuf != nullptr) {
+    Heap::free(child.stackBuf);
+    child.stackBuf = nullptr;
+  }
+  child = {};
+
+  // Allocate kernel stack for the child.
+  auto *childStack = static_cast<uint8_t *>(Heap::alloc(TASK_STACK_SIZE));
+  if (childStack == nullptr) {
+    return static_cast<uint32_t>(-1);
+  }
+
+  // Determine frame size from parent type. The frame at `syscallFrameEsp` is the `pushal` frame (32
+  // bytes) followed by the `iret` frame. For ring-3 tasks, `iret` is 20 bytes (SS, ESP, EFLAGS, CS,
+  // EIP). For ring-0 tasks, it is 12 bytes (EFLAGS, CS, EIP).
+  const auto frameSize = FRAME_SIZE_USER;
+
+  // Copy the parent's register frame from the kernel stack to the child's kernel stack. The frame
+  // sits at the top of the stack buffer, same layout as `initUserStackFrame()` produces.
+  const auto frameOffset = TASK_STACK_SIZE - frameSize;
+  __builtin_memcpy(childStack + frameOffset, reinterpret_cast<const uint8_t *>(syscallFrameEsp),
+                   frameSize);
+
+  // Set child's EAX to 0, which is the fork return value in the child. The EAX slot in the `pushal`
+  // frame is at offset 28 bytes from the start of the `pushal` frame (7th dword: EDI, ESI, EBP,
+  // ESP, EBX, EDX, ECX, EAX).
+  reinterpret_cast<uint32_t *>(childStack + frameOffset)[7] = 0;
+
+  // Clone the parent's page directory.
+  const auto parentDir = parent.pageDir != 0 ? parent.pageDir : Paging::kernelPageDirPhys();
+  child.pageDir = Paging::clonePageDir(parentDir);
+  if (child.pageDir == 0) {
+    Heap::free(childStack);
+    return static_cast<uint32_t>(-1);
+  }
+
+  if (!cloneChildStackPages(child, parent)) {
+    Heap::free(childStack);
+    return static_cast<uint32_t>(-1);
+  }
+
+  // Set up child task fields.
+  child.esp = static_cast<uint32_t>(reinterpret_cast<unsigned long long>(childStack + frameOffset));
+  child.entry = nullptr;
+  child.state = TaskState::READY;
+  child.id = static_cast<uint8_t>(slot);
+  child.pid = nextPid_++;
+  child.ppid = parent.pid;
+  child.exitCode = 0;
+  child.childCount = 0;
+  child.stackBuf = childStack;
+  child.stackSize = TASK_STACK_SIZE;
+  strncpy(child.name.data(), "fork", child.name.size() - 1);
+  child.name[child.name.size() - 1] = '\0';
+
+  // Add child to parent's children list.
+  if (parent.childCount < Task::MAX_CHILDREN) {
+    parent.children[parent.childCount] = child.pid;
+    ++parent.childCount;
+  }
+
+  return static_cast<uint32_t>(child.pid);
+}
 #else
 
 optional<int> Scheduler::addUserTask(string_view)
@@ -544,6 +671,11 @@ optional<int> Scheduler::addUserTask(string_view)
 optional<int> Scheduler::addUserElfTask(string_view, const void *, size_t)
 {
   return {};
+}
+
+uint32_t Scheduler::fork()
+{
+  return static_cast<uint32_t>(-1);
 }
 
 #endif

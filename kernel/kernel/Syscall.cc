@@ -506,6 +506,9 @@ extern "C" uint32_t syscallHandler(uint32_t eax, uint32_t ebx, uint32_t ecx, uin
   case SYS_SUPPRESS_TASKBAR:
     Scheduler::suppressTaskbar();
     return 0;
+
+  case SYS_FORK:
+    return Scheduler::fork();
 #endif
 
   default:

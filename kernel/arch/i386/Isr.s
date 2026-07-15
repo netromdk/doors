@@ -70,6 +70,7 @@ INTHANDLER Kbd
 asmInt80:
         pushal
         cld
+        movl  %esp, syscallFrameEsp  // Save frame pointer for fork().
         pushl %edx
         pushl %ecx
         pushl %ebx
@@ -79,6 +80,11 @@ asmInt80:
         movl  %eax, 7*4(%esp)   // Overwrite pushal's EAX slot with return value.
         popal
         iret
+
+.globl syscallFrameEsp
+.data
+syscallFrameEsp:
+        .long 0
 
 // User-mode PIC test code, copied to a Pmm frame at runtime.
 // Prints "USER" via SYS_WRITE then exits via SYS_EXIT.

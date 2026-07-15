@@ -65,8 +65,9 @@ public:
   static void suppressTaskbar();
   static bool isTaskbarSuppressed();
   static void setOnKill(void (*handler)());
+  static uint32_t fork();
 
-#ifndef __IS_DOORS_KERNEL
+#if !defined(__IS_DOORS_KERNEL) || defined(__DOORS_TESTING)
   friend struct SchedulerTestAccess;
 #endif
 
