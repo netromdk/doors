@@ -957,6 +957,9 @@ void Scheduler::handleNm()
   tasks_[currentIdx_].state = TaskState::DEAD;
   ++totalExited_;
 
+  // Remove from sleep queue if this task was sleeping on a timer.
+  removeFromSleepQueue(currentIdx_);
+
   // Reparent children to PID 0 (idle) so they are not orphaned.
   reparentChildren(tasks_[currentIdx_].pid);
 
@@ -1042,6 +1045,7 @@ void Scheduler::unblockTask(int id)
   if (id >= 0 && id < taskCount_ && tasks_[id].state == TaskState::BLOCKED) {
     tasks_[id].state = TaskState::READY;
     tasks_[id].wakeupMs = 0;
+    removeFromSleepQueue(id);
   }
 }
 
@@ -1200,6 +1204,9 @@ void Scheduler::killTask(int id)
 
   tasks_[id].state = TaskState::DEAD;
   ++totalExited_;
+
+  // Remove from sleep queue if this task was sleeping on a timer.
+  removeFromSleepQueue(id);
 
   // Reparent children to PID 0 (idle).
   reparentChildren(tasks_[id].pid);
