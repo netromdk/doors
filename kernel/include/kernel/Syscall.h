@@ -34,6 +34,7 @@ struct TaskDetail {
   uint8_t id;
   uint8_t state;
   uint8_t flags;
+  uint8_t priority;
   char name[16];
   uint32_t entry;
   uint32_t stackBuf;

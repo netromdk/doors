@@ -325,6 +325,7 @@ uint32_t handleTaskctlDetail(uint32_t tid, uint32_t bufAddr)
   dst->id = static_cast<uint8_t>(id);
   dst->state = static_cast<uint8_t>(*st);
   dst->flags = Scheduler::taskFlags(id).value_or(0);
+  dst->priority = Scheduler::taskPriority(id).value_or(0);
 
   const auto name = Scheduler::taskName(id).value_or("");
   size_t nlen = strlen(name);
