@@ -27,6 +27,8 @@ volatile bool Scheduler::initialized_{false};
 int Scheduler::totalExited_{0};
 uint8_t Scheduler::nextPid_{0};
 int Scheduler::fpuOwner_{-1};
+array<Scheduler::SleepEntry, Scheduler::MAX_SLEEPERS> Scheduler::sleepQueue_{};
+int Scheduler::sleepCount_{0};
 
 int Scheduler::countIf(StatePred pred)
 {
@@ -70,6 +72,7 @@ void Scheduler::init()
   taskCount_ = 1;
   currentIdx_ = 0;
   quantumRemaining_ = QUANTUM_TICKS;
+  sleepCount_ = 0;
   initialized_ = true;
 }
 
@@ -1249,6 +1252,21 @@ void Scheduler::sleep(uint64_t ms)
 #else
     break;
 #endif
+  }
+}
+
+void Scheduler::removeFromSleepQueue(int taskId)
+{
+  for (int i = 0; i < sleepCount_; ++i) {
+    if (sleepQueue_[i].taskId == taskId) {
+      --sleepCount_;
+
+      // Shift remaining entries left to fill the gap and maintain sorted order.
+      for (int j = i; j < sleepCount_; ++j) {
+        sleepQueue_[j] = sleepQueue_[j + 1];
+      }
+      return;
+    }
   }
 }
 

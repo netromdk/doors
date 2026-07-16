@@ -16,6 +16,12 @@ public:
   // Time slice per task in PIT ticks (20 ms at 1000 Hz).
   static constexpr int QUANTUM_TICKS = 20;
 
+  // Sorted queue of tasks sleeping on a timer deadline. Checked in O(1) per tick.
+  struct SleepEntry {
+    uint64_t deadline;
+    int taskId;
+  };
+
   // Heap-allocated stack size per task in bytes.
   static constexpr size_t TASK_STACK_SIZE = 8192;
 
@@ -96,6 +102,11 @@ private:
   // Task that most recently used the FPU (none when `-1`). Used for lazy FPU context switching.
   static int fpuOwner_;
 
+  // Sorted sleep queue for timer-based wakeups. Entries are ordered by ascending deadline.
+  static constexpr int MAX_SLEEPERS = MAX_TASKS;
+  static array<SleepEntry, MAX_SLEEPERS> sleepQueue_;
+  static int sleepCount_;
+
   static optional<int> findSlot();
   static uint8_t *allocKernelStack();
   static uint32_t initStackFrame(uint8_t *stack, void (*entry)());
@@ -109,6 +120,7 @@ private:
   static void initProcessFields(Task &t);
   static void reparentChildren(uint8_t parentId);
   static uint32_t reapDeadChild(Task &parent, int *status);
+  static void removeFromSleepQueue(int taskId);
 
   // Count tasks whose state matches the given predicate.
   using StatePred = bool (*)(TaskState);
