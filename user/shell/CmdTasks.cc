@@ -26,6 +26,22 @@ void printTaskTable()
   }
 }
 
+const char *priorityStr(unsigned int p)
+{
+  switch (p) {
+  case 0:
+    return "HIGH";
+  case 4:
+    return "NORMAL";
+  case 8:
+    return "LOW";
+  case 9:
+    return "IDLE";
+  default:
+    return "?";
+  }
+}
+
 void printTaskDetail(int id)
 {
   TaskDetail dt{};
@@ -39,6 +55,7 @@ void printTaskDetail(int id)
   printf("  Name:       %s\n", dt.name);
   printf("  State:      %s\n", taskStateStr(dt.state));
   printf("  Flags:      %s\n", (dt.flags & 1) ? "suppress" : "-");
+  printf("  Priority:   %s (%u)\n", priorityStr(dt.priority), static_cast<unsigned>(dt.priority));
   printf("  Entry:      0x%x\n", dt.entry);
   printf("  Stack buf:  0x%x\n", dt.stackBuf);
   printf("  Stack size: %u bytes\n", dt.stackSize);
