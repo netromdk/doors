@@ -25,6 +25,16 @@ asmExcInvOp:
 EXCHANDLER SegNp
 EXCHANDLER Sf
 EXCHANDLER Gp
+.globl asmExcNm
+.align 4
+asmExcNm:
+        pushal
+        cld
+        pushl %esp
+        call  excNm
+        addl  $4, %esp
+        popal
+        iret
 .globl asmExcPf
 .align 4
 asmExcPf:
