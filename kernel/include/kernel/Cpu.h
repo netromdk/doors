@@ -53,6 +53,16 @@ public:
   static bool hasSysEnter();
 
   /**
+   * Checks if the CPU has an on-chip FPU.
+   */
+  static bool hasFpu();
+
+  /**
+   * Checks if the CPU supports FXSAVE/FXRSTOR instructions.
+   */
+  static bool hasFxsr();
+
+  /**
    * Reads the current time stamp.
    */
   static uint32_t getTimeStamp();
@@ -107,6 +117,13 @@ public:
    * Read raw CPU info into user-provided output struct.
    */
   static void readCpuInfo(CpuInfoRaw &out);
+
+  /**
+   * FPU context management for lazy switching via CR0.TS.
+   */
+  static void fxsave(uint8_t *buf);
+  static void fxrstor(const uint8_t *buf);
+  static void fninit();
 };
 
 #endif // KERNEL_CPU_H
