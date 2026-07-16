@@ -26,6 +26,7 @@ volatile int Scheduler::quantumRemaining_{0};
 volatile bool Scheduler::initialized_{false};
 int Scheduler::totalExited_{0};
 uint8_t Scheduler::nextPid_{0};
+int Scheduler::fpuOwner_{-1};
 
 int Scheduler::countIf(StatePred pred)
 {
@@ -286,6 +287,10 @@ uint32_t Scheduler::switchTo(int next)
       tss.esp0 = static_cast<uint32_t>(
         reinterpret_cast<unsigned long long>(tasks_[currentIdx_].stackBuf + TASK_STACK_SIZE));
     }
+
+    // Set CR0.TS (bit 3 = 2^3 = 8) so the next FPU instruction triggers #NM for lazy context
+    // switching.
+    Cpu::writeCr0(Cpu::readCr0() | 0x08);
   }
 #endif
 
@@ -683,6 +688,19 @@ uint32_t Scheduler::fork()
   strncpy(child.name.data(), "fork", child.name.size() - 1);
   child.name[child.name.size() - 1] = '\0';
 
+  // Copy the parent's FPU state to the child. If the parent is the current FPU owner, its state is
+  // in the physical registers, and not yet saved to fpuState, so save it first.
+  if (parent.fpuValid) {
+    if (fpuOwner_ == static_cast<int>(parent.id)) {
+      Cpu::fxsave(parent.fpuState);
+    }
+    __builtin_memcpy(child.fpuState, parent.fpuState, sizeof(child.fpuState));
+    child.fpuValid = true;
+  }
+  else {
+    child.fpuValid = false;
+  }
+
   // Add child to parent's children list.
   if (parent.childCount < Task::MAX_CHILDREN) {
     parent.children[parent.childCount] = child.pid;
@@ -708,6 +726,10 @@ uint32_t Scheduler::exec(int modIdx)
   if (t.pageDir == 0) {
     return static_cast<uint32_t>(-1);
   }
+
+  // The old program's FPU state is meaningless after `exec()`. Force a fresh `fninit` on first FPU
+  // use.
+  t.fpuValid = false;
 
   const auto *modPtr =
     physToVirt(reinterpret_cast<void *>(static_cast<uintptr_t>(Pmm::modulePhysStart(modIdx))));
@@ -871,6 +893,40 @@ uint32_t Scheduler::waitpid(int *)
 }
 
 #endif
+
+void Scheduler::handleNm()
+{
+#ifdef __IS_DOORS_KERNEL
+  // Lazy FPU context switch: save the previous owner's FPU state and restore the current task's
+  // state. Called from the #NM (Device Not Available) exception handler when CR0.TS is set and a
+  // task attempts an FPU instruction.
+  if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
+    panic("Scheduler::handleNm: corrupted currentIdx");
+  }
+
+  // Save the previous FPU owner's state if it is still valid and not the current task.
+  if (fpuOwner_ >= 0 && fpuOwner_ != currentIdx_ && fpuOwner_ < MAX_TASKS &&
+      tasks_[fpuOwner_].fpuValid) {
+    Cpu::fxsave(tasks_[fpuOwner_].fpuState);
+  }
+
+  // Restore or initialize the current task's FPU state.
+  if (tasks_[currentIdx_].fpuValid) {
+    Cpu::fxrstor(tasks_[currentIdx_].fpuState);
+  }
+  else {
+    Cpu::fninit();
+  }
+
+  tasks_[currentIdx_].fpuValid = true;
+  fpuOwner_ = currentIdx_;
+
+  // Clear CR0.TS (bit 3 = 2^3 = 8) so the faulting FPU instruction re-executes transparently.
+  Cpu::writeCr0(Cpu::readCr0() & ~0x08);
+#else
+  panic("Scheduler::handleNm called in test build");
+#endif
+}
 
 [[noreturn]] void Scheduler::exitCurrentTask(int code)
 {
