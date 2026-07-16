@@ -80,3 +80,94 @@ TEST_CASE_FIXTURE(SchedulerFixture, "sleep: sleep(0) wakes on next tick")
 
   CHECK(Scheduler::taskState(0) == TaskState::READY);
 }
+
+TEST_CASE_FIXTURE(SchedulerFixture, "sleep queue: starts empty")
+{
+  CHECK(SchedulerTestAccess::sleepCount() == 0);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "sleep queue: inserts sorted by deadline")
+{
+  Scheduler::addTask("task1", nullptr);
+  Scheduler::addTask("task2", nullptr);
+
+  constexpr uint64_t EARLY = 500;
+  constexpr uint64_t LATE = 1000;
+
+  pitTicks = 0;
+  Scheduler::sleep(LATE);
+  SchedulerTestAccess::setCurrentIdx(1);
+  Scheduler::sleep(EARLY);
+
+  CHECK(SchedulerTestAccess::sleepCount() == 2);
+
+  const auto *q = SchedulerTestAccess::sleepQueue();
+  CHECK(q[0].deadline == EARLY);
+  CHECK(q[0].taskId == 1);
+  CHECK(q[1].deadline == LATE);
+  CHECK(q[1].taskId == 0);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "sleep queue: tick pops expired entries")
+{
+  Scheduler::addTask("task1", nullptr);
+
+  constexpr uint64_t DEADLINE = 200;
+
+  pitTicks = 0;
+  Scheduler::sleep(DEADLINE);
+  SchedulerTestAccess::setCurrentIdx(1);
+  Scheduler::sleep(DEADLINE);
+
+  CHECK(SchedulerTestAccess::sleepCount() == 2);
+
+  pitTicks = DEADLINE + 1;
+  Scheduler::tick(0);
+
+  CHECK(SchedulerTestAccess::sleepCount() == 0);
+  CHECK(Scheduler::taskState(0) == TaskState::READY);
+  CHECK(Scheduler::taskState(1) == TaskState::READY);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "sleep queue: tick does not pop unexpired entries")
+{
+  Scheduler::addTask("task1", nullptr);
+
+  constexpr uint64_t EARLY = 100;
+  constexpr uint64_t LATE = 500;
+
+  pitTicks = 0;
+  Scheduler::sleep(EARLY);
+  SchedulerTestAccess::setCurrentIdx(1);
+  Scheduler::sleep(LATE);
+
+  // Advance past first deadline but not second.
+  pitTicks = EARLY + 1;
+  Scheduler::tick(0);
+
+  CHECK(SchedulerTestAccess::sleepCount() == 1);
+  CHECK(Scheduler::taskState(0) == TaskState::READY);
+  CHECK(Scheduler::taskState(1) == TaskState::BLOCKED);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "sleep queue: unblockTask removes from queue")
+{
+  Scheduler::addTask("task1", nullptr);
+
+  constexpr uint64_t DEADLINE = 1000;
+
+  pitTicks = 0;
+  Scheduler::sleep(DEADLINE);
+
+  CHECK(SchedulerTestAccess::sleepCount() == 1);
+
+  Scheduler::unblockTask(0);
+
+  CHECK(SchedulerTestAccess::sleepCount() == 0);
+  CHECK(Scheduler::taskState(0) == TaskState::READY);
+
+  // Advancing time past deadline should be a no-op (no stale entry).
+  pitTicks = DEADLINE + 1;
+  Scheduler::tick(0);
+  CHECK(SchedulerTestAccess::sleepCount() == 0);
+}
