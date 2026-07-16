@@ -38,7 +38,8 @@ TEST_CASE_FIXTURE(SchedulerFixture, "unblockTask: no-op if already READY")
   Scheduler::unblockTask(1);
   Scheduler::unblockTask(2);
 
-  // Round-robin still visits all three in order.
+  // Round Robin visits `task1` and `task2` (both `PRIORITY_NORMAL`), `idle` is only reached when no
+  // `PRIORITY_NORMAL` tasks are `READY`.
   for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
     Scheduler::tick(0x1000);
   }
@@ -50,7 +51,9 @@ TEST_CASE_FIXTURE(SchedulerFixture, "unblockTask: no-op if already READY")
   for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
     Scheduler::tick(0x3000);
   }
-  CHECK(Scheduler::currentTaskId() == 0);
+
+  // `task2` -> `task1` because `PRIORITY_NORMAL` beats `PRIORITY_IDLE`.
+  CHECK(Scheduler::currentTaskId() == 1);
 }
 
 TEST_CASE_FIXTURE(SchedulerFixture, "unblockTask: no-op if RUNNING")
@@ -78,7 +81,7 @@ TEST_CASE_FIXTURE(SchedulerFixture, "unblockTask: no-op if DEAD")
   // unblockTask on a DEAD task must be a no-op.
   Scheduler::unblockTask(2);
 
-  // Round-robin must skip DEAD task 2 and still schedule task 0 and task 1.
+  // Round Robin must skip DEAD task 2 and still schedule task 0 and task 1.
   for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
     Scheduler::tick(0x1000);
   }
