@@ -611,7 +611,9 @@ the assembly stub swaps to it before `popal; iret`.
 
 The scheduler charges 1 ms of runtime to the current task each tick and decrements a quantum
 counter. After 20 ticks, it picks the highest-priority `READY` task by Round Robin. Sleeping tasks
-have their `wakeupMs` deadline checked each tick via `Pit::uptimeMs()`.
+are tracked in a sorted `sleepQueue_` with ascending deadline. On each tick, only the head entry is
+checked. If its deadline has passed, it is popped and the task wakes. This gives `O(1)` wakeup
+processing per tick instead of scanning the full task table.
 
 The `taskbar` uses `Pit::msSince()` to throttle its display updates to once per second. The `snake`
 game uses it for frame timing.
