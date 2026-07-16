@@ -348,6 +348,16 @@ bool Cpu::hasSysEnter()
   return features.features.SEP && !(family == 6 && model < 3 && stepping < 3);
 }
 
+bool Cpu::hasFpu()
+{
+  return features.features.FPU;
+}
+
+bool Cpu::hasFxsr()
+{
+  return features.features.FXSR;
+}
+
 uint32_t Cpu::getTimeStamp()
 {
 #if DOORS_TARGET_ISA >= 586
@@ -538,4 +548,19 @@ void Cpu::readCpuInfo(CpuInfoRaw &out)
   for (int i = 0; i < 48; ++i) {
     out.brand[i] = brand[i];
   }
+}
+
+void Cpu::fxsave(uint8_t *buf)
+{
+  __asm__("fxsave %0" : "=m"(*buf));
+}
+
+void Cpu::fxrstor(const uint8_t *buf)
+{
+  __asm__("fxrstor %0" : : "m"(*buf));
+}
+
+void Cpu::fninit()
+{
+  __asm__("fninit");
 }
