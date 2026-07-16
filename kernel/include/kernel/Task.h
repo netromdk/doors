@@ -54,6 +54,12 @@ struct Task {
   uint8_t children[MAX_CHILDREN]{}; // Child PIDs.
   int childCount{};                 // Number of active children.
 
+  // Lazy FPU/SSE context. `fpuValid` is true when `fpuState` holds a live snapshot. The #NM (device
+  // not available/no math coprocessor) handler (`CR0.TS` trap) saves the previous owner's state and
+  // restores this task's state on first FPU use.
+  bool fpuValid{};
+  alignas(16) uint8_t fpuState[512]{}; // FXSAVE/FXRSTOR buffer (512 bytes, 16-byte aligned).
+
   // Per-session history for SYS_READLINE. Allocated on first call, freed on task exit.
   string *historyBuf_{}; // Array of HISTORY_MAX strings. nullptr = not yet allocated.
   int historyCount_{};   // Number of entries in history.
