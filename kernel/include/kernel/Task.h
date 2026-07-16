@@ -21,6 +21,7 @@ struct Task {
   uint8_t *stackBuf{};    // Base of heap-allocated stack. null for the shell (bootstrap) task.
   uint32_t stackSize{};   // Size of `stackBuf` in bytes. 0 for the shell task.
   uint8_t flags{};        // Task behaviour flags (see FLAG_* constants).
+  uint8_t priority{};     // Scheduling priority (lower value = higher priority).
   uint64_t wakeupMs{};    // System uptime (ms) when BLOCKED task should wake. 0 = not sleeping.
   uint64_t runtimeMs{};   // Cumulative CPU runtime in PIT ticks (milliseconds).
   void (*onKill)(){};     // Called when this task is killed/exits. Used for cleanup.
@@ -61,6 +62,12 @@ struct Task {
 
   // When set, the taskbar task should not display while this task is alive.
   static constexpr uint8_t FLAG_SUPPRESS_TASKBAR = 1;
+
+  // Scheduling priority constants (lower value = higher priority).
+  static constexpr uint8_t PRIORITY_HIGH = 0;
+  static constexpr uint8_t PRIORITY_NORMAL = 4;
+  static constexpr uint8_t PRIORITY_LOW = 8;
+  static constexpr uint8_t PRIORITY_IDLE = 9;
 
   // Exit code conventions (matching POSIX).
   static constexpr int EXIT_CODE_SIGNAL_BASE = 128;
