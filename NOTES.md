@@ -234,10 +234,10 @@ Feature Detection
 `Cpu::init()` runs during `Arch::init()` and queries `CPUID` leaves `0`, `1`, `0x80000000`, and
 `0x80000001` to build a complete picture of the processor. Leaf 0 yields the 12-byte vendor string,
 like `"GenuineIntel"`, and the maximum supported `CPUID` function. Leaf 1 provides stepping, model,
-family, and a 32-bit feature flags bitfield covering `FPU` (Floating Point Unit), `PAE`, `TSC` (Time
-Stamp Counter), `SSE` (Streaming SIMD Extensions), `MMX` (Multimedia Extensions), `APIC` (Advanced
-Programmable Interrupt Controller), etc. Extended leaves add `SYSCALL`, `NX` bit, and long mode
-support.
+family, and a 32-bit feature flags bitfield covering `FPU` ([Floating Point
+Unit](https://wiki.osdev.org/FPU)), `PAE`, `TSC` (Time Stamp Counter), `SSE` (Streaming SIMD
+Extensions), `MMX` (Multimedia Extensions), `APIC` (Advanced Programmable Interrupt Controller),
+etc. Extended leaves add `SYSCALL`, `NX` bit, and long mode support.
 
 The brand string is assembled from leaves `0x80000002`-`0x80000004` into a 48-byte null-terminated
 buffer. A hard check fails initialization if `SYSENTER` is unsupported. `hasSysEnter()` also returns
@@ -248,9 +248,10 @@ Utility Functions
 -----------------
 
 `EFLAGS` read/write, interrupt enable/disable (`cli`/`sti`), `CR0`/`CR2`/`CR3` read/write, single
-`TLB` flush (`INVLPG`), and `HLT` are thin inline-asm wrappers used throughout the kernel.
-`tripleFault()` loads a null `IDT`, fires `int $0x00`, then `cli; hlt`. This reboots on real
-hardware and exits QEMU with `-no-reboot`.
+`TLB` flush (`INVLPG`), `HLT`, and `FPU` context management (`fxsave`, `fxrstor`, `fninit`) are thin
+inline-asm wrappers used throughout the kernel. `hasFpu()` and `hasFxsr()` query `CPUID` feature
+bits for `FPU` and `FXSAVE`/`FXRSTOR` support. `tripleFault()` loads a null `IDT`, fires `int
+$0x00`, then `cli; hlt`. This reboots on real hardware and exits QEMU with `-no-reboot`.
 
 The `readCpuInfo()` function copies the detection results into a struct exposed to userland via the
 `SYS_SYSINFO` syscall, giving the `shell`'s `cpuinfo` command its data.
@@ -398,7 +399,8 @@ that level. The `idle` task is always at the lowest priority (`PRIORITY_IDLE`) s
 no other task is `READY`. The `taskbar` runs at `PRIORITY_LOW`. `fork()` (the child) inherits the
 parent's priority. Each task has its own 8 KiB kernel stack (16 KiB for userland tasks) and an
 optional page directory. Kernel tasks share the kernel page directory. Userland tasks get a cloned
-copy with their code and stack mapped at ring 3.
+copy with their code and stack mapped at ring 3. Each task also has a 512-byte `fpuState` buffer
+(16-byte aligned for `FXSAVE`/`FXRSTOR`) and a `fpuValid` flag for lazy FPU context switching.
 
 Tasks go through four states:
 
@@ -420,8 +422,8 @@ calls `Scheduler::tick()`. It saves the current task's stack pointer, checks a s
 deadline has passed. If the quantum hasn't expired, the current task keeps running. Otherwise, the
 scheduler picks the next highest-priority `READY` task by Round Robin, switches to its page
 directory if needed, updates the `TSS` `esp0` field to point to the new task's kernel stack so the
-next `INT 0x80` from ring 3 switches to the correct stack, and returns the new stack pointer so
-`iret` resumes the chosen task.
+next `INT 0x80` from ring 3 switches to the correct stack, sets `CR0.TS` for lazy FPU context
+switching, and returns the new stack pointer so `iret` resumes the chosen task.
 
 Userland programs communicate with the kernel through `INT 0x80` syscalls. The syscall gate in the
 `IDT` is set as a trap gate with DPL 3 (Descriptor Privilege Level 3, meaning ring-3 accessible) so
@@ -448,9 +450,10 @@ IDT Setup
 fallback that prints a diagnostic and sends an `EOI` (End Of Interrupt)). Then specific vectors get
 wired up:
 
-- Exception vectors (CPU faults/traps): 0 (divide error), 6 (invalid opcode), 11 (segment not
-  present), 12 (stack fault), 13 (`GPF` ([General Protection
-  Fault](https://wiki.osdev.org/Exceptions))), 14 (page fault). The rest hit the dummy fallback.
+- Exception vectors (CPU faults/traps): 0 (divide error), 6 (invalid opcode), 7 (device not
+  available / `#NM`, used for lazy FPU context switching), 11 (segment not present), 12 (stack
+  fault), 13 (`GPF` ([General Protection Fault](https://wiki.osdev.org/Exceptions))), 14 (page
+  fault). The rest hit the dummy fallback.
 - Hardware `IRQ` vectors: 32 (`PIT` timer, `IRQ` 0), 33 (keyboard, `IRQ` 1). The `PIC` remaps `IRQ`
   0-7 to vectors 32-39 and `IRQ` 8-15 to vectors 40-47, so they don't overlap with CPU exceptions.
 - Syscall vector: `INT 0x80` at vector 128. This is the only entry using a trap gate with `DPL` 3,
@@ -484,10 +487,15 @@ Three stubs have custom assembly:
 Exception Handlers
 ------------------
 
-`kernel/arch/i386/ExceptionHandlers.cc` has six `extern "C"` handlers:
+`kernel/arch/i386/ExceptionHandlers.cc` has seven `extern "C"` handlers:
 
 - `excDivZero()`, `excSegNp()`, `excSf()`, `excGp()` just panic with a message (none return).
 - `excInvOp(frame)` prints `EIP` and `CS` from the stack frame, then panics.
+- `excNm(frame)` handles the Device Not Available exception. This fires when a task uses `FPU`/`SSE`
+  instructions while `CR0.TS` is set (lazy `FPU` context switching). Delegates to
+  `Scheduler::handleNm()` which saves the previous `FPU` owner's state via `Cpu::fxsave()`, restores
+  the current task's state via `Cpu::fxrstor()` (or `Cpu::fninit()` if first use), clears `CR0.TS`,
+  and returns so the faulting instruction re-executes transparently.
 - `excPf(frame)` is the most detailed. Reads `CR2` (the faulting virtual address), decodes the error
   code into human-readable flags (present/protection, read/write, user/supervisor, reserved-bit,
   instruction fetch), dumps user `ESP`/`SS` if the fault came from ring 3 (detected via `CS & 3`),
