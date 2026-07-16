@@ -75,6 +75,37 @@ __attribute__((weak)) void Cpu::writeCr3(uint32_t)
 {
 }
 
+__attribute__((weak)) uint32_t Cpu::readCr0()
+{
+  return 0;
+}
+
+__attribute__((weak)) void Cpu::writeCr0(uint32_t)
+{
+}
+
+__attribute__((weak)) bool Cpu::hasFpu()
+{
+  return false;
+}
+
+__attribute__((weak)) bool Cpu::hasFxsr()
+{
+  return false;
+}
+
+__attribute__((weak)) void Cpu::fxsave(uint8_t *)
+{
+}
+
+__attribute__((weak)) void Cpu::fxrstor(const uint8_t *)
+{
+}
+
+__attribute__((weak)) void Cpu::fninit()
+{
+}
+
 __attribute__((weak)) bool Cpu::interruptsEnabled()
 {
   return true;

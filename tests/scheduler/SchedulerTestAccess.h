@@ -27,6 +27,16 @@ struct SchedulerTestAccess {
   {
     Scheduler::currentIdx_ = idx;
   }
+
+  static int fpuOwner()
+  {
+    return Scheduler::fpuOwner_;
+  }
+
+  static void setFpuOwner(int id)
+  {
+    Scheduler::fpuOwner_ = id;
+  }
 };
 
 #endif // TESTS_SCHEDULER_SCHEDULERTESTACCESS_H
