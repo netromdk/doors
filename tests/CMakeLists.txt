@@ -297,6 +297,7 @@ doors_test_module(test_kernel_scheduler
   scheduler/RoundRobin.cc
   scheduler/TaskInfo.cc
   scheduler/TaskStates.cc
+  scheduler/FpuContext.cc
   stubs.cc
   "${HEAP_SRC}"
   "${PIT_SRC}"
