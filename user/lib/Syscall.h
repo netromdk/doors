@@ -27,6 +27,7 @@ struct TaskDetail {
   unsigned char id;
   unsigned char state;
   unsigned char flags;
+  unsigned char priority;
   char name[16];
   unsigned int entry;
   unsigned int stackBuf;
