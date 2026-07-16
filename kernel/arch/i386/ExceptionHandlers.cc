@@ -50,6 +50,11 @@ void excGp()
   panic("general protection fault");
 }
 
+void excNm(uint32_t *)
+{
+  Scheduler::handleNm();
+}
+
 // Page fault handler.
 void excPf(uint32_t *frame)
 {
