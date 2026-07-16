@@ -67,7 +67,7 @@ void loadUserPrograms()
   else {
     printf("No multiboot modules found.\nNo shell available!\n");
   }
-  Scheduler::addTask("taskbar", taskbarMain, Paging::clonePageDir());
+  Scheduler::addTask("taskbar", taskbarMain, Paging::clonePageDir(), Task::PRIORITY_LOW);
 }
 
 } // namespace
