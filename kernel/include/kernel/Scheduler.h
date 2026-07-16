@@ -31,7 +31,8 @@ public:
   static constexpr uint32_t FRAME_SIZE_USER = 52; // 32 pushal + 20 iret (ring 3).
 
   static void init();
-  static optional<int> addTask(string_view name, void (*entry)(), uint32_t pageDir = 0);
+  static optional<int> addTask(string_view name, void (*entry)(), uint32_t pageDir = 0,
+                               uint8_t priority = Task::PRIORITY_NORMAL);
   static optional<int> addUserTask(string_view name);
   static optional<int> addUserElfTask(string_view name, const void *elfData, size_t elfSize);
   static optional<int> addTaskAndBlock(string_view name, void (*entry)(), uint32_t pageDir = 0);
@@ -50,6 +51,7 @@ public:
   static optional<const char *> taskName(int id);
   static optional<TaskState> taskState(int id);
   static optional<uint8_t> taskFlags(int id);
+  static optional<uint8_t> taskPriority(int id);
   static void killTask(int id);
   static optional<uint32_t> taskEsp(int id);
   static optional<const uint8_t *> taskStackBuf(int id);
@@ -94,7 +96,8 @@ private:
   static uint8_t *allocKernelStack();
   static uint32_t initStackFrame(uint8_t *stack, void (*entry)());
   static uint32_t initUserStackFrame(uint8_t *stack, uint32_t userEip, uint32_t userEsp);
-  static optional<int> addTaskImpl(string_view name, void (*entry)(), uint32_t pageDir = 0);
+  static optional<int> addTaskImpl(string_view name, void (*entry)(), uint32_t pageDir = 0,
+                                   uint8_t priority = Task::PRIORITY_NORMAL);
   static optional<int> findNext();
   static uint32_t switchTo(int next);
   static void checkCanary(const Task &t);

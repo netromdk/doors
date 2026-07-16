@@ -65,18 +65,20 @@ void Scheduler::init()
   tasks_[0].stackSize = 0;
   strncpy(tasks_[0].name.data(), "idle", tasks_[0].name.size() - 1);
   tasks_[0].name[tasks_[0].name.size() - 1] = '\0';
+  tasks_[0].priority = Task::PRIORITY_IDLE;
   taskCount_ = 1;
   currentIdx_ = 0;
   quantumRemaining_ = QUANTUM_TICKS;
   initialized_ = true;
 }
 
-optional<int> Scheduler::addTask(string_view name, void (*entry)(), uint32_t pageDir)
+optional<int> Scheduler::addTask(string_view name, void (*entry)(), uint32_t pageDir,
+                                 uint8_t priority)
 {
   // Disable interrupts while modifying the shared task table so the timer ISR, which calls
   // `tick()`, does not see a partially-initialized slot.
   InterruptGuard guard;
-  return addTaskImpl(name, entry, pageDir);
+  return addTaskImpl(name, entry, pageDir, priority);
 }
 
 optional<int> Scheduler::findSlot()
@@ -154,7 +156,8 @@ uint32_t Scheduler::initUserStackFrame(uint8_t *stack, uint32_t userEip, uint32_
   return static_cast<uint32_t>(reinterpret_cast<unsigned long long>(stackTop - 13));
 }
 
-optional<int> Scheduler::addTaskImpl(string_view name, void (*entry)(), uint32_t pageDir)
+optional<int> Scheduler::addTaskImpl(string_view name, void (*entry)(), uint32_t pageDir,
+                                     uint8_t priority)
 {
   if (name.data() == nullptr) {
     return {};
@@ -172,6 +175,7 @@ optional<int> Scheduler::addTaskImpl(string_view name, void (*entry)(), uint32_t
     t.stackBuf = nullptr;
   }
   t.flags = 0;
+  t.priority = priority;
   t.wakeupMs = 0;
   t.runtimeMs = 0;
   t.onKill = nullptr;
@@ -494,6 +498,7 @@ optional<int> Scheduler::addUserTask(string_view name)
     Heap::free(t.stackBuf);
   }
   t = {};
+  t.priority = Task::PRIORITY_NORMAL;
 
   HeapAlloc kstack{allocKernelStack(), true};
   if (!kstack.ptr) {
@@ -549,6 +554,7 @@ optional<int> Scheduler::addUserElfTask(string_view name, const void *elfData, s
     Heap::free(t.stackBuf);
   }
   t = {};
+  t.priority = Task::PRIORITY_NORMAL;
 
   HeapAlloc kstack{allocKernelStack(), true};
   if (!kstack.ptr) {
@@ -671,6 +677,7 @@ uint32_t Scheduler::fork()
   child.ppid = parent.pid;
   child.exitCode = 0;
   child.childCount = 0;
+  child.priority = parent.priority;
   child.stackBuf = childStack;
   child.stackSize = TASK_STACK_SIZE;
   strncpy(child.name.data(), "fork", child.name.size() - 1);
@@ -1036,6 +1043,14 @@ optional<uint8_t> Scheduler::taskFlags(int id)
   return tasks_[id].flags;
 }
 
+optional<uint8_t> Scheduler::taskPriority(int id)
+{
+  if (id < 0 || id >= taskCount_) {
+    return {};
+  }
+  return tasks_[id].priority;
+}
+
 optional<uint32_t> Scheduler::taskEsp(int id)
 {
   if (id < 0 || id >= taskCount_) {
@@ -1244,13 +1259,28 @@ optional<int> Scheduler::findNext()
   if (taskCount_ <= 1) {
     return {};
   }
+
+  // Priority-based Round Robin selection.
+  // Start with a value one worse than `PRIORITY_IDLE` so any `READY` task wins.
+  int bestPriority = Task::PRIORITY_IDLE + 1;
+  int bestIdx = -1;
+
+  // Walk non-`idle` slots starting after the current task. Slots 1 through `taskCount_-1` contain
+  // real tasks. Slot 0 is excluded so `idle` only runs when nothing better is found.
   for (int i = 0; i < taskCount_ - 1; ++i) {
+    // +1 skips current task and modulo wraps and skips slot 0.
     const int idx = (currentIdx_ + 1 + i) % taskCount_;
-    if (tasks_[idx].state == TaskState::READY) {
-      return idx;
+    if (tasks_[idx].state == TaskState::READY && tasks_[idx].priority < bestPriority) {
+      bestPriority = tasks_[idx].priority;
+      bestIdx = idx;
+    }
+
+    // No task can beat `PRIORITY_HIGH`.
+    if (bestPriority == Task::PRIORITY_HIGH) {
+      break;
     }
   }
-  return {};
+  return bestIdx >= 0 ? bestIdx : 0 /* idle */;
 }
 
 void Scheduler::checkCanary(const Task &t)
