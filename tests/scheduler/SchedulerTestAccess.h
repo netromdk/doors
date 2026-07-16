@@ -37,6 +37,16 @@ struct SchedulerTestAccess {
   {
     Scheduler::fpuOwner_ = id;
   }
+
+  static int sleepCount()
+  {
+    return Scheduler::sleepCount_;
+  }
+
+  static const Scheduler::SleepEntry *sleepQueue()
+  {
+    return Scheduler::sleepQueue_.data();
+  }
 };
 
 #endif // TESTS_SCHEDULER_SCHEDULERTESTACCESS_H
