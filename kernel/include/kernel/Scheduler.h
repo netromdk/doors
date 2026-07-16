@@ -70,6 +70,7 @@ public:
   static uint32_t fork();
   static uint32_t exec(int modIdx);
   static uint32_t waitpid(int *status);
+  static void handleNm();
 
 #if !defined(__IS_DOORS_KERNEL) || defined(__DOORS_TESTING)
   friend struct SchedulerTestAccess;
@@ -91,6 +92,9 @@ private:
 
   // Monotonically increasing PID counter. PID 0 is reserved for `idle`.
   static uint8_t nextPid_;
+
+  // Task that most recently used the FPU (none when `-1`). Used for lazy FPU context switching.
+  static int fpuOwner_;
 
   static optional<int> findSlot();
   static uint8_t *allocKernelStack();
