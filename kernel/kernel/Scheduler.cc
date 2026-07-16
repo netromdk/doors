@@ -234,13 +234,20 @@ uint32_t Scheduler::tick(uint32_t currentEsp)
   ++tasks_[currentIdx_].runtimeMs;
 
   // Wake up BLOCKED tasks whose sleep deadline has passed.
-  const uint64_t now = Pit::uptimeMs();
-  for (int i = 0; i < taskCount_; ++i) {
-    if (tasks_[i].state == TaskState::BLOCKED && tasks_[i].wakeupMs != 0 &&
-        tasks_[i].wakeupMs <= now) {
-      tasks_[i].state = TaskState::READY;
-      tasks_[i].wakeupMs = 0;
+  const auto now = Pit::uptimeMs();
+  while (sleepCount_ > 0 && sleepQueue_[0].deadline <= now) {
+    // Pop the head entry and shift remaining entries left to maintain sorted order.
+    const auto entry = sleepQueue_[0];
+    --sleepCount_;
+    for (int i = 0; i < sleepCount_; ++i) {
+      sleepQueue_[i] = sleepQueue_[i + 1];
     }
+
+    // Guard: the task may have been woken by `unblockTask()` before the timer fired.
+    if (tasks_[entry.taskId].state == TaskState::BLOCKED) {
+      tasks_[entry.taskId].state = TaskState::READY;
+    }
+    tasks_[entry.taskId].wakeupMs = 0;
   }
 
   // Charge one tick against the current task's quantum. If quantum remains, stay.
@@ -1241,8 +1248,19 @@ void Scheduler::sleep(uint64_t ms)
     panic("Scheduler::sleep: corrupted currentIdx");
   }
 
-  tasks_[currentIdx_].wakeupMs = Pit::uptimeMs() + ms;
+  const auto deadline = Pit::uptimeMs() + ms;
+  tasks_[currentIdx_].wakeupMs = deadline;
   tasks_[currentIdx_].state = TaskState::BLOCKED;
+
+  // Insert into sorted sleep queue with ascending deadline ordering. Walk backwards from the end to
+  // find the correct position, shifting larger deadlines right.
+  int pos = sleepCount_;
+  while (pos > 0 && sleepQueue_[pos - 1].deadline > deadline) {
+    sleepQueue_[pos] = sleepQueue_[pos - 1];
+    --pos;
+  }
+  sleepQueue_[pos] = {deadline, currentIdx_};
+  ++sleepCount_;
 
   // Enable interrupts so `tick()` can be called, halt CPU until next interrupt, and then disable
   // interrupts because they are expected off and ISR will re-enable.
