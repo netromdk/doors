@@ -216,8 +216,8 @@ kernel page directory, maps `PT_LOAD` segments with ring 3 permissions, sets up 
 frame, and marks the task as ready.
 
 Finally `kmain()` drops into an infinite loop that enables interrupts and halts. From that point,
-the `PIT` timer drives everything: each tick calls the scheduler which does round-robin context
-switching with a 20ms quantum.
+the `PIT` timer drives everything: each tick calls the scheduler which does priority-based Round
+Robin context switching with a 20ms quantum.
 
 
 CPU Detection and Control
@@ -390,11 +390,15 @@ Scheduling
 ==========
 
 The scheduler (`kernel/include/kernel/Scheduler.h`, `kernel/kernel/Scheduler.cc`) is preemptive,
-[Round Robin](https://wiki.osdev.org/Scheduling_Algorithms) with 8 task slots and a 20 ms quantum
-(20 `PIT` ticks at 1000 Hz). Slot 0 is always the `idle` task, which just halts until the next
-interrupt. Each task has its own 8 KiB kernel stack (16 KiB for userland tasks) and an optional page
-directory. Kernel tasks share the kernel page directory. Userland tasks get a cloned copy with their
-code and stack mapped at ring 3.
+[priority-based Round Robin](https://wiki.osdev.org/Scheduling_Algorithms) with 8 task slots and a
+20 ms quantum (20 `PIT` ticks at 1000 Hz). Each task has a `priority` field with value
+`PRIORITY_HIGH (0)`, `PRIORITY_NORMAL (4)`, `PRIORITY_LOW (8)`, or `PRIORITY_IDLE (9)`. `findNext()`
+selects the highest-priority `READY` task. Tasks at the same priority level still round-robin within
+that level. The `idle` task is always at the lowest priority (`PRIORITY_IDLE`) so it only runs when
+no other task is `READY`. The `taskbar` runs at `PRIORITY_LOW`. `fork()` (the child) inherits the
+parent's priority. Each task has its own 8 KiB kernel stack (16 KiB for userland tasks) and an
+optional page directory. Kernel tasks share the kernel page directory. Userland tasks get a cloned
+copy with their code and stack mapped at ring 3.
 
 Tasks go through four states:
 
@@ -414,7 +418,7 @@ Every `PIT` tick, the timer `ISR` ([Interrupt Service Routine](https://wiki.osde
 calls `Scheduler::tick()`. It saves the current task's stack pointer, checks a stack canary
 (`0xDEADBEEF`) for overflow, charges one tick of runtime, and wakes any sleeping tasks whose
 deadline has passed. If the quantum hasn't expired, the current task keeps running. Otherwise, the
-scheduler picks the next `READY` task by walking the table round-robin, switches to its page
+scheduler picks the next highest-priority `READY` task by Round Robin, switches to its page
 directory if needed, updates the `TSS` `esp0` field to point to the new task's kernel stack so the
 next `INT 0x80` from ring 3 switches to the correct stack, and returns the new stack pointer so
 `iret` resumes the chosen task.
@@ -499,8 +503,8 @@ Hardware Interrupt Handlers
 `kernel/arch/i386/InterruptHandlers.cc` has three handlers:
 
 - `intTick(currentEsp)` is the heart of the scheduler. Calls `Pit::tick()` (increment uptime
-  counter), `Scheduler::tick(currentEsp)` (round-robin, returns new `ESP` or 0), `Pic::sendEoi()`,
-  and returns the new `ESP` (or 0 if no switch needed).
+   counter), `Scheduler::tick(currentEsp)` (priority-based Round Robin, returns new `ESP` or 0),
+   `Pic::sendEoi()`, and returns the new `ESP` (or 0 if no switch needed).
 - `intKbd()` delegates to `Kbd::isrHandler()` which reads the scancode from port `0x60`, processes
   it, pushes the character to a ring buffer, and signals a semaphore. Then sends `EOI`.
 - `intDummy()` prints a diagnostic and sends `EOI`. Catch-all for unregistered `IRQ`s.
@@ -598,8 +602,8 @@ The timer interrupt flows through the full `ISR` pipeline: `asmIntTick` (assembl
 the assembly stub swaps to it before `popal; iret`.
 
 The scheduler charges 1 ms of runtime to the current task each tick and decrements a quantum
-counter. After 20 ticks, it round-robin picks the next `READY` task. Sleeping tasks have their
-`wakeupMs` deadline checked each tick via `Pit::uptimeMs()`.
+counter. After 20 ticks, it picks the highest-priority `READY` task by Round Robin. Sleeping tasks
+have their `wakeupMs` deadline checked each tick via `Pit::uptimeMs()`.
 
 The `taskbar` uses `Pit::msSince()` to throttle its display updates to once per second. The `snake`
 game uses it for frame timing.
