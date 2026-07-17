@@ -42,6 +42,7 @@ struct TaskDetail {
   uint32_t runtimeMs;
   uint32_t esp;
   uint32_t wakeupMs;
+  uint32_t quantumRemaining;
 };
 
 enum SysinfoCmd : uint32_t {
@@ -77,7 +78,7 @@ struct CpuInfoRaw {
 static constexpr uint32_t PANIC_MSG_MAX = 128;
 
 static_assert(sizeof(TaskEntry) == 18, "TaskEntry size mismatch");
-static_assert(sizeof(TaskDetail) == 44, "TaskDetail size mismatch");
+static_assert(sizeof(TaskDetail) == 48, "TaskDetail size mismatch");
 static_assert(sizeof(DateTimeRaw) == 6, "DateTimeRaw size mismatch");
 static_assert(sizeof(CpuInfoRaw) == 76, "CpuInfoRaw size mismatch");
 
