@@ -342,7 +342,10 @@ uint32_t handleTaskctlDetail(uint32_t tid, uint32_t bufAddr)
   dst->stackSize = static_cast<uint32_t>(Scheduler::taskStackSize(id).value_or(0));
   dst->runtimeMs = static_cast<uint32_t>(Scheduler::taskRuntimeMs(id).value_or(0));
   dst->esp = Scheduler::taskEsp(id).value_or(0);
-  dst->wakeupMs = static_cast<uint32_t>(Scheduler::taskWakeupMs(id).value_or(0));
+
+  const auto wakeup = Scheduler::taskWakeupMs(id).value_or(0);
+  dst->wakeupMs = wakeup > 0 ? static_cast<uint32_t>(wakeup - Pit::uptimeMs()) : 0;
+  dst->quantumRemaining = static_cast<uint32_t>(Scheduler::quantumRemaining());
   return 0;
 }
 
