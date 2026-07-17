@@ -13,8 +13,8 @@ class Scheduler {
 public:
   static constexpr int MAX_TASKS = 8;
 
-  // Time slice per task in PIT ticks (20 ms at 1000 Hz).
-  static constexpr int QUANTUM_TICKS = 20;
+  // Time slice per task in milliseconds.
+  static constexpr uint64_t QUANTUM_MS = 20;
 
   // Sorted queue of tasks sleeping on a timer deadline. Checked in O(1) per tick.
   struct SleepEntry {
@@ -89,8 +89,8 @@ private:
   static volatile int taskCount_;
   static volatile int currentIdx_;
 
-  // Ticks left in the current task's time slice.
-  static volatile int quantumRemaining_;
+  // Wall-clock time (ms) when the current task's quantum started.
+  static uint64_t quantumStartMs_;
 
   static volatile bool initialized_;
 
@@ -121,6 +121,10 @@ private:
   static void reparentChildren(uint8_t parentId);
   static uint32_t reapDeadChild(Task &parent, int *status);
   static void removeFromSleepQueue(int taskId);
+  static void programNextTick();
+
+  // Wall-clock time (ms) when the last tick was processed. Used to charge accurate runtime.
+  static uint64_t lastTickMs_;
 
   // Count tasks whose state matches the given predicate.
   using StatePred = bool (*)(TaskState);
