@@ -1,6 +1,7 @@
 #include <cstring>
 
 #include "SchedulerFixture.h"
+#include "SchedulerTestAccess.h"
 #include <doctest/doctest.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
@@ -157,18 +158,22 @@ TEST_CASE_FIXTURE(SchedulerFixture, "taskRuntimeMs: starts at 0")
 
 TEST_CASE_FIXTURE(SchedulerFixture, "taskRuntimeMs: tick increments running task")
 {
+  pitTicks = 1;
   Scheduler::tick(0);
   CHECK(Scheduler::taskRuntimeMs(0) == 1);
+  pitTicks = 2;
   Scheduler::tick(0);
   CHECK(Scheduler::taskRuntimeMs(0) == 2);
 }
 
 TEST_CASE_FIXTURE(SchedulerFixture, "taskRuntimeMs: different tasks accumulate independently")
 {
+  pitTicks = 1;
   Scheduler::tick(0);
   CHECK(Scheduler::taskRuntimeMs(0) == 1);
 
   Scheduler::addTask("t", nullptr);
+  pitTicks = 2;
   Scheduler::tick(0);
   CHECK(Scheduler::taskRuntimeMs(0) == 2);
   CHECK(Scheduler::taskRuntimeMs(1) == 0);
@@ -180,13 +185,14 @@ TEST_CASE_FIXTURE(SchedulerFixture, "taskRuntimeMs: returns nullopt for invalid 
   CHECK(!Scheduler::taskRuntimeMs(99));
 }
 
-TEST_CASE_FIXTURE(SchedulerFixture, "quantumRemaining: starts at QUANTUM_TICKS")
+TEST_CASE_FIXTURE(SchedulerFixture, "quantumRemaining: starts at QUANTUM_MS")
 {
-  CHECK(Scheduler::quantumRemaining() == Scheduler::QUANTUM_TICKS);
+  CHECK(Scheduler::quantumRemaining() == Scheduler::QUANTUM_MS);
 }
 
 TEST_CASE_FIXTURE(SchedulerFixture, "quantumRemaining: decrements on tick")
 {
+  SchedulerTestAccess::advancePit();
   Scheduler::tick(0);
-  CHECK(Scheduler::quantumRemaining() == Scheduler::QUANTUM_TICKS - 1);
+  CHECK(Scheduler::quantumRemaining() == Scheduler::QUANTUM_MS - 1);
 }

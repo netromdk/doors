@@ -4,6 +4,8 @@
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
 
+extern volatile uint64_t pitTicks;
+
 struct SchedulerTestAccess {
   static Task *getTask(int id)
   {
@@ -46,6 +48,37 @@ struct SchedulerTestAccess {
   static const Scheduler::SleepEntry *sleepQueue()
   {
     return Scheduler::sleepQueue_.data();
+  }
+
+  static uint64_t quantumStartMs()
+  {
+    return Scheduler::quantumStartMs_;
+  }
+
+  static void setQuantumStartMs(uint64_t ms)
+  {
+    Scheduler::quantumStartMs_ = ms;
+  }
+
+  static uint64_t lastTickMs()
+  {
+    return Scheduler::lastTickMs_;
+  }
+
+  static void setLastTickMs(uint64_t ms)
+  {
+    Scheduler::lastTickMs_ = ms;
+  }
+
+  static void programNextTick()
+  {
+    Scheduler::programNextTick();
+  }
+
+  static void advancePit(uint64_t ms = 1)
+  {
+    // `+= ms` not possible because `pitTicks` is volatile.
+    pitTicks = pitTicks + ms;
   }
 };
 
