@@ -252,6 +252,7 @@ target_compile_definitions(test_kernel_kbd_caps_is_ctrl PRIVATE CAPS_LOCK_IS_CTR
 
 doors_test_module(test_kernel_pit
   pit/uptime_math.cc
+  pit/Tickless.cc
   stubs.cc
   "${PIT_SRC}"
 )
@@ -298,6 +299,7 @@ doors_test_module(test_kernel_scheduler
   scheduler/TaskInfo.cc
   scheduler/TaskStates.cc
   scheduler/FpuContext.cc
+  scheduler/Tickless.cc
   stubs.cc
   "${HEAP_SRC}"
   "${PIT_SRC}"
