@@ -4,14 +4,13 @@
 #include "Lib.h"
 #include "Util.h"
 
-static constexpr array<Command, 15> cmdTable{
+static constexpr array<Command, 14> cmdTable{
   Command{.name = "help", .desc = "Show this help message", .handler = cmdHelp},
   Command{.name = "clear", .desc = "Clear the terminal", .handler = cmdClear},
   Command{.name = "halt", .desc = "Halt the system", .handler = cmdHalt},
   Command{.name = "reboot", .desc = "Reboot the system", .handler = cmdReboot},
   Command{.name = "panic", .desc = "Trigger a kernel panic", .handler = cmdPanic},
   Command{.name = "uptime", .desc = "Show system uptime", .handler = cmdUptime},
-  Command{.name = "ticks", .desc = "Show raw PIT tick count", .handler = cmdTicks},
   Command{.name = "meminfo", .desc = "Show memory information", .handler = cmdMemInfo},
   Command{.name = "heap", .desc = "Show heap allocator statistics", .handler = cmdHeap},
   Command{.name = "datetime",

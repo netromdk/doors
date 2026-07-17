@@ -60,6 +60,7 @@ void printTaskDetail(int id)
   printf("  Stack buf:  0x%x\n", dt.stackBuf);
   printf("  Stack size: %u bytes\n", dt.stackSize);
   printf("  Runtime:    %u ms\n", dt.runtimeMs);
+  printf("  Quantum:    %u ms\n", dt.quantumRemaining);
   if (dt.stackBuf) {
     printf("  ESP:        0x%x (offset from base: %u bytes)\n", dt.esp, dt.esp - dt.stackBuf);
   }

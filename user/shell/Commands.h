@@ -23,7 +23,6 @@ void cmdHalt(const span<string_view> &);
 void cmdReboot(const span<string_view> &);
 void cmdPanic(const span<string_view> &);
 void cmdUptime(const span<string_view> &);
-void cmdTicks(const span<string_view> &);
 void cmdMemInfo(const span<string_view> &);
 void cmdHeap(const span<string_view> &);
 void cmdDateTime(const span<string_view> &);
