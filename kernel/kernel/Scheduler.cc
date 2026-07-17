@@ -22,13 +22,14 @@
 array<Task, Scheduler::MAX_TASKS> Scheduler::tasks_{};
 volatile int Scheduler::taskCount_{0};
 volatile int Scheduler::currentIdx_{0};
-volatile int Scheduler::quantumRemaining_{0};
+uint64_t Scheduler::quantumStartMs_{0};
 volatile bool Scheduler::initialized_{false};
 int Scheduler::totalExited_{0};
 uint8_t Scheduler::nextPid_{0};
 int Scheduler::fpuOwner_{-1};
 array<Scheduler::SleepEntry, Scheduler::MAX_SLEEPERS> Scheduler::sleepQueue_{};
 int Scheduler::sleepCount_{0};
+uint64_t Scheduler::lastTickMs_{0};
 
 int Scheduler::countIf(StatePred pred)
 {
@@ -71,8 +72,9 @@ void Scheduler::init()
   tasks_[0].priority = Task::PRIORITY_IDLE;
   taskCount_ = 1;
   currentIdx_ = 0;
-  quantumRemaining_ = QUANTUM_TICKS;
+  quantumStartMs_ = 0;
   sleepCount_ = 0;
+  lastTickMs_ = 0;
   initialized_ = true;
 }
 
@@ -230,11 +232,13 @@ uint32_t Scheduler::tick(uint32_t currentEsp)
   // Detect stack overflow before it corrupts the saved frame.
   checkCanary(tasks_[currentIdx_]);
 
-  // Charge one tick of CPU time to the running task (1 ms per PIT tick at 1000 Hz).
-  ++tasks_[currentIdx_].runtimeMs;
+  // Charge elapsed CPU time to the running task.
+  const auto now = Pit::uptimeMs();
+  const auto elapsed = now - lastTickMs_;
+  lastTickMs_ = now;
+  tasks_[currentIdx_].runtimeMs += elapsed;
 
   // Wake up BLOCKED tasks whose sleep deadline has passed.
-  const auto now = Pit::uptimeMs();
   while (sleepCount_ > 0 && sleepQueue_[0].deadline <= now) {
     // Pop the head entry and shift remaining entries left to maintain sorted order.
     const auto entry = sleepQueue_[0];
@@ -250,23 +254,26 @@ uint32_t Scheduler::tick(uint32_t currentEsp)
     tasks_[entry.taskId].wakeupMs = 0;
   }
 
-  // Charge one tick against the current task's quantum. If quantum remains, stay.
-  const int q = volatileLoad(quantumRemaining_) - 1;
-  volatileStore(quantumRemaining_, q);
-  if (q > 0) {
-    return 0;
+  // Check quantum expiry using wall-clock time. Any task (including idle) that exhausts its quantum
+  // yields to `findNext()`. If `findNext()` returns the current task itself, due to no better
+  // candidate, reset the quantum and keep running.
+  const auto quantumElapsed = now - quantumStartMs_;
+  if (quantumElapsed >= QUANTUM_MS) {
+    const auto next = findNext();
+    if (!next || *next == currentIdx_) {
+      // No other runnable task exists. Reset quantum and keep running.
+      quantumStartMs_ = now;
+      programNextTick();
+      return 0;
+    }
+
+    // Switch to the chosen task and return its saved `esp`.
+    return switchTo(*next);
   }
 
-  // Quantum expired. Find the next READY task by round-robin approach.
-  const auto next = findNext();
-  if (!next) {
-    // No other runnable task exists. Keep running with a fresh quantum.
-    quantumRemaining_ = QUANTUM_TICKS;
-    return 0;
-  }
-
-  // Switch to the chosen task and return its saved `esp`.
-  return switchTo(*next);
+  // Program PIT for the next event.
+  programNextTick();
+  return 0;
 }
 
 uint32_t Scheduler::switchTo(int next)
@@ -279,7 +286,7 @@ uint32_t Scheduler::switchTo(int next)
   }
   currentIdx_ = next;
   tasks_[currentIdx_].state = TaskState::RUNNING;
-  quantumRemaining_ = QUANTUM_TICKS;
+  quantumStartMs_ = Pit::uptimeMs();
 
 #ifdef __IS_DOORS_KERNEL
   // Switch to the task's page directory if it has one, otherwise use the kernel page
@@ -304,6 +311,7 @@ uint32_t Scheduler::switchTo(int next)
   }
 #endif
 
+  programNextTick();
   return tasks_[currentIdx_].esp;
 }
 
@@ -1046,6 +1054,12 @@ void Scheduler::unblockTask(int id)
     tasks_[id].state = TaskState::READY;
     tasks_[id].wakeupMs = 0;
     removeFromSleepQueue(id);
+
+    // If the unblocked task has higher priority than the current task, reprogram the PIT to fire
+    // soon so the scheduler can preempt the current task.
+    if (tasks_[id].priority < tasks_[currentIdx_].priority) {
+      Pit::programForMs(1);
+    }
   }
 }
 
@@ -1171,7 +1185,12 @@ optional<uint64_t> Scheduler::taskRuntimeMs(int id)
 
 int Scheduler::quantumRemaining()
 {
-  return quantumRemaining_;
+  const auto now = Pit::uptimeMs();
+  const auto elapsed = now - quantumStartMs_;
+  if (elapsed >= QUANTUM_MS) {
+    return 0;
+  }
+  return static_cast<int>(QUANTUM_MS - elapsed);
 }
 
 void Scheduler::killTask(int id)
@@ -1269,6 +1288,12 @@ void Scheduler::sleep(uint64_t ms)
   sleepQueue_[pos] = {deadline, currentIdx_};
   ++sleepCount_;
 
+  // If the new deadline is sooner than the current PIT deadline, reprogram the PIT to fire at the
+  // new deadline so the task wakes up on time.
+  if (deadline < Pit::deadline()) {
+    Pit::programForMs(static_cast<uint32_t>(ms));
+  }
+
   // Enable interrupts so `tick()` can be called, halt CPU until next interrupt, and then disable
   // interrupts because they are expected off and ISR will re-enable.
   while (tasks_[currentIdx_].state == TaskState::BLOCKED) {
@@ -1293,6 +1318,33 @@ void Scheduler::removeFromSleepQueue(int taskId)
       return;
     }
   }
+}
+
+void Scheduler::programNextTick()
+{
+  const auto now = Pit::uptimeMs();
+  uint32_t nextMs = PIT_MAX_MS;
+
+  // Use the earliest sleep deadline if one exists.
+  if (sleepCount_ > 0) {
+    if (const auto sleepDeadline = sleepQueue_[0].deadline; sleepDeadline > now) {
+      nextMs = static_cast<uint32_t>(sleepDeadline - now);
+    }
+    else {
+      nextMs = 1;
+    }
+  }
+
+  // Consider the quantum expiry for all tasks (including idle) so the PIT fires in time to preempt
+  // idle when a higher-priority READY task is waiting.
+  if (const auto elapsed = now - quantumStartMs_; elapsed < QUANTUM_MS) {
+    if (const auto remaining = QUANTUM_MS - elapsed; remaining < nextMs) {
+      nextMs = static_cast<uint32_t>(remaining);
+    }
+  }
+
+  nextMs = clamp(nextMs, uint32_t{1}, PIT_MAX_MS);
+  Pit::programForMs(nextMs);
 }
 
 void Scheduler::suppressTaskbar()
