@@ -392,11 +392,11 @@ Scheduling
 
 The scheduler (`kernel/include/kernel/Scheduler.h`, `kernel/kernel/Scheduler.cc`) is preemptive,
 [priority-based Round Robin](https://wiki.osdev.org/Scheduling_Algorithms) with 8 task slots and a
-20 ms quantum (20 `PIT` ticks at 1000 Hz). Each task has a `priority` field with value
-`PRIORITY_HIGH (0)`, `PRIORITY_NORMAL (4)`, `PRIORITY_LOW (8)`, or `PRIORITY_IDLE (9)`. `findNext()`
-selects the highest-priority `READY` task. Tasks at the same priority level still round-robin within
-that level. The `idle` task is always at the lowest priority (`PRIORITY_IDLE`) so it only runs when
-no other task is `READY`. The `taskbar` runs at `PRIORITY_LOW`. `fork()` (the child) inherits the
+20 ms wall-clock quantum. Each task has a `priority` field with value `PRIORITY_HIGH (0)`,
+`PRIORITY_NORMAL (4)`, `PRIORITY_LOW (8)`, or `PRIORITY_IDLE (9)`. `findNext()` selects the
+highest-priority `READY` task. Tasks at the same priority level still round-robin within that
+level. The `idle` task is always at the lowest priority (`PRIORITY_IDLE`) so it only runs when no
+other task is `READY`. The `taskbar` runs at `PRIORITY_LOW`. `fork()` (the child) inherits the
 parent's priority. Each task has its own 8 KiB kernel stack (16 KiB for userland tasks) and an
 optional page directory. Kernel tasks share the kernel page directory. Userland tasks get a cloned
 copy with their code and stack mapped at ring 3. Each task also has a 512-byte `fpuState` buffer
@@ -416,14 +416,16 @@ creating task. When a task exits, its children are reparented to PID 0 (the `idl
 struct also tracks `exitCode`, an array of child PIDs, and a `childCount`. These fields form the
 foundation for `fork()`, `exec()`, and `waitpid()`.
 
-Every `PIT` tick, the timer `ISR` ([Interrupt Service Routine](https://wiki.osdev.org/Interrupts))
-calls `Scheduler::tick()`. It saves the current task's stack pointer, checks a stack canary
-(`0xDEADBEEF`) for overflow, charges one tick of runtime, and wakes any sleeping tasks whose
-deadline has passed. If the quantum hasn't expired, the current task keeps running. Otherwise, the
-scheduler picks the next highest-priority `READY` task by Round Robin, switches to its page
-directory if needed, updates the `TSS` `esp0` field to point to the new task's kernel stack so the
-next `INT 0x80` from ring 3 switches to the correct stack, sets `CR0.TS` for lazy FPU context
-switching, and returns the new stack pointer so `iret` resumes the chosen task.
+When the `PIT` one-shot fires, the timer `ISR` ([Interrupt Service
+Routine](https://wiki.osdev.org/Interrupts)) calls `Scheduler::tick()`. It saves the current task's
+stack pointer, checks a stack canary (`0xDEADBEEF`) for overflow, charges the elapsed wall-clock
+time since the last tick to the task's `runtimeMs`, and wakes any sleeping tasks whose deadline has
+passed. If the quantum hasn't expired, the current task keeps running. Otherwise, the scheduler
+picks the next highest-priority `READY` task by Round Robin, switches to its page directory if
+needed, updates the `TSS` `esp0` field to point to the new task's kernel stack so the next `INT
+0x80` from ring 3 switches to the correct stack, sets `CR0.TS` for lazy FPU context switching, and
+returns the new stack pointer so `iret` resumes the chosen task. After each tick or context switch,
+`programNextTick()` reprograms the `PIT` for the next event (see Timer section).
 
 Userland programs communicate with the kernel through `INT 0x80` syscalls. The syscall gate in the
 `IDT` is set as a trap gate with DPL 3 (Descriptor Privilege Level 3, meaning ring-3 accessible) so
@@ -568,38 +570,69 @@ slot. `popal; iret` returns to userland
 Timer (PIT)
 ===========
 
-The `PIT` is the system heartbeat. It fires `IRQ0` at ~1000 Hz, driving the scheduler, sleep/wakeup
-timing, and the global uptime counter. Configuration and access live in `kernel/arch/i386/Pit.cc`
-and `kernel/include/kernel/Pit.h`.
+The `PIT` is the system heartbeat. It fires `IRQ0` on demand, driving the scheduler, sleep/wakeup
+timing, and the global uptime counter. The kernel programs the `PIT` to fire only when the next
+event is due, rather than at a fixed rate. Configuration and access live in
+`kernel/arch/i386/Pit.cc` and `kernel/include/kernel/Pit.h`.
 
 Hardware Setup
 --------------
 
-`Pit::init()` programs `PIT` channel 0 with control word `0x36`: low-byte/high-byte access, mode 3
-(square wave generator), binary counting. The divisor is 1193, which gives approximately 1000 Hz
-from the `PIT`'s 1.193182 MHz base clock (`1.193182 MHz / 1193 = ~1000.15 Hz`, so roughly 1 ms per
-tick). The 16-bit divisor is written to I/O port `0x40` in two byte writes (low first, then
-high). After programming, `Pic::setMask(IRQ_TIMER, true)` unmasks `IRQ0` on the `PIC`.
+`Pit::init()` programs `PIT` channel 0 with control word `0x30`: low-byte/high-byte access, mode 0
+(interrupt on terminal count), binary counting. Mode 0 is a one-shot: the `PIT` counts down from a
+divisor, fires `IRQ0` once when it reaches zero, then stops. The divisor is computed at runtime by
+`programForMs(ms)` from the `PIT`'s 1.193182 MHz base clock: `divisor = (1193182 * ms) / 1000`,
+clamped to the 16-bit range `[1, 65535]`. The 16-bit divisor is written to I/O port `0x40` in two
+byte writes (low first, then high). After programming, `Pic::setMask(IRQ_TIMER, true)` unmasks
+`IRQ0` on the `PIC`.
 
-There is no dynamic frequency change or tickless mode. The divisor is a compile-time constant.
+Tickless Mode
+-------------
+
+Instead of firing at a fixed 1000 Hz, the `PIT` fires only when the next scheduled event occurs.
+`Pit::programForMs(ms)` programs a one-shot delay: it records `pitDeadlineMs = pitTicks + ms` and
+writes the divisor to the hardware. When the `PIT` fires, `Pit::tick()` advances the wall clock to
+that deadline: `pitTicks = pitDeadlineMs`. The error is bounded by `ISR` ([interrupt
+latency](https://en.wikipedia.org/wiki/Interrupt_latency), a few microseconds).
+
+The maximum one-shot delay is `PIT_MAX_MS = 54` ms, limited by the 16-bit divisor: `65535 /
+1,193,182` is approximately 54 ms. For longer sleeps (beyond 54 ms), the `PIT` fires repeatedly at
+the max delay. On each tick, the scheduler pops any sleep queue entries whose deadlines have passed
+and wakes the corresponding tasks, until the deadline is reached.
+
+`Scheduler::programNextTick()` computes the next `PIT` deadline from three inputs, picking the
+smallest:
+
+1. Sleep queue deadline: the earliest entry in the sorted `sleepQueue_` (if any).
+2. Quantum expiry: the remaining time in the current task's quantum.
+3. Default: `PIT_MAX_MS` (54 ms) when nothing else needs attention soon.
+
+The result is clamped to `[1, PIT_MAX_MS]` and passed to `Pit::programForMs()`. When `sleep()` or
+`unblockTask()` introduces a sooner event than the current `PIT` deadline, the `PIT` is reprogrammed
+immediately. When the system is idle with no sleepers and the quantum has expired, the `PIT` sleeps
+for up to 54 ms, minimizing wakeup frequency.
 
 Tick Counter
 ------------
 
-A single `volatile uint64_t pitTicks` global counter gets incremented by `Pit::tick()`, which is
-called from the timer `ISR` (`intTick()` in `kernel/arch/i386/InterruptHandlers.cc`). Since the
-counter is 64-bit but x86 is 32-bit, reads are protected by an `InterruptGuard` to prevent torn
-reads across `ISR` boundaries. The increment itself runs in interrupt context with interrupts
-already disabled, so it's safe without atomics.
+A single `volatile uint64_t pitTicks` global tracks wall-clock time (milliseconds since boot). When
+the `PIT` one-shot fires, `Pit::tick()` sets `pitTicks = pitDeadlineMs`, jumping the clock forward
+to the deadline that was recorded when `programForMs()` was last called. Between firings, `pitTicks`
+is frozen. Since the counter is 64-bit but x86 is 32-bit, reads are protected by an
+`InterruptGuard` to prevent torn reads across `ISR` boundaries. The update itself runs in interrupt
+context with interrupts already disabled, so it is safe without atomics.
 
 Uptime
 ------
 
 `Pit::uptimeMs()` returns `pitTicks` directly. `Pit::uptimeSec()` returns `pitTicks /
 1000`. `Pit::msSince(last)` returns `pitTicks - last`, which correctly handles wrap-around for
-unsigned 64-bit values. All three use `InterruptGuard` for consistency.
+unsigned 64-bit values. All three use `InterruptGuard` for consistency. Between `PIT` firings the
+value is stale, but when the `PIT` fires it jumps to the correct approximate time. The resolution
+is coarser than the old 1 ms ticks (1 to 54 ms jumps) but the `taskbar` (which updates once per
+second) is unaffected.
 
-The `uptime` and `ticks` `shell` commands read these values via the `SYS_SYSINFO` syscall.
+The `uptime` `shell` command reads these values via the `SYS_SYSINFO` syscall.
 
 Integration
 -----------
@@ -609,11 +642,19 @@ The timer interrupt flows through the full `ISR` pipeline: `asmIntTick` (assembl
 `Pic::sendEoi()`. If the scheduler decides to switch tasks, `intTick()` returns the new `ESP` and
 the assembly stub swaps to it before `popal; iret`.
 
-The scheduler charges 1 ms of runtime to the current task each tick and decrements a quantum
-counter. After 20 ticks, it picks the highest-priority `READY` task by Round Robin. Sleeping tasks
-are tracked in a sorted `sleepQueue_` with ascending deadline. On each tick, only the head entry is
-checked. If its deadline has passed, it is popped and the task wakes. This gives `O(1)` wakeup
-processing per tick instead of scanning the full task table.
+Inside `Scheduler::tick()`, the elapsed wall-clock time since the last tick is computed as `now -
+lastTickMs_` and charged to the current task's `runtimeMs`. The sleep queue is checked: any task
+whose deadline has passed is popped from the sorted queue and woken to `READY`. The quantum is
+checked against wall-clock time: `if (now - quantumStartMs_ >= QUANTUM_MS)`. If expired,
+`findNext()` picks the highest-priority `READY` task by Round Robin. If a switch is needed,
+`switchTo()` saves the current task's ESP, switches page directories if needed, updates `TSS` `esp0`
+for the next ring-3 `INT 0x80`, sets `CR0.TS` for lazy FPU context switching, records
+`quantumStartMs_ = now` for the new task's fresh quantum, and calls `programNextTick()` to reprogram
+the `PIT` for the next event.
+
+Sleeping tasks are tracked in a sorted `sleepQueue_` with ascending deadline. On each tick, only the
+head entry is checked. If its deadline has passed, it is popped and the task wakes. This gives
+`O(1)` wakeup processing per tick instead of scanning the full task table.
 
 The `taskbar` uses `Pit::msSince()` to throttle its display updates to once per second. The `snake`
 game uses it for frame timing.
