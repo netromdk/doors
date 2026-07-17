@@ -7,8 +7,7 @@
 #include <arch/i386/Paging.h>
 
 #include "PmmTestHooks.h"
-
-extern volatile uint64_t pitTicks;
+#include "SchedulerTestAccess.h"
 
 struct SchedulerPagingFixture {
   alignas(16) static inline uint8_t pool[262144];
@@ -51,11 +50,13 @@ TEST_CASE_FIXTURE(SchedulerPagingFixture, "tick with per-task pageDir switches t
   REQUIRE(id);
 
   // Drain the initial quantum by calling `tick()` until the task switches. On each tick, `tick()`
-  // decrements `quantumRemaining_` by 1. After the quantum expires tasks are round-robined.
+  // checks wall-clock elapsed time against `QUANTUM_MS`. After the quantum expires tasks are
+  // round-robined.
   constexpr int TICK_ITERATIONS = 50;
   uint32_t esp = 0x2000;
   int switches = 0;
   for (int i = 0; i < TICK_ITERATIONS; ++i) {
+    SchedulerTestAccess::advancePit();
     if (const auto newEsp = Scheduler::tick(esp); newEsp != esp) {
       ++switches;
       esp = newEsp;

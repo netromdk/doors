@@ -1,17 +1,19 @@
 #include "SchedulerFixture.h"
+#include "SchedulerTestAccess.h"
 #include <doctest/doctest.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
 
 namespace {
 
-// Exhaust the current task's quantum so a switch occurs. After `QUANTUM_TICKS` calls, `tick()`
-// returns the switched-to task's saved esp. Returns that esp, or 0 if no switch occurred (only one
-// task exists).
+// Exhaust the current task's quantum so a switch occurs. After `QUANTUM_MS` calls, `tick()` returns
+// the switched-to task's saved esp. Returns that esp, or 0 if no switch occurred (only one task
+// exists).
 uint32_t exhaustAndSwitch()
 {
   uint32_t lastResult = 0;
-  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+  for (uint64_t i = 0; i < Scheduler::QUANTUM_MS; ++i) {
+    SchedulerTestAccess::advancePit();
     if (const auto r = Scheduler::tick(0x1000); r != 0) {
       lastResult = r;
     }
@@ -146,7 +148,8 @@ TEST_CASE_FIXTURE(SchedulerFixture, "addTask: reuses a DEAD slot")
   SchedulerTestAccess::getTask(1)->state = TaskState::DEAD;
 
   // Switch back to task 0 and verify the DEAD task 1 slot is reused.
-  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+  for (uint64_t i = 0; i < Scheduler::QUANTUM_MS; ++i) {
+    SchedulerTestAccess::advancePit();
     Scheduler::tick(0x2000);
   }
   REQUIRE(Scheduler::currentTaskId() == 0);

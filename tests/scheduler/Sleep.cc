@@ -122,6 +122,12 @@ TEST_CASE_FIXTURE(SchedulerFixture, "sleep queue: tick pops expired entries")
   CHECK(SchedulerTestAccess::sleepCount() == 2);
 
   pitTicks = DEADLINE + 1;
+
+  // Align wall-clock bookkeeping with `pitTicks` so `tick()` computes elapsed = 0 (no spurious
+  // runtime charge) and the quantum is not already expired.
+  SchedulerTestAccess::setLastTickMs(pitTicks);
+  SchedulerTestAccess::setQuantumStartMs(pitTicks);
+
   Scheduler::tick(0);
 
   CHECK(SchedulerTestAccess::sleepCount() == 0);
@@ -143,6 +149,8 @@ TEST_CASE_FIXTURE(SchedulerFixture, "sleep queue: tick does not pop unexpired en
 
   // Advance past first deadline but not second.
   pitTicks = EARLY + 1;
+  SchedulerTestAccess::setLastTickMs(pitTicks);
+  SchedulerTestAccess::setQuantumStartMs(pitTicks);
   Scheduler::tick(0);
 
   CHECK(SchedulerTestAccess::sleepCount() == 1);

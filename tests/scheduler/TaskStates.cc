@@ -1,4 +1,5 @@
 #include "SchedulerFixture.h"
+#include "SchedulerTestAccess.h"
 #include <doctest/doctest.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
@@ -13,7 +14,8 @@ TEST_CASE_FIXTURE(SchedulerFixture,
 
   // Exhaust quantum on the current (BLOCKED) task. `findNext()` skips BLOCKED, finds task 1
   // (READY), and switches to it.
-  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+  for (uint64_t i = 0; i < Scheduler::QUANTUM_MS; ++i) {
+    SchedulerTestAccess::advancePit();
     Scheduler::tick(0x1000);
   }
   CHECK(Scheduler::currentTaskId() == 1);
@@ -22,7 +24,8 @@ TEST_CASE_FIXTURE(SchedulerFixture,
   Scheduler::unblockTask(0);
 
   // Exhaust task 1's quantum. `findNext()` should now find task 0 (READY).
-  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+  for (uint64_t i = 0; i < Scheduler::QUANTUM_MS; ++i) {
+    SchedulerTestAccess::advancePit();
     Scheduler::tick(0x2000);
   }
   CHECK(Scheduler::currentTaskId() == 0);
@@ -40,15 +43,18 @@ TEST_CASE_FIXTURE(SchedulerFixture, "unblockTask: no-op if already READY")
 
   // Round Robin visits `task1` and `task2` (both `PRIORITY_NORMAL`), `idle` is only reached when no
   // `PRIORITY_NORMAL` tasks are `READY`.
-  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+  for (uint64_t i = 0; i < Scheduler::QUANTUM_MS; ++i) {
+    SchedulerTestAccess::advancePit();
     Scheduler::tick(0x1000);
   }
   CHECK(Scheduler::currentTaskId() == 1);
-  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+  for (uint64_t i = 0; i < Scheduler::QUANTUM_MS; ++i) {
+    SchedulerTestAccess::advancePit();
     Scheduler::tick(0x2000);
   }
   CHECK(Scheduler::currentTaskId() == 2);
-  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+  for (uint64_t i = 0; i < Scheduler::QUANTUM_MS; ++i) {
+    SchedulerTestAccess::advancePit();
     Scheduler::tick(0x3000);
   }
 
@@ -63,7 +69,8 @@ TEST_CASE_FIXTURE(SchedulerFixture, "unblockTask: no-op if RUNNING")
   Scheduler::unblockTask(0);
 
   // Only one task exists. `findNext()` returns -1, quantum resets, stays on task 0.
-  for (int i = 0; i < Scheduler::QUANTUM_TICKS * 3; ++i) {
+  for (uint64_t i = 0; i < Scheduler::QUANTUM_MS * 3; ++i) {
+    SchedulerTestAccess::advancePit();
     CHECK(Scheduler::tick(0x1000) == 0);
   }
   CHECK(Scheduler::currentTaskId() == 0);
@@ -82,13 +89,15 @@ TEST_CASE_FIXTURE(SchedulerFixture, "unblockTask: no-op if DEAD")
   Scheduler::unblockTask(2);
 
   // Round Robin must skip DEAD task 2 and still schedule task 0 and task 1.
-  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+  for (uint64_t i = 0; i < Scheduler::QUANTUM_MS; ++i) {
+    SchedulerTestAccess::advancePit();
     Scheduler::tick(0x1000);
   }
   CHECK(Scheduler::currentTaskId() == 1);
   Scheduler::unblockTask(2); // still no-op, no crash
 
-  for (int i = 0; i < Scheduler::QUANTUM_TICKS; ++i) {
+  for (uint64_t i = 0; i < Scheduler::QUANTUM_MS; ++i) {
+    SchedulerTestAccess::advancePit();
     Scheduler::tick(0x2000);
   }
   // Must skip DEAD task 2 and switch back to task 0.

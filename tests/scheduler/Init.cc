@@ -1,4 +1,5 @@
 #include "SchedulerFixture.h"
+#include "SchedulerTestAccess.h"
 #include <doctest/doctest.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
@@ -22,7 +23,8 @@ TEST_CASE_FIXTURE(SchedulerFixture, "init: taskCount is 1, currentIdx is 0")
   CHECK(Scheduler::currentTaskId() == 0);
 
   // With only one task, `tick()` returns 0 (no switch possible).
-  for (int i = 0; i < Scheduler::QUANTUM_TICKS * 3; ++i) {
+  for (uint64_t i = 0; i < Scheduler::QUANTUM_MS * 3; ++i) {
+    SchedulerTestAccess::advancePit();
     CHECK(Scheduler::tick(0x1000) == 0);
   }
 
