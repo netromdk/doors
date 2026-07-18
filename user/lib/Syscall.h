@@ -17,6 +17,14 @@ enum IoctlCmd {
   IOCTL_INJECT_CHAR = 10,  // push a character into the keyboard buffer
 };
 
+// Task states (must match kernel TaskState enum).
+constexpr unsigned char TASK_STATE_DEAD = 0;
+constexpr unsigned char TASK_STATE_READY = 1;
+constexpr unsigned char TASK_STATE_RUNNING = 2;
+constexpr unsigned char TASK_STATE_BLOCKED = 3;
+
+constexpr int MAX_TASK_ENTRIES = 8; // matches Scheduler::MAX_TASKS
+
 struct TaskEntry {
   unsigned char id;
   char name[16];

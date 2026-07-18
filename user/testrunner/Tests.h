@@ -81,4 +81,12 @@ void testHeapFreeNull();
 void runPageFaultTests();
 void testPagefaultChildKilled();
 
+// Signal delivery.
+void runSignalTests();
+void testSigtermDefaultKill();
+void testSigkillIgnoresHandler();
+void testSigsegvHandlerDelivery();
+void testSigtermHandlerDelivery();
+void testSignalStateClearedOnFork();
+
 #endif
