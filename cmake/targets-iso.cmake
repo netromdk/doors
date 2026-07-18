@@ -15,6 +15,10 @@ if (BUILD_INTEGRATION_TESTS)
   module /boot/testrunner-interactive.elf
   module /boot/minimal.elf
   module /boot/pagefault-crasher.elf
+  module /boot/signal-loop.elf
+  module /boot/signal-sigsegv-handler.elf
+  module /boot/signal-sigterm-handler.elf
+  module /boot/signal-sigkill-handler.elf
 }")
 else()
   set(_GRUB_TESTING_ENTRY "")
@@ -54,6 +58,14 @@ if (_ISO_DEPS_OK)
                                           "${TMP_ISO}/boot/"
       COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/pagefault-crasher/pagefault-crasher.elf"
                                           "${TMP_ISO}/boot/"
+      COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/signal-tester/signal-loop.elf"
+                                          "${TMP_ISO}/boot/"
+      COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/signal-tester/signal-sigsegv-handler.elf"
+                                          "${TMP_ISO}/boot/"
+      COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/signal-tester/signal-sigterm-handler.elf"
+                                          "${TMP_ISO}/boot/"
+      COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/signal-tester/signal-sigkill-handler.elf"
+                                          "${TMP_ISO}/boot/"
     )
   endif()
 
@@ -79,12 +91,21 @@ if (_ISO_DEPS_OK)
                                           "${TMP_TEST_ISO}/boot/"
       COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/pagefault-crasher/pagefault-crasher.elf"
                                           "${TMP_TEST_ISO}/boot/"
+      COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/signal-tester/signal-loop.elf"
+                                          "${TMP_TEST_ISO}/boot/"
+      COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/signal-tester/signal-sigsegv-handler.elf"
+                                          "${TMP_TEST_ISO}/boot/"
+      COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/signal-tester/signal-sigterm-handler.elf"
+                                          "${TMP_TEST_ISO}/boot/"
+      COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/signal-tester/signal-sigkill-handler.elf"
+                                          "${TMP_TEST_ISO}/boot/"
       COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_SOURCE_DIR}/grub-test.cfg"
                                          "${TMP_TEST_ISO}/boot/grub/grub.cfg"
       COMMAND "${GRUB_MKRESCUE_EXECUTABLE}" -o "${TEST_ISO_FILE}"
               --locale-directory=. "${TMP_TEST_ISO}"
       COMMAND "${CMAKE_COMMAND}" -E remove_directory "${TMP_TEST_ISO}"
       DEPENDS doors_kernel testrunner minimal pagefault-crasher
+              signal-loop signal-sigsegv-handler signal-sigterm-handler signal-sigkill-handler
       VERBATIM
     )
 

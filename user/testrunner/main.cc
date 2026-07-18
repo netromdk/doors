@@ -30,6 +30,7 @@ void main()
   runInputTests();
   runHeapTests();
   runPageFaultTests();
+  runSignalTests();
 
   const auto totalMs = static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0)) - suiteStart;
   emitDone(passed_, failed_, passed_ + failed_, totalMs);

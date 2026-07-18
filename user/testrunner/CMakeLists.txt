@@ -19,6 +19,7 @@ set(TESTRUNNER_SOURCES
   tests/Heap.cc
   tests/Input.cc
   tests/PageFault.cc
+  tests/Signals.cc
 )
 
 add_user_program(testrunner
