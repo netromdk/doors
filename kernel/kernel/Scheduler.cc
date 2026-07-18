@@ -16,6 +16,7 @@
 #ifdef __IS_DOORS_KERNEL
 #include <arch/i386/Gdt.h>
 #include <arch/i386/Paging.h>
+#include <arch/i386/Pic.h>
 #include <kernel/ElfLoader.h>
 #endif
 
@@ -753,6 +754,15 @@ uint32_t Scheduler::exec(int modIdx)
   // use.
   t.fpuValid = false;
 
+  // Reset signal handlers to `nullptr` across exec. Pending signals are preserved so they are
+  // delivered after exec returns (matches Unix semantics).
+  for (int i = 0; i < Task::SIGNAL_MAX; ++i) {
+    t.signalHandlers[i] = nullptr;
+  }
+  t.savedSignalEip = 0;
+  t.savedSignalEflags = 0;
+  t.savedSignalEsp = 0;
+
   const auto *modPtr =
     physToVirt(reinterpret_cast<void *>(static_cast<uintptr_t>(Pmm::modulePhysStart(modIdx))));
   const auto modSize = Pmm::modulePhysSize(modIdx);
@@ -1147,6 +1157,14 @@ void Scheduler::handleNm()
   // `switchTo()` are not interrupted. This function never returns, so the InterruptGuard destructor
   // is never called.
   InterruptGuard guard;
+
+  // Send EOI before direct context switch. When called from `deliverPendingSignals()` inside the
+  // tick ISR, the normal path through `intTick()` (which calls `sendEoi()`) is bypassed. Without
+  // this, the PIC holds IRQ0 in-service, blocking future PIT interrupts. Harmless outside ISR
+  // context.
+#ifdef __IS_DOORS_KERNEL
+  Pic::sendEoi();
+#endif
 
   if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
     panic("Scheduler::exitCurrentTask: corrupted currentIdx");
