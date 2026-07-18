@@ -54,6 +54,24 @@ struct Task {
   uint8_t children[MAX_CHILDREN]{}; // Child PIDs.
   int childCount{};                 // Number of active children.
 
+  // Signal constants.
+  static constexpr int SIG_DEFAULT = 0;
+  static constexpr int SIGKILL = 9;
+  static constexpr int SIGTERM = 15;
+  static constexpr int SIGSEGV = 11;
+  static constexpr int SIGALRM = 14;
+  static constexpr int SIGNAL_MAX = 32;
+  static constexpr int EXIT_CODE_SIGNAL_BASE = 128;
+
+  // Signal state.
+  uint32_t pendingSignals{};
+  void (*signalHandlers[SIGNAL_MAX])(int){};
+
+  // Saved context for signal return (set by deliverPendingSignals, consumed by sigreturn).
+  uint32_t savedSignalEip{};
+  uint32_t savedSignalEflags{};
+  uint32_t savedSignalEsp{};
+
   // Lazy FPU/SSE context. `fpuValid` is true when `fpuState` holds a live snapshot. The #NM (device
   // not available/no math coprocessor) handler (`CR0.TS` trap) saves the previous owner's state and
   // restores this task's state on first FPU use.
@@ -74,10 +92,6 @@ struct Task {
   static constexpr uint8_t PRIORITY_NORMAL = 4;
   static constexpr uint8_t PRIORITY_LOW = 8;
   static constexpr uint8_t PRIORITY_IDLE = 9;
-
-  // Exit code conventions (matching POSIX).
-  static constexpr int EXIT_CODE_SIGNAL_BASE = 128;
-  static constexpr int SIGSEGV = 11;
 
   static constexpr int HISTORY_MAX = 100;
 
