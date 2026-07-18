@@ -80,6 +80,16 @@ struct SchedulerTestAccess {
     // `+= ms` not possible because `pitTicks` is volatile.
     pitTicks = pitTicks + ms;
   }
+
+  static void sendSignal(int pid, int sig)
+  {
+    Scheduler::sendSignal(pid, sig);
+  }
+
+  static void deliverPendingSignals()
+  {
+    Scheduler::deliverPendingSignals();
+  }
 };
 
 #endif // TESTS_SCHEDULER_SCHEDULERTESTACCESS_H

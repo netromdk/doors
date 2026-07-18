@@ -300,6 +300,7 @@ doors_test_module(test_kernel_scheduler
   scheduler/TaskStates.cc
   scheduler/FpuContext.cc
   scheduler/Tickless.cc
+  scheduler/Signals.cc
   stubs.cc
   "${HEAP_SRC}"
   "${PIT_SRC}"
