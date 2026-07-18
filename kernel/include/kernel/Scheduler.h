@@ -79,6 +79,7 @@ public:
   static void handleNm();
   static void sendSignal(int pid, int sig);
   static void deliverPendingSignals();
+  static void deliverPendingSignalsAtEsp(uint32_t esp);
   static bool deliverSigsegvFromException(uint32_t *frame);
 
 #if !defined(__IS_DOORS_KERNEL) || defined(__DOORS_TESTING)
