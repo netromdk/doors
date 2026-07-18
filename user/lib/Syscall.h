@@ -209,4 +209,26 @@ static inline int sys_waitpid(int *status)
   return ret;
 }
 
+static inline int sys_kill(int pid, int sig)
+{
+  int ret;
+  __asm__ volatile("int $0x80"
+                   : "=a"(ret)
+                   : "a"(SYS_KILL), "b"(static_cast<unsigned int>(pid)),
+                     "c"(static_cast<unsigned int>(sig))
+                   : "memory");
+  return ret;
+}
+
+static inline int sys_sigaction(int signal, void (*handler)(int))
+{
+  int ret;
+  __asm__ volatile("int $0x80"
+                   : "=a"(ret)
+                   : "a"(SYS_SIGACTION), "b"(static_cast<unsigned int>(signal)),
+                     "c"(reinterpret_cast<unsigned int>(handler))
+                   : "memory");
+  return ret;
+}
+
 #endif
