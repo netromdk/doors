@@ -36,7 +36,7 @@ commands) and `snake` (VGA snake game). Built as freestanding, statically-linked
 and Linkable Format](https://wiki.osdev.org/ELF)) 32-bit binaries, with `user/User.ld` setting the
 output to `elf32-i386` and the base address to `0x10000000`. GRUB loads them as Multiboot modules
 and the kernel picks them up from there. Communication with the kernel happens through `INT 0x80`
-syscalls: 13 of them covering read/write, process control, system info, etc.
+syscalls: 19 of them covering read/write, process control, signals, system info, etc.
 
 
 Build System
@@ -419,19 +419,67 @@ foundation for `fork()`, `exec()`, and `waitpid()`.
 When the `PIT` one-shot fires, the timer `ISR` ([Interrupt Service
 Routine](https://wiki.osdev.org/Interrupts)) calls `Scheduler::tick()`. It saves the current task's
 stack pointer, checks a stack canary (`0xDEADBEEF`) for overflow, charges the elapsed wall-clock
-time since the last tick to the task's `runtimeMs`, and wakes any sleeping tasks whose deadline has
+time since the last tick to the task's `runtimeMs`, and wakes any sleeping tasks whose deadline have
 passed. If the quantum hasn't expired, the current task keeps running. Otherwise, the scheduler
 picks the next highest-priority `READY` task by Round Robin, switches to its page directory if
 needed, updates the `TSS` `esp0` field to point to the new task's kernel stack so the next `INT
 0x80` from ring 3 switches to the correct stack, sets `CR0.TS` for lazy FPU context switching, and
-returns the new stack pointer so `iret` resumes the chosen task. After each tick or context switch,
-`programNextTick()` reprograms the `PIT` for the next event (see Timer section).
+returns the new stack pointer so `iret` resumes the chosen task. Near the top of `tick()`, after
+saving the interrupted task's frame pointer and checking the stack canary, `deliverPendingSignals()`
+attempts to deliver any pending signals. It checks the frame's `CS` selector to determine the ring
+level: if ring 0 (timer fired during kernel execution), delivery is deferred to the next `asmInt80`
+return path, if ring 3, the trampoline is written and the frame is modified to redirect to the
+handler. After each tick or context switch, `programNextTick()` reprograms the `PIT` for the next
+event (see Timer section).
+
+Signals
+-------
+
+Signal handling follows the Unix model ([Signals](https://wiki.osdev.org/Signals)). Each task has a
+signal disposition table (`signalHandlers[SIGNAL_MAX]`, where `SIGNAL_MAX = 32`) and a
+`pendingSignals` bitmask. When a signal is delivered, the task's register frame is modified to
+redirect execution to the signal handler via a userland stack trampoline.
+
+`SIGKILL` is synchronous: `sendSignal()` immediately kills the task via `exitCurrentTask()` (self)
+or `killTask()` (other). It cannot be caught or ignored. All other signals are set in the task's
+`pendingSignals` bitmask and delivered when the task is next in ring 3. There are two delivery
+paths:
+
+1. Timer tick: `deliverPendingSignals()` runs near the top of `tick()`, after saving the frame
+   pointer and checking the stack canary. It checks the `CS` selector (`frame[9]`) to determine the
+   ring level. If the timer fired while the task was executing kernel code (ring 0), for instance
+   inside `Semaphore::wait()`'s `sti; hlt` loop, the frame offsets are wrong (ring 0 pushes 3 dwords
+   instead of 5), so delivery is deferred by returning without clearing the pending bit.
+
+2. Syscall return: `asmInt80` calls `intDeliverSignals(esp)` before `popal; iret`. Since `INT 0x80`
+   always transitions ring 3 to ring 0, the saved frame is always a ring-3 frame. This is the path
+   that actually delivers signals to blocked tasks: `sendSignal()` sets the task `READY`, but the
+   timer always fires in ring 0, so delivery must happen when the task returns to ring 3 via a
+   syscall.
+
+Both paths ultimately call `deliverPendingSignals()`. The syscall path goes through the wrapper
+`deliverPendingSignalsAtEsp(esp)` to update the saved frame pointer first. If a handler is
+installed, the kernel pushes a 16-byte trampoline onto the userland stack (signal number + return
+address + trampoline code calling `SYS_SIGRETURN`) and redirects the frame's `EIP` to the handler.
+The handler is a standard cdecl ([x86 calling
+conventions](https://en.wikipedia.org/wiki/X86_calling_conventions)) `void handler(int sig)` that
+returns normally into the trampoline, which calls `sys_sigreturn()` to restore the original context.
+
+`SIGSEGV` is delivered directly from `excPf()` by modifying the exception frame's `EIP`. The handler
+is cleared after delivery to prevent an infinite re-fault loop. If no handler is installed, the
+default behavior terminates the task with exit code 139 (POSIX convention: `128 + SIGSEGV`).
+
+Pending signals are preserved across `exec()` but handlers reset to `nullptr`. `fork()` clears all
+signal state in the child. `exitCurrentTask()` calls `Pic::sendEoi()` to ensure the PIC's in-service
+register is cleared, even when called from the tick ISR context (via
+`deliverPendingSignals()`). `asmExcPf` pops both the handler argument and the CPU-pushed error code
+before `popal; iret`.
 
 Userland programs communicate with the kernel through `INT 0x80` syscalls. The syscall gate in the
 `IDT` is set as a trap gate with DPL 3 (Descriptor Privilege Level 3, meaning ring-3 accessible) so
 userland code can trigger it. Unlike an interrupt gate, a trap gate leaves interrupts enabled when
 entered, so the handler runs without blocking other hardware interrupts. The handler dispatches to
-one of 13 syscall functions based on the number in `EAX`.
+one of 19 syscall functions based on the number in `EAX`.
 
 
 Interrupts and Exception Handling
@@ -478,13 +526,15 @@ Three stubs have custom assembly:
 
 - `asmExcInvOp` (invalid opcode) and `asmExcPf` (page fault) pass `%esp` as an argument so the C++
   handler can read the full stack frame (error code, `EIP`, `CS`, `EFLAGS`, and user `ESP`/`SS` for
-  ring transitions).
+  ring transitions). `asmExcPf` also pops the CPU-pushed error code (`addl $4, %esp`) after passing
+  the argument, so `popal; iret` reads a clean frame.
 - `asmIntTick` (timer) is the key to preemptive scheduling. After calling `intTick()`, it checks the
   return value. If non-zero, it swaps `ESP` to the new task's saved frame before `popal; iret`,
   effectively switching the entire execution context to the next task.
 - `asmInt80` (syscall) pushes 4 arguments (syscall number in `EAX`, args in `EBX`/`ECX`/`EDX`),
-  calls `syscallHandler`, then patches the return value into the saved `EAX` slot in the `pushal`
-  frame. When `popal` runs, `EAX` gets the return value.
+  calls `syscallHandler`, patches the return value into the saved `EAX` slot in the `pushal` frame,
+  then calls `intDeliverSignals(esp)` to deliver any pending signals from the ring-3 frame before
+  `popal; iret` returns to userland.
 
 Exception Handlers
 ------------------
@@ -501,22 +551,25 @@ Exception Handlers
 - `excPf(frame)` is the most detailed. Reads `CR2` (the faulting virtual address), decodes the error
   code into human-readable flags (present/protection, read/write, user/supervisor, reserved-bit,
   instruction fetch), dumps user `ESP`/`SS` if the fault came from ring 3 (detected via `CS & 3`),
-  then either kills the faulting userland task (ring 3) or panics (ring 0). Ring-3 faults call
-  `Scheduler::killFaultingTask()` which delegates to `Scheduler::exitCurrentTask()` to cleanly
-  terminate the task with exit code 139 (POSIX convention: `128 + SIGSEGV`). This frees its ELF
-  pages, user stack pages, cloned page directory, and unblocks any waiting parent. The fault
-  address, error code, `EIP`, `CS`, and user `ESP`/`SS` are logged before the kill.
+  then either delivers `SIGSEGV` via signal handler, kills the faulting userland task (ring 3), or
+  panics (ring 0). Ring-3 faults check for an installed `SIGSEGV` handler first: if present, the
+  handler is cleared (to prevent re-fault loops) and the exception frame is modified to redirect
+  execution to the handler via the userland trampoline. If no handler is installed,
+  `Scheduler::killFaultingTask()` terminates the task with exit code 139. The fault address, error
+  code, `EIP`, `CS`, and user `ESP`/`SS` are logged before the kill.
 
 Hardware Interrupt Handlers
 ---------------------------
 
-`kernel/arch/i386/InterruptHandlers.cc` has three handlers:
+`kernel/arch/i386/InterruptHandlers.cc` has four functions:
 
 - `intTick(currentEsp)` is the heart of the scheduler. Calls `Pit::tick()` (increment uptime
    counter), `Scheduler::tick(currentEsp)` (priority-based Round Robin, returns new `ESP` or 0),
    `Pic::sendEoi()`, and returns the new `ESP` (or 0 if no switch needed).
 - `intKbd()` delegates to `Kbd::isrHandler()` which reads the scancode from port `0x60`, processes
   it, pushes the character to a ring buffer, and signals a semaphore. Then sends `EOI`.
+- `intDeliverSignals(esp)` calls `Scheduler::deliverPendingSignalsAtEsp(esp)` to deliver pending
+  signals from a known ring-3 frame. Called from `asmInt80`'s return path, not from an interrupt.
 - `intDummy()` prints a diagnostic and sends `EOI`. Catch-all for unregistered `IRQ`s.
 
 PIC Setup
@@ -556,15 +609,19 @@ stub does `movl %eax, %esp` between `pushal` and `popal`, swapping to the new ta
 `popal; iret` then resumes the new task.
 
 CPU exception (for instance page fault): CPU pushes error code (in addition to the usual frame),
-jumps to `asmExcPf`. Handler reads `CR2`, decodes error code. If the fault came from ring 3, it logs
-diagnostics and calls `Scheduler::killFaultingTask()` which terminates the faulting task and
-switches to the next ready task (steps 7-8 apply to the new task). If the fault came from ring 0, it
-panics (steps 7-8 don't execute because panic never returns).
+jumps to `asmExcPf`. The error code is popped before `popal; iret` so the frame is clean. Handler
+reads `CR2`, decodes error code. If the fault came from ring 3, it checks for an installed `SIGSEGV`
+handler: if present, clears the handler and redirects execution to it via the userland trampoline.
+If no handler is installed, it logs diagnostics and calls `Scheduler::killFaultingTask()` which
+terminates the faulting task and switches to the next ready task (steps 7-8 apply to the new task).
+If the fault came from ring 0, it panics (steps 7-8 don't execute because panic never returns).
 
 System call (`INT 0x80`): CPU transitions from ring 3 to ring 0, loads kernel `CS` and `ESP` from
 the `TSS`, pushes user `SS`/`ESP`/`EFLAGS`/`CS`/`EIP` onto the kernel stack. Trap gate means `IF` is
 NOT cleared. Assembly stub pushes 4 args, calls `syscallHandler`, patches return value into `EAX`
-slot. `popal; iret` returns to userland
+slot, then calls `intDeliverSignals(esp)` to deliver any pending signals from the ring-3 frame.
+`popal; iret` returns to userland. The handler dispatches to one of 19 syscall functions based on
+the number in `EAX`.
 
 
 Timer (PIT)
@@ -663,7 +720,7 @@ game uses it for frame timing.
 System Calls
 ============
 
-All 13 syscalls go through `INT 0x80` (`kernel/kernel/Syscall.cc`,
+All 19 syscalls go through `INT 0x80` (`kernel/kernel/Syscall.cc`,
 `kernel/include/kernel/Syscall.h`). The assembly stub passes the number in `EAX` and up to 3 args in
 `EBX`/`ECX`/`EDX`. Every syscall that takes a userland buffer pointer validates it first: the
 address must be non-null, below `KERNEL_VIRTUAL_BASE` (`0xC0000000`), and the buffer must not wrap
@@ -680,8 +737,11 @@ userland ELF task and blocks until the child exits. `SYS_FORK` (14) duplicates t
 clones the address space and register state, returns the child's PID to the parent and 0 to the
 child. `SYS_EXEC` (15) replaces the current process image with a new ELF binary from a GRUB module,
 keeping the same PID. `SYS_WAITPID` (16) blocks until a child process exits, returning the child's
-PID and exit code. `SYS_PANIC` (10) signals `ACPI` shutdown then triggers `panic()`. `SYS_POWEROFF`
-(13) does an `ACPI` `S5` (sleep state 5) shutdown with triple-fault fallback.
+PID and exit code. `SYS_KILL` (17) sends a signal to a task by PID. `SYS_SIGACTION` (18) installs a
+signal handler function for a given signal number. `SYS_SIGRETURN` (19) returns from a signal
+handler (called by the trampoline on the userland stack, not directly by userland code). `SYS_PANIC`
+(10) signals `ACPI` shutdown then triggers `panic()`. `SYS_POWEROFF` (13) does an `ACPI` `S5` (sleep
+state 5) shutdown with triple-fault fallback.
 
 Device control: `SYS_IOCTL` (6) dispatches 10 sub-commands: `CLEAR`, `HALT`, `REBOOT`, `PUT` (write
 char at packed row/col/char/color position), `SAVESCREEN`/`RESTORESCREEN` (VGA buffer snapshot for
@@ -743,11 +803,11 @@ virtual address `0x10000000` via `user/User.ld`. The build system provides `add_
 `INT 0x80` syscalls via inline wrappers in `user/lib/Syscall.h`.
 
 Shell (`user/shell/`): Interactive CLI with a `> ` prompt, line editing via the kernel's readline
-syscall (history, cursor movement, insert/delete), and 15 built-in commands: `help`, `clear`,
-`halt`, `reboot`, `panic`, `uptime`, `ticks`, `meminfo`, `heap`, `datetime`, `cpuinfo`, `echo`,
-`tasks`, `kill`, `snake`. Note that the command table uses `const char*` instead of `std::string`
-because the freestanding target has no C++ runtime support for static storage duration objects yet
-(needs `_init()` properly implemetend in `kernel/arch/i386/Boot.s` first).
+syscall (history, cursor movement, insert/delete), and 14 built-in commands: `help`, `clear`,
+`halt`, `reboot`, `panic`, `uptime`, `meminfo`, `heap`, `datetime`, `cpuinfo`, `echo`, `tasks`,
+`kill`, `snake`. Note that the command table uses `const char*` instead of `std::string` because the
+freestanding target has no C++ runtime support for static storage duration objects yet (needs
+`_init()` properly implemetend in `kernel/arch/i386/Boot.s` first).
 
 Snake (`user/snake/`): Full VGA text-mode game. Two modes: classic (walls kill) and wrap (snake
 wraps around edges). Progressive difficulty with base speed starts at 200ms per step, decreasing by
@@ -758,9 +818,9 @@ high score across rounds within a session. Uses `IOCTL_PUT` for direct VGA rende
 `IOCTL_POLL_KEY` for non-blocking keyboard input. Saves/restores the VGA buffer to overlay on top of
 the `shell`.
 
-Test Runner (`user/testrunner/`): Integration test harness running 35 tests across 10 suites:
-terminal, serial, taskbar, sysinfo, taskctl, ioctl, execmod, input, heap, and page fault
-recovery. Emits newline-delimited `JSON` events to the serial port (`start`, `run`, `pass`, `fail`,
+Test Runner (`user/testrunner/`): Integration test harness running 40 tests across 11 suites:
+terminal, serial, taskbar, sysinfo, taskctl, ioctl, execmod, input, heap, page fault recovery, and
+signals. Emits newline-delimited `JSON` events to the serial port (`start`, `run`, `pass`, `fail`,
 `done`). Two build variants: `testrunner` (auto-powers-off) and `testrunner-interactive` (stays
 alive for debugging). A `minimal` payload provides a trivial userland program for execmod testing.
 
