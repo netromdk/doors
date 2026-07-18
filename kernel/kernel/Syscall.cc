@@ -449,6 +449,44 @@ uint32_t handlePanic(uint32_t userMsgAddr)
   return 0; // unreachable
 }
 
+uint32_t handleKill(uint32_t pid, uint32_t sig)
+{
+  Scheduler::sendSignal(static_cast<int>(pid), static_cast<int>(sig));
+  return 0;
+}
+
+uint32_t handleSigaction(uint32_t signal, uint32_t handlerAddr)
+{
+  const int sig = static_cast<int>(signal);
+  if (sig < 0 || sig >= Task::SIGNAL_MAX || sig == 0) {
+    return static_cast<uint32_t>(-1);
+  }
+
+  Task &task = Scheduler::currentTask();
+  task.signalHandlers[sig] = reinterpret_cast<void (*)(int)>(handlerAddr);
+  return 0;
+}
+
+uint32_t handleSigreturn()
+{
+  Task &task = Scheduler::currentTask();
+  if (task.userStackPageCount == 0) {
+    return 0;
+  }
+
+  // The syscall frame (from `asmInt80`) is at task.esp.
+  // Frame layout:
+  //   [0]  EDI  [1]  ESI  [2]  EBP  [3]  ESP  [4]  EBX
+  //   [5]  EDX  [6]  ECX  [7]  EAX  [8]  EIP  [9]  CS
+  //   [10] EFLAGS  [11] userESP  [12] userSS
+  auto *frame = reinterpret_cast<uint32_t *>(task.esp);
+  frame[8] = task.savedSignalEip;
+  frame[10] = task.savedSignalEflags;
+  frame[11] = task.savedSignalEsp;
+
+  return 0;
+}
+
 #endif // __IS_DOORS_KERNEL
 
 } // namespace
@@ -519,6 +557,15 @@ extern "C" uint32_t syscallHandler(uint32_t eax, uint32_t ebx, uint32_t ecx, uin
 
   case SYS_WAITPID:
     return Scheduler::waitpid(reinterpret_cast<int *>(static_cast<uintptr_t>(ebx)));
+
+  case SYS_KILL:
+    return handleKill(ebx, ecx);
+
+  case SYS_SIGACTION:
+    return handleSigaction(ebx, ecx);
+
+  case SYS_SIGRETURN:
+    return handleSigreturn();
 #endif
 
   default:
