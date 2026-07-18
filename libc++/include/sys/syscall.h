@@ -19,6 +19,9 @@ enum Syscall {
   SYS_FORK = 14,             // Fork current process (returns child pid to parent, 0 to child).
   SYS_EXEC = 15,             // Replace process image with GRUB module ELF (ebx=index).
   SYS_WAITPID = 16,          // Wait for child to exit (ebx=status buf ptr). Returns child pid.
+  SYS_KILL = 17,             // Send signal to task (ebx=pid, ecx=signal).
+  SYS_SIGACTION = 18,        // Install signal handler (ebx=signal, ecx=handler_fn).
+  SYS_SIGRETURN = 19,        // Return from signal handler (internal, called by trampoline).
 };
 
 #endif // SYS_SYSCALL_H
