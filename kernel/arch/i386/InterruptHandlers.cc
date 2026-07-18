@@ -31,4 +31,9 @@ void intKbd()
   Pic::sendEoi();
 }
 
+void intDeliverSignals(uint32_t esp)
+{
+  Scheduler::deliverPendingSignalsAtEsp(esp);
+}
+
 } // extern "C"

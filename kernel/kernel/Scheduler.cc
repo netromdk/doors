@@ -1058,6 +1058,15 @@ void Scheduler::sendSignal(int pid, int sig)
   }
 }
 
+void Scheduler::deliverPendingSignalsAtEsp(uint32_t esp)
+{
+  if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
+    return;
+  }
+  tasks_[currentIdx_].esp = esp;
+  deliverPendingSignals();
+}
+
 void Scheduler::deliverPendingSignals()
 {
   if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
@@ -1088,13 +1097,19 @@ void Scheduler::deliverPendingSignals()
     return;
   }
 
-  // Clear the pending bit.
-  t.pendingSignals &= ~(1u << sigNum);
-
 #ifdef __IS_DOORS_KERNEL
   if (t.signalHandlers[sigNum] != nullptr) {
-    // Handler installed: deliver via userland trampoline.
     auto *frame = reinterpret_cast<uint32_t *>(t.esp);
+
+    // Check CS ring level to see if the timer fired while in kernel mode (ring 0), the interrupt
+    // frame lacks the SS/ESP dwords, so frame offsets are wrong. Defer delivery to the next tick
+    // when the task is back in userland (ring 3).
+    if ((frame[9] & 3) == 0) {
+      return;
+    }
+
+    // Clear the pending bit now that we can safely deliver.
+    t.pendingSignals &= ~(1u << sigNum);
 
     t.savedSignalEip = frame[8];
     t.savedSignalEflags = frame[10];
@@ -1113,6 +1128,7 @@ void Scheduler::deliverPendingSignals()
   }
 
   // No handler: terminate with signal exit code.
+  t.pendingSignals &= ~(1u << sigNum);
   exitCurrentTask(Task::EXIT_CODE_SIGNAL_BASE + sigNum);
 #endif
 }

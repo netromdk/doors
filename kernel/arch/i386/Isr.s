@@ -43,6 +43,7 @@ asmExcPf:
         pushl %esp              // Pass post-pushal esp as argument.
         call  excPf
         addl  $4, %esp          // Pop argument.
+        addl  $4, %esp          // Pop error code (#PF pushes one).
         popal
         iret
 
@@ -88,6 +89,9 @@ asmInt80:
         call  syscallHandler
         addl  $16, %esp         // Pop 4 args.
         movl  %eax, 7*4(%esp)   // Overwrite pushal's EAX slot with return value.
+        pushl %esp              // Pass current ring-3 frame pointer.
+        call  intDeliverSignals // Deliver any pending signals before returning to userland.
+        addl  $4, %esp          // Pop argument.
         popal
         iret
 
