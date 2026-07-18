@@ -77,6 +77,9 @@ public:
   static uint32_t exec(int modIdx);
   static uint32_t waitpid(int *status);
   static void handleNm();
+  static void sendSignal(int pid, int sig);
+  static void deliverPendingSignals();
+  static bool deliverSigsegvFromException(uint32_t *frame);
 
 #if !defined(__IS_DOORS_KERNEL) || defined(__DOORS_TESTING)
   friend struct SchedulerTestAccess;
@@ -122,6 +125,7 @@ private:
   static uint32_t reapDeadChild(Task &parent, int *status);
   static void removeFromSleepQueue(int taskId);
   static void programNextTick();
+  static uint32_t writeSignalTrampoline(Task &t, uint32_t originalUserEsp, int sigNum);
 
   // Wall-clock time (ms) when the last tick was processed. Used to charge accurate runtime.
   static uint64_t lastTickMs_;
