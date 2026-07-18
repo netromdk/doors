@@ -93,10 +93,15 @@ void excPf(uint32_t *frame)
          (errCode & (1 << 3)) ? "reserved-bit " : "",
          (errCode & (1 << 4)) ? "instruction-fetch " : "");
 
-  // If the fault came from user mode, kill the faulting task instead of panicking the kernel.
+  // If the fault came from userland, try to deliver `SIGSEGV` to the faulting task.
   if (cs & 3) {
     printf("  User ESP:      0x%x\n", frame[12]);
     printf("  User SS:       0x%x  (ring %d)\n", frame[13], frame[13] & 3);
+
+    if (Scheduler::deliverSigsegvFromException(frame)) {
+      return; // Signal handler installed and frame redirected.
+    }
+
     printf("  Killing faulting userland task.\n");
     Scheduler::killFaultingTask(); // never returns.
   }
