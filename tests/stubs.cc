@@ -40,6 +40,10 @@ void Serial::write(char)
 {
 }
 
+void Pic::sendEoi()
+{
+}
+
 void Pic::setMask(uint8_t, bool)
 {
 }
