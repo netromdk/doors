@@ -465,7 +465,8 @@ respond to the PIIX4 write.
 Scheduling
 ==========
 
-The scheduler (`kernel/include/kernel/Scheduler.h`, `kernel/kernel/Scheduler.cc`) is preemptive,
+The scheduler (`kernel/include/kernel/Scheduler.h`, `kernel/kernel/Scheduler.cc`,
+`kernel/kernel/SchedulerProcess.cc`, `kernel/kernel/SchedulerSignals.cc`) is preemptive,
 [priority-based Round Robin](https://wiki.osdev.org/Scheduling_Algorithms) with 8 task slots and a
 20 ms wall-clock quantum. Each task has a `priority` field with value `PRIORITY_HIGH (0)`,
 `PRIORITY_NORMAL (4)`, `PRIORITY_LOW (8)`, or `PRIORITY_IDLE (9)`. `findNext()` selects the

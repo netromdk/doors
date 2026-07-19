@@ -64,6 +64,8 @@ add_library(
   kernel/Backtrace.cc
   kernel/Panic.cc
   kernel/Scheduler.cc
+  kernel/SchedulerProcess.cc
+  kernel/SchedulerSignals.cc
   kernel/Semaphore.cc
   kernel/Syscall.cc
   kernel/ElfLoader.cc
