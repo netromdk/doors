@@ -71,7 +71,7 @@ QEMU, capturing serial output to `doors.log` when debug mode is on. ISO creation
 
 Tests use Doctest (single-header at `tests/doctest/doctest.h`). Tests are compiled for the host, not
 cross-compiled. A custom `liblibc++test.a` recompiles the kernel's libc++ sources for host-side
-testing. 27 test modules cover the kernel heap, scheduler, keyboard, TTY, paging, PIT timer, panic
+testing. 31 test modules cover the kernel heap, scheduler, keyboard, TTY, paging, PIT timer, panic
 handler, ELF loader, symbol table, CMOS, CPU, syscalls, and userland programs (`shell`, `snake`). An
 additional abort test verifies non-zero exit.
 
@@ -82,8 +82,9 @@ Integration tests (`cmake/run-qemu-timeout.cmake`) boot QEMU with a 30-second ti
 parsed by `scripts/parse-test-log.py` which validates JSON events and exit codes.
 
 GRUB has 3 config variants: normal (`grub.cfg.in`, 5-second timeout, loads `shell` + `snake`), test
-(`grub-test.cfg`, zero timeout, passes `--test` flag, loads `testrunner` + `minimal`), and crash
-test template (`grub-crash.cfg.in`, module name substituted at configure time for each crash type).
+(`grub-test.cfg`, zero timeout, passes `--test` flag, loads `testrunner` + `minimal` +
+`pagefault-crasher` + 4 signal testers), and crash test template (`grub-crash.cfg.in`, module name
+substituted at configure time for each crash type).
 
 
 C++ Runtime
@@ -818,11 +819,12 @@ high score across rounds within a session. Uses `IOCTL_PUT` for direct VGA rende
 `IOCTL_POLL_KEY` for non-blocking keyboard input. Saves/restores the VGA buffer to overlay on top of
 the `shell`.
 
-Test Runner (`user/testrunner/`): Integration test harness running 40 tests across 11 suites:
-terminal, serial, taskbar, sysinfo, taskctl, ioctl, execmod, input, heap, page fault recovery, and
-signals. Emits newline-delimited `JSON` events to the serial port (`start`, `run`, `pass`, `fail`,
-`done`). Two build variants: `testrunner` (auto-powers-off) and `testrunner-interactive` (stays
-alive for debugging). A `minimal` payload provides a trivial userland program for execmod testing.
+Test Runner (`user/testrunner/`): Integration test harness running 52 tests across 12 suites:
+terminal, serial, taskbar, sysinfo, taskctl, ioctl, execmod, fork-exec-waitpid, input, heap, page
+fault recovery, and signals. Emits newline-delimited `JSON` events to the serial port (`start`,
+`run`, `pass`, `fail`, `done`). Two build variants: `testrunner` (auto-powers-off) and
+`testrunner-interactive` (stays alive for debugging). A `minimal` payload provides a trivial
+userland program for execmod testing.
 
 
 Terminal (TTY)
