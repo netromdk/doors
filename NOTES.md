@@ -139,6 +139,23 @@ yet (`kernel/arch/i386/Boot.s`), so static storage duration objects with constru
 initialized before use.
 
 
+Diagnostics
+-----------
+
+The kernel has a few diagnostic subsystems. `Ubsan` (`kernel/kernel/Ubsan.cc`) instruments the
+kernel with [Undefined Behavior
+Sanitizer](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html)
+([GCC](https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html#index-fsanitize_003dundefined))
+checks when enabled via `KERNEL_UBSAN`, it panics with the source location and UB type on any
+violation, writing to both VGA and COM1 so the output is captured in `doors.log` even if the VGA
+path is broken.
+
+`Backtrace` (`kernel/kernel/Backtrace.cc`) walks the call stack using frame pointers and is called
+by `panic()` to dump the call chain. `Symbols` (`kernel/kernel/Symbols.cc`) holds the sorted symbol
+table generated at build time and provides address-to-name lookup used by `panic()` and UBSan crash
+output.
+
+
 Initialization
 ==============
 
