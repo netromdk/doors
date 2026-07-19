@@ -19,7 +19,8 @@ conditionally compiled out: `invlpg` (i486) falls back to a CR3 reload, `cpuid`/
 replaced with zero-return stubs. Below i586, `CPUID` is unavailable and `Cpu::init()` returns false,
 preventing boot.
 
-C++ support comes from `libc++/`, a freestanding C++20 standard library that gets built three times:
+C++ support comes from `libc++/`, a [freestanding](https://en.cppreference.com/w/cpp/freestanding)
+[C++20](https://en.cppreference.com/cpp/20) standard library. It gets built three times:
 
 - `libc++_kernel.a` for the kernel,
 - `libc++_user.a` for userland,
