@@ -204,7 +204,11 @@ set(PIT_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Pit.cc")
 set(KBD_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Kbd.cc")
 set(KBD_KEYMAP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Keymap.cc")
 set(TTY_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/arch/i386/Tty.cc")
-set(SCHED_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Scheduler.cc")
+set(SCHED_SRC
+  "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Scheduler.cc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/SchedulerProcess.cc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/SchedulerSignals.cc"
+)
 set(SEMAPHORE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Semaphore.cc")
 set(PANIC_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Panic.cc")
 set(BTRACE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Backtrace.cc")
@@ -269,7 +273,7 @@ doors_test_module(test_kernel_tty
   stubs.cc
   "${HEAP_SRC}"
   "${PIT_SRC}"
-  "${SCHED_SRC}"
+  ${SCHED_SRC}
   "${SEMAPHORE_SRC}"
   "${PANIC_SRC}"
   "${BTRACE_SRC}"
@@ -306,7 +310,7 @@ doors_test_module(test_kernel_scheduler
   stubs.cc
   "${HEAP_SRC}"
   "${PIT_SRC}"
-  "${SCHED_SRC}"
+  ${SCHED_SRC}
   "${SEMAPHORE_SRC}"
   "${PANIC_SRC}"
   "${BTRACE_SRC}"
@@ -336,7 +340,7 @@ doors_test_module(test_kernel_paging_sched
   stubs.cc
   "${HEAP_SRC}"
   "${PIT_SRC}"
-  "${SCHED_SRC}"
+  ${SCHED_SRC}
   "${SEMAPHORE_SRC}"
   "${PANIC_SRC}"
   "${BTRACE_SRC}"
@@ -360,7 +364,7 @@ doors_test_module(test_kernel_syscalls
   "${KBD_SRC}"
   "${KBD_KEYMAP_SRC}"
   "${TTY_SRC}"
-  "${SCHED_SRC}"
+  ${SCHED_SRC}
   "${SEMAPHORE_SRC}"
   "${PANIC_SRC}"
   "${BTRACE_SRC}"
@@ -378,7 +382,7 @@ doors_test_module(test_kernel_elf_user
   stubs.cc
   "${HEAP_SRC}"
   "${PIT_SRC}"
-  "${SCHED_SRC}"
+  ${SCHED_SRC}
   "${SEMAPHORE_SRC}"
   "${PANIC_SRC}"
   "${BTRACE_SRC}"
