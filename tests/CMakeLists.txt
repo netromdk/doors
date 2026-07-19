@@ -213,28 +213,28 @@ set(SYSCALL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Syscall.cc")
 set(ELF_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/ElfLoader.cc")
 
 doors_test_module(test_kernel_heap_initstate
-  heap/is_initialized.cc
+  heap/IsInitialized.cc
   stubs.cc
   "${HEAP_SRC}"
 )
 
 doors_test_module(test_kernel_heap
-  heap/kmalloc.cc
-  heap/kfree.cc
-  heap/fragmentation.cc
-  heap/alignment.cc
-  heap/oom.cc
-  heap/backwards_coalesce.cc
+  heap/Kmalloc.cc
+  heap/Kfree.cc
+  heap/Fragmentation.cc
+  heap/Alignment.cc
+  heap/Oom.cc
+  heap/BackwardsCoalesce.cc
   stubs.cc
   "${HEAP_SRC}"
 )
 
 doors_test_module(test_kernel_kbd
-  kbd/scancode_table.cc
-  kbd/ring_buffer.cc
-  kbd/readline.cc
-  kbd/keymap.cc
-  kbd/modifiers.cc
+  kbd/ScancodeTable.cc
+  kbd/RingBuffer.cc
+  kbd/Readline.cc
+  kbd/Keymap.cc
+  kbd/Modifiers.cc
   kbd/TryReadKey.cc
   stubs.cc
   "${KBD_SRC}"
@@ -243,7 +243,7 @@ doors_test_module(test_kernel_kbd
 )
 
 doors_test_module(test_kernel_kbd_caps_is_ctrl
-  kbd/caps_is_ctrl.cc
+  kbd/CapsIsCtrl.cc
   stubs.cc
   "${KBD_SRC}"
   "${KBD_KEYMAP_SRC}"
@@ -252,19 +252,19 @@ doors_test_module(test_kernel_kbd_caps_is_ctrl
 target_compile_definitions(test_kernel_kbd_caps_is_ctrl PRIVATE CAPS_LOCK_IS_CTRL)
 
 doors_test_module(test_kernel_pit
-  pit/uptime_math.cc
-  pit/Tickless.cc
+  pit/UptimeMath.cc
+  pit/PitTickless.cc
   stubs.cc
   "${PIT_SRC}"
 )
 
 doors_test_module(test_kernel_tty
-  tty/backspace.cc
-  tty/cursor.cc
-  tty/scrollback.cc
-  tty/string_puts.cc
-  tty/vga_ram.cc
-  tty/lock.cc
+  tty/Backspace.cc
+  tty/Cursor.cc
+  tty/Scrollback.cc
+  tty/StringPuts.cc
+  tty/VgaRam.cc
+  tty/Lock.cc
   stubs.cc
   "${HEAP_SRC}"
   "${PIT_SRC}"
@@ -277,13 +277,13 @@ doors_test_module(test_kernel_tty
 )
 
 doors_test_module(test_kernel_symbols
-  symbols/test_symbols.cc
-  symbols/mock_table.cc
+  symbols/TestSymbols.cc
+  symbols/MockTable.cc
   "${SYMBOLS_SRC}"
 )
 
 doors_test_module(test_kernel_panic
-  panic/test_panic.cc
+  panic/TestPanic.cc
   stubs.cc
   "${BTRACE_SRC}"
   "${PANIC_SRC}"
@@ -351,7 +351,7 @@ doors_test_module(test_kernel_syscalls
   syscall/SyscallRead.cc
   syscall/SyscallSerial.cc
   syscall/SyscallPoweroff.cc
-  tty/vga_ram.cc
+  tty/VgaRam.cc
   stubs.cc
   "${SYSCALL_SRC}"
   "${HEAP_SRC}"
