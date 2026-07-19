@@ -127,7 +127,7 @@ QEMU, capturing serial output to `doors.log` when debug mode is on. ISO creation
 14.2.0) into `bootstrap/bin/`.
 
 Tests use Doctest (single-header at `tests/doctest/doctest.h`). Tests are compiled for the host, not
-cross-compiled. A custom `liblibc++test.a` recompiles the kernel's libc++ sources for host-side
+cross-compiled. A custom `libc++test.a` recompiles the kernel's libc++ sources for host-side
 testing. 31 test modules cover the kernel heap, scheduler, keyboard, TTY, paging, PIT timer, panic
 handler, ELF loader, symbol table, CMOS, CPU, syscalls, and userland programs (`shell`, `snake`). An
 additional abort test verifies non-zero exit.

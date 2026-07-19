@@ -67,6 +67,7 @@ add_library(libc++test STATIC
 target_compile_definitions(libc++test PRIVATE __IS_DOORS_LIBCPP __IS_DOORS_LIBCPPTEST)
 target_compile_options(libc++test PRIVATE -fno-builtin)
 target_include_directories(libc++test PRIVATE ${DOORS_LIBC_INC_DIR})
+set_target_properties(libc++test PROPERTIES PREFIX "")
 
 add_library(test_main STATIC main.cc)
 target_link_libraries(test_main PUBLIC doctest::doctest)
