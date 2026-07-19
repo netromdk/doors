@@ -98,6 +98,7 @@ doors_test_module(test_libcpp_string_header
   libc++/string/strchr.cc
   libc++/string/strrchr.cc
   libc++/string/strstr.cc
+  libc++/string/strlen.cc
 )
 
 doors_test_module(test_libcpp_string
