@@ -74,7 +74,7 @@ add_library(
 )
 
 target_compile_options(kernel_objs PRIVATE
-  -ffreestanding -fno-builtin -fno-exceptions -fno-rtti)
+  -ffreestanding -fno-builtin -fno-exceptions -fno-rtti -mpreferred-stack-boundary=4)
 target_compile_definitions(kernel_objs PRIVATE __IS_DOORS_KERNEL)
 target_include_directories(kernel_objs PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
