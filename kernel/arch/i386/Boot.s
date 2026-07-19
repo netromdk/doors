@@ -20,8 +20,9 @@
 .section .bootstrap_stack, "aw", @nobits
 
 # Align stack to 16 bytes so all stack-allocated objects satisfy at least
-# 4-byte alignment. Without this, `stack_top` lands at 0x...1 when BSS size is
-# not a multiple of 4, causing UBSan `type_mismatch` false-positives.
+# 16-byte alignment. Without this, `stack_top` lands at a misaligned address
+# when BSS size is not a multiple of 16, causing UBSan `type_mismatch`
+# failures for types with `alignas(16)` members (e.g., `Task::fpuState`).
 .align 16
 
 stack_bottom:
@@ -35,26 +36,29 @@ stack_top:
 .global _start
 .type _start, @function
 _start:
-	# To set up a stack, we simply set the esp register to point to the top of
-	# our stack (as it grows downwards).
-	movl $stack_top, %esp
+        # To set up a stack, we simply set the esp register to point to the top of
+        # our stack (as it grows downwards).
+        movl $stack_top, %esp
 
-        # Call kernel initialization function.
+        # Ensure 16-byte alignment at each call site. Two 4-byte pushes consume
+        # 8 bytes from the aligned stack_top, so pre-subtract 8 for padding.
+        subl $8, %esp
         push %eax # Pass Multiboot magic number.
         push %ebx # Pass Multiboot info structure.
         call kmainInit
+        addl $16, %esp # Clean up 2 args (8 B) + padding (8 B).
 
         # Call global constructors.
         call _init
 
         # Call kernel entry point.
-	call kmain
+        call kmain
 
-	# Hang if kmain returns prematurely.
-	cli
-	hlt
+        # Hang if kmain returns prematurely.
+        cli
+        hlt
 .Lhang:
-	jmp .Lhang
+        jmp .Lhang
 
 # Set the size of the _start symbol to the current location '.' minus its start.
 # This is useful when debugging or when you implement call tracing.

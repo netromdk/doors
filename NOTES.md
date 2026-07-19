@@ -217,9 +217,10 @@ Initialization
 
 Boot starts in `kernel/arch/i386/Boot.s`. GRUB loads the ELF kernel and jumps to `_start`, which
 sets up a 16 KiB bootstrap stack (enough to handle the deep initialization call chain before
-per-task stacks take over), pushes the Multiboot magic and info pointer, then calls three functions
-in order: `kmainInit()`, `_init()` for global constructors, and `kmain()`
-(`kernel/kernel/Kernel.cc`).
+per-task stacks take over), pads the stack to maintain 16-byte alignment, pushes the Multiboot magic
+and info pointer, then calls `kmainInit()`. After `kmainInit()` returns, the arguments and padding
+are cleaned up, and `_init()` (global constructors) and `kmain()` (`kernel/kernel/Kernel.cc`) are
+called.
 
 `kmainInit()` runs before any global constructors or paging is set up. It just does the bare
 minimum: inits the COM1 serial port, clears the VGA screen, validates the Multiboot magic
