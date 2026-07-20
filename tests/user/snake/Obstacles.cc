@@ -126,7 +126,9 @@ TEST_CASE_FIXTURE(SnakeFixture, "obstacles: spawn triggered by eating without ob
   int foodsEaten = 1;
   int prevScore = 1;
   for (int i = 0; i < 2000 && g.score() < 6; ++i) {
-    if (!g.step()) break;
+    if (!g.step()) {
+      break;
+    }
     if (g.score() > prevScore) {
       ++foodsEaten;
       prevScore = g.score();

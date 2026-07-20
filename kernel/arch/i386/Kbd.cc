@@ -80,7 +80,9 @@ void historyUp(HistoryCtx *h, string &line, int &pos)
 {
   const int oldLen = static_cast<int>(line.size());
   if (*h->pos == -1) {
-    if (h->count == 0) return;
+    if (h->count == 0) {
+      return;
+    }
     *h->pos = (h->head - 1 + h->size) % h->size;
   }
   else {
@@ -96,7 +98,9 @@ void historyUp(HistoryCtx *h, string &line, int &pos)
 void historyDown(HistoryCtx *h, string &line, int &pos)
 {
   const int oldLen = static_cast<int>(line.size());
-  if (*h->pos == -1) return;
+  if (*h->pos == -1) {
+    return;
+  }
   *h->pos = -1;
   redrawLine(string{}, 0, oldLen);
   line.clear();

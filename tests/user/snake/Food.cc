@@ -26,7 +26,9 @@ TEST_CASE_FIXTURE(SnakeFixture, "food: score does not decrease")
   // No matter what happens, score should never go negative.
   int prevScore = g.score();
   for (int i = 0; i < 50; ++i) {
-    if (!g.step()) break;
+    if (!g.step()) {
+      break;
+    }
     CHECK(g.score() >= prevScore);
     prevScore = g.score();
   }

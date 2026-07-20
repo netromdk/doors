@@ -14,7 +14,9 @@ TEST_CASE_FIXTURE(SnakeFixture, "step: head advances in current direction")
 TEST_CASE_FIXTURE(SnakeFixture, "step: tail removed when no food eaten (length unchanged)")
 {
   for (int i = 0; i < 5; ++i) {
-    if (!g.step()) break;
+    if (!g.step()) {
+      break;
+    }
   }
   CHECK(g.score() == 0);
 }
@@ -30,6 +32,8 @@ TEST_CASE_FIXTURE(SnakeFixture, "step: score does not decrease on step")
 TEST_CASE_FIXTURE(SnakeFixture, "body: circular buffer position queries consistent after wrap")
 {
   for (int i = 0; i < 200; ++i) {
-    if (!g.step()) break;
+    if (!g.step()) {
+      break;
+    }
   }
 }

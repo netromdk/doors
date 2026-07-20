@@ -37,7 +37,11 @@ TEST_CASE_FIXTURE(SnakeFixture, "lcg: different seeds give deterministic runs")
 
   // Both should run without crashing.
   for (int i = 0; i < 10; ++i) {
-    if (!a.step()) break;
-    if (!b.step()) break;
+    if (!a.step()) {
+      break;
+    }
+    if (!b.step()) {
+      break;
+    }
   }
 }
