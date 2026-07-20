@@ -9,17 +9,17 @@ public:
   {
   }
 
-  inline bool operator<(const Test &other) const
+  bool operator<(const Test &other) const
   {
     return value < other.value;
   }
 
-  inline bool operator==(const Test &other) const
+  bool operator==(const Test &other) const
   {
     return value == other.value;
   }
 
-  inline bool operator!=(const Test &other) const
+  bool operator!=(const Test &other) const
   {
     return !(*this == other);
   }

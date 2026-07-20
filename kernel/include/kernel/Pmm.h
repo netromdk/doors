@@ -12,7 +12,7 @@
 
 class Pmm {
 public:
-  static inline constexpr size_t PAGE_SIZE = 4096;
+  static constexpr size_t PAGE_SIZE = 4096;
   static constexpr int MAX_MODULE_RANGES = 16;
 
   static void init();
