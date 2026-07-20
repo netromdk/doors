@@ -67,6 +67,16 @@
       }
     },
     {
+      "name": "coverage",
+      "displayName": "Coverage",
+      "description": "Host tests with gcov coverage instrumentation + lcov HTML report",
+      "inherits": "default",
+      "binaryDir": "${sourceDir}/build/coverage",
+      "cacheVariables": {
+        "CODE_COVERAGE": "ON"
+      }
+    },
+    {
       "name": "analyze+sanitize",
       "displayName": "Analyze + Sanitize",
       "description": "Static analysis + ASan/UBSan on host-compiled tests",
@@ -111,6 +121,11 @@
       "jobs": 0
     },
     {
+      "name": "coverage",
+      "configurePreset": "coverage",
+      "jobs": 0
+    },
+    {
       "name": "analyze+sanitize",
       "configurePreset": "analyze+sanitize",
       "jobs": 0
@@ -140,6 +155,11 @@
     {
       "name": "analyze",
       "configurePreset": "analyze",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "coverage",
+      "configurePreset": "coverage",
       "output": { "outputOnFailure": true }
     },
     {

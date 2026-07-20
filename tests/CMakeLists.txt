@@ -24,6 +24,11 @@ if (SANITIZERS)
   add_link_options("${_san_flag}")
 endif()
 
+if (CODE_COVERAGE)
+  add_compile_options(-fprofile-arcs -ftest-coverage)
+  add_link_options(-fprofile-arcs -ftest-coverage)
+endif()
+
 if(NOT DEFINED DOORS_LIBC_SRC_DIR)
   set(DOORS_LIBC_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../libc++")
   set(DOORS_LIBC_INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../libc++/include")
