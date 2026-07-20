@@ -124,32 +124,40 @@ TEST_CASE("substr npos")
 
 TEST_CASE("compare equal")
 {
-  const string_view a("hello"), b("hello");
+  const string_view a("hello");
+  const string_view b("hello");
   CHECK(a.compare(b) == 0);
   CHECK(a == b);
 }
 
 TEST_CASE("compare less")
 {
-  const string_view a("apple"), b("banana");
+  const string_view a("apple");
+  const string_view b("banana");
   CHECK(a.compare(b) < 0);
   CHECK(a < b);
 }
 
 TEST_CASE("compare greater")
 {
-  const string_view a("banana"), b("apple");
+  const string_view a("banana");
+  const string_view b("apple");
   CHECK(a.compare(b) > 0);
   CHECK(a > b);
 }
 
 TEST_CASE("comparison operators")
 {
-  const string_view a("abc"), b("abc"), c("abd"), d("ab");
+  const string_view a("abc");
+  const string_view b("abc");
   CHECK(a == b);
+
+  const string_view c("abd");
   CHECK(a != c);
   CHECK(a < c);
   CHECK(c > a);
+
+  const string_view d("ab");
   CHECK(d <= b);
   CHECK(c >= a);
 }
@@ -223,7 +231,8 @@ TEST_CASE("ends_with")
 
 TEST_CASE("swap")
 {
-  string_view a("hello"), b("world");
+  string_view a("hello");
+  string_view b("world");
   swap(a, b);
   CHECK(a == "world");
   CHECK(b == "hello");
@@ -231,7 +240,8 @@ TEST_CASE("swap")
 
 TEST_CASE("member swap")
 {
-  string_view a("hello"), b("world");
+  string_view a("hello");
+  string_view b("world");
   a.swap(b);
   CHECK(a == "world");
   CHECK(b == "hello");
@@ -248,7 +258,8 @@ TEST_CASE("constexpr usage")
 
 TEST_CASE("constexpr comparison")
 {
-  constexpr string_view a("abc"), b("abc");
+  constexpr string_view a("abc");
+  constexpr string_view b("abc");
   constexpr bool eq = (a == b);
   CHECK(eq);
 }
