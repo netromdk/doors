@@ -210,7 +210,7 @@ void Scheduler::taskWrapper()
   if (currentIdx_ < 0 || currentIdx_ >= MAX_TASKS) {
     panic("Scheduler::taskWrapper: corrupted currentIdx");
   }
-  if (tasks_[currentIdx_].entry) {
+  if (tasks_[currentIdx_].entry != nullptr) {
     tasks_[currentIdx_].entry();
   }
   exitCurrentTask(0);

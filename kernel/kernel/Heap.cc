@@ -22,7 +22,7 @@ size_t alignUp(size_t n, size_t a)
 
 bool isAlloc(uint32_t v)
 {
-  return v & ALLOC_FLAG;
+  return (v & ALLOC_FLAG) != 0;
 }
 
 uint32_t rawSize(uint32_t v)

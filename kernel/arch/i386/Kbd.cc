@@ -235,12 +235,12 @@ void Kbd::readLine(string &line, HistoryCtx *history)
       Tty::scrollbackLineDown();
       continue;
     }
-    if (history && pendingUp_ > 0) {
+    if (history != nullptr && pendingUp_ > 0) {
       pendingUp_ = pendingUp_ - 1;
       historyUp(history, line, pos);
       continue;
     }
-    if (history && pendingDown_ > 0) {
+    if (history != nullptr && pendingDown_ > 0) {
       pendingDown_ = pendingDown_ - 1;
       historyDown(history, line, pos);
       continue;
@@ -291,11 +291,11 @@ void Kbd::readLine(string &line, HistoryCtx *history)
     const char ch = getChar();
 
     // Ctrl+P and Ctrl+N as alternative to Up/Down arrows.
-    if (history && ch == Kbd::KEY_CTRL_P) {
+    if (history != nullptr && ch == Kbd::KEY_CTRL_P) {
       historyUp(history, line, pos);
       continue;
     }
-    if (history && ch == Kbd::KEY_CTRL_N) {
+    if (history != nullptr && ch == Kbd::KEY_CTRL_N) {
       historyDown(history, line, pos);
       continue;
     }
@@ -394,7 +394,7 @@ void Kbd::readLine(string &line, HistoryCtx *history)
 void Kbd::processScancode(uint8_t scancode, bool extended)
 {
   auto &entry = lookupScancode(scancode & 0x7F, extended);
-  const bool release = scancode & 0x80;
+  const bool release = (scancode & 0x80) != 0;
 
   // CapsLock toggles on make only (MOD_NONE in scancode table).
   if (entry.key == ::Key::CapsLock) {

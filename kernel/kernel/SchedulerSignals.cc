@@ -176,7 +176,7 @@ void Scheduler::deliverPendingSignals()
   // Find the lowest-numbered pending signal.
   int sigNum = -1;
   for (int i = 1; i < Task::SIGNAL_MAX; ++i) {
-    if (t.pendingSignals & (1u << i)) {
+    if ((t.pendingSignals & (1u << i)) != 0) {
       sigNum = i;
       break;
     }

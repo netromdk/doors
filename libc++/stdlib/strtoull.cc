@@ -58,7 +58,7 @@ uint64_t strtoull(const char *str, char **endptr, int base)
     res = res * base + ich;
   }
 
-  if (endptr) {
+  if (endptr != nullptr) {
     *endptr = const_cast<char *>(str) + i;
   }
 

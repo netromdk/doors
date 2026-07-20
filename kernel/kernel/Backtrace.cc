@@ -9,7 +9,7 @@
 
 void dumpBacktrace()
 {
-  void **frame;
+  void **frame = nullptr;
 #ifdef __x86_64__
   __asm__("mov %%rbp, %0" : "=r"(frame));
 #else
@@ -17,9 +17,9 @@ void dumpBacktrace()
 #endif
 
   printf("Backtrace:\n");
-  for (int i = 0; frame && i < 16; i++) {
+  for (int i = 0; frame != nullptr && i < 16; i++) {
 #ifdef __IS_DOORS_KERNEL
-    if ((unsigned long long) frame >= Scheduler::USER_BASE) {
+    if (reinterpret_cast<unsigned long long>(frame) >= Scheduler::USER_BASE) {
       break;
     }
 #endif

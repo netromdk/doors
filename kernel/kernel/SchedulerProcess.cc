@@ -97,7 +97,7 @@ struct HeapAlloc {
 bool allocAndMapUserPage(uint32_t vaddr, MappedFrame &out)
 {
   void *phys = Pmm::allocFrame();
-  if (!phys) {
+  if (phys == nullptr) {
     return false;
   }
 
@@ -195,7 +195,7 @@ optional<int> Scheduler::addUserTask(string_view name)
   t.priority = Task::PRIORITY_NORMAL;
 
   HeapAlloc kstack{allocKernelStack(), true};
-  if (!kstack.ptr) {
+  if (kstack.ptr == nullptr) {
     return {};
   }
 
@@ -252,7 +252,7 @@ optional<int> Scheduler::addUserElfTask(string_view name, const void *elfData, s
   t.priority = Task::PRIORITY_NORMAL;
 
   HeapAlloc kstack{allocKernelStack(), true};
-  if (!kstack.ptr) {
+  if (kstack.ptr == nullptr) {
     return {};
   }
 
@@ -648,7 +648,7 @@ void Scheduler::handleNm()
     panic("Scheduler::exitCurrentTask: corrupted currentIdx");
   }
 
-  if (tasks_[currentIdx_].onKill) {
+  if (tasks_[currentIdx_].onKill != nullptr) {
     tasks_[currentIdx_].onKill();
   }
 
@@ -755,7 +755,7 @@ void Scheduler::killTask(int id)
     return;
   }
 
-  if (tasks_[id].onKill) {
+  if (tasks_[id].onKill != nullptr) {
     tasks_[id].onKill();
   }
 
