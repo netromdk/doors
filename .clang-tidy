@@ -53,7 +53,8 @@ Checks: >-
   -bugprone-throwing-static-initialization,
   -bugprone-forward-declaration-namespace,
   -misc-use-internal-linkage,
-  -misc-use-anonymous-namespace
+  -misc-use-anonymous-namespace,
+  -misc-include-cleaner
 
 WarningsAsErrors: 'bugprone-*,performance-*'
 
