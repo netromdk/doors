@@ -16,7 +16,7 @@ TEST_CASE("brandLen: exact 48 chars")
 {
   char buf[49];
   for (int i = 0; i < 48; ++i) {
-    buf[i] = 'a' + static_cast<char>(i % 26);
+    buf[i] = static_cast<char>('a' + i % 26);
   }
   buf[48] = '\0';
   CHECK(brandLen(buf) == 48);

@@ -623,7 +623,7 @@ void Scheduler::blockCurrentTaskAndYield()
 void Scheduler::setUnblockOnExit(int taskId, int unblockId)
 {
   if (taskId >= 0 && taskId < taskCount_) {
-    tasks_[taskId].unblockOnExit = unblockId;
+    tasks_[taskId].unblockOnExit = static_cast<int8_t>(unblockId);
   }
 }
 

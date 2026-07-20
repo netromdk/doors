@@ -45,7 +45,7 @@ uint64_t strtoull(const char *str, char **endptr, int base)
     }
 
     if (isupper(ch)) {
-      ch = tolower(ch);
+      ch = static_cast<char>(tolower(ch));
     }
 
     int ich = ch - '0';

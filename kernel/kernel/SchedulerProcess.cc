@@ -753,7 +753,7 @@ void Scheduler::killTask(int id)
 
   // Unblock the task waiting on this one before marking DEAD, so the wait task can be scheduled on
   // the next tick.
-  const int unblockId = tasks_[id].unblockOnExit;
+  const int unblockId = static_cast<unsigned char>(tasks_[id].unblockOnExit);
   tasks_[id].unblockOnExit = -1;
   if (unblockId != -1) {
     unblockTask(unblockId);

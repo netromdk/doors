@@ -13,9 +13,9 @@ void utos(uint32_t num, char *str, uint8_t base, bool upcase)
   else {
     while (num > 0) {
       const auto rem = num % base;
-      str[i++] = (rem < 10 ? rem + '0' : rem + 'a' - 10);
+      str[i++] = static_cast<char>((rem < 10 ? rem + '0' : rem + 'a' - 10));
       if (upcase) {
-        str[i - 1] = toupper(str[i - 1]);
+        str[i - 1] = static_cast<char>(toupper(str[i - 1]));
       }
       num = num / base;
     }

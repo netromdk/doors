@@ -651,7 +651,7 @@ void SnakeGame::drawStatus() const
 
   if (started_) {
     const char *modeStr = wrapMode_ ? "Wrap" : "Classic";
-    int modeLen = strlen(modeStr);
+    int modeLen = static_cast<int>(strlen(modeStr));
     int modeCol = RIGHT_WALL - modeLen;
     for (int i = 0; i < modeLen; ++i) {
       Screen::put(STATUS_ROW, modeCol + i, modeStr[i], COLOR_MODE);

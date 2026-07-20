@@ -15,7 +15,7 @@ void formatRaw(SnprintfBuf &buf, char *value, char fmt)
 void formatRaw(SnprintfBuf &buf, unsigned char value, char fmt)
 {
   if (fmtIsChar(fmt)) {
-    buf.put(value);
+    buf.put(static_cast<char>(value));
     return;
   }
   formatRaw(buf, static_cast<uint32_t>(value), fmt);

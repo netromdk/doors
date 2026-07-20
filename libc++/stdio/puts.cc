@@ -20,6 +20,6 @@ int puts(const char *str)
   return ret;
 #else
   // TODO: Write data to stdout when defined.
-  return strlen(str);
+  return static_cast<int>(strlen(str));
 #endif
 }

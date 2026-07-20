@@ -47,13 +47,13 @@ TEST_CASE_FIXTURE(KbdFixture, "full_then_read")
 TEST_CASE_FIXTURE(KbdFixture, "interleaved")
 {
   for (int i = 0; i < 5; i++) {
-    Kbd::pushChar('a' + i);
+    Kbd::pushChar(static_cast<char>('a' + i));
   }
   for (int i = 0; i < 3; i++) {
     Kbd::getChar();
   }
   for (int i = 0; i < 5; i++) {
-    Kbd::pushChar('f' + i);
+    Kbd::pushChar(static_cast<char>('f' + i));
   }
   CHECK(Kbd::getChar() == 'd'); // 4th pushed = 'd'
   CHECK(Kbd::getChar() == 'e'); // 5th pushed = 'e'
