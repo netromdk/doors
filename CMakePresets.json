@@ -54,6 +54,17 @@
         "BUILD_INTEGRATION_TESTS": "ON",
         "SERIAL_DEBUG": "ON"
       }
+    },
+    {
+      "name": "analyze",
+      "displayName": "Analyze",
+      "description": "Static analysis: clang-tidy on host tests and kernel files",
+      "inherits": "default",
+      "binaryDir": "${sourceDir}/build/analyze",
+      "cacheVariables": {
+        "CLANG_TIDY": "ON",
+      }
+    },
     }
   ],
   "buildPresets": [
@@ -81,6 +92,12 @@
       "name": "integration-test",
       "inherits": "default",
       "configurePreset": "integration-test"
+    },
+    {
+      "name": "analyze",
+      "configurePreset": "analyze",
+      "jobs": 0
+    },
     }
   ],
   "testPresets": [
@@ -103,6 +120,12 @@
       "name": "release",
       "configurePreset": "release",
       "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "analyze",
+      "configurePreset": "analyze",
+      "output": { "outputOnFailure": true }
+    },
     }
   ]
 }

@@ -91,3 +91,5 @@ if (BUILD_INTEGRATION_TESTS)
 else()
   message(STATUS "Integration tests: OFF")
 endif()
+
+include(cmake/analysis.cmake)
