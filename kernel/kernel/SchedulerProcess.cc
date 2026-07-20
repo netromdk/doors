@@ -411,7 +411,7 @@ uint32_t Scheduler::exec(int modIdx)
     return static_cast<uint32_t>(-1);
   }
 
-  if (modIdx < 0 || modIdx >= static_cast<int>(Pmm::moduleCount())) {
+  if (modIdx < 0 || modIdx >= Pmm::moduleCount()) {
     return static_cast<uint32_t>(-1);
   }
 
