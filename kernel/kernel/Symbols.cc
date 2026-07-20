@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include <kernel/Symbols.h>
 
 extern const SymbolEntry symbol_table[];

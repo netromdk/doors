@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <cstdint>
 
 int64_t strtoll(const char *str, char **endptr, int base)
 {

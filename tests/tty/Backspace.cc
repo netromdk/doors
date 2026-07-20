@@ -1,3 +1,5 @@
+#include <kernel/Tty.h>
+
 #include "TtyFixture.h"
 
 TEST_CASE_FIXTURE(TtyFixture, "backspace_moves_col_left")

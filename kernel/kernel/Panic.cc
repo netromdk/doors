@@ -1,15 +1,15 @@
-#include <algorithm>
-#include <arch/i386/Pic.h>
 #include <cstdint>
-#include <kernel/Cpu.h>
 #include <cstdio>
+
 #include <kernel/Backtrace.h>
+#include <kernel/Cpu.h>
 #include <kernel/Panic.h>
-#include <kernel/Symbols.h>
-#include <string>
+
 #ifdef __IS_DOORS_KERNEL
+#include <algorithm>
 #include <kernel/Tty.h>
 #include <kernel/Vga.h>
+#include <string_view>
 #endif
 
 void readCpuState(CpuState *state)

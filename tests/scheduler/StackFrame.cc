@@ -1,8 +1,11 @@
+#include <cstdint>
+
+#include <kernel/Scheduler.h>
+#include <kernel/Task.h>
+
 #include "SchedulerFixture.h"
 #include "SchedulerTestAccess.h"
 #include <doctest/doctest.h>
-#include <kernel/Scheduler.h>
-#include <kernel/Task.h>
 
 namespace {
 

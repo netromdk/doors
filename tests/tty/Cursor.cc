@@ -1,3 +1,5 @@
+#include <kernel/Tty.h>
+
 #include "TtyFixture.h"
 
 TEST_CASE_FIXTURE(TtyFixture, "cursorSetPos_updates_row_and_col")

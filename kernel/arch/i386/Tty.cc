@@ -5,6 +5,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string_view>
+#include <utility>
 
 #include <kernel/Io.h>
 #include <kernel/Kbd.h>
@@ -12,6 +14,7 @@
 #include <kernel/Vga.h>
 
 #ifdef DEBUG_THROUGH_SERIAL_COM1
+#include <kernel/Semaphore.h>
 #include <kernel/Serial.h>
 #endif
 

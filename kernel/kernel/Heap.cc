@@ -1,6 +1,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <span>
 
 #include <kernel/Heap.h>
 #include <kernel/InterruptGuard.h>

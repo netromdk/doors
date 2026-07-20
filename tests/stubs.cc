@@ -1,4 +1,3 @@
-#include <cstddef>
 #include <cstdint>
 
 #include <arch/i386/Gdt.h>

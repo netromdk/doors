@@ -1,4 +1,5 @@
 #include <array>
+#include <cstddef>
 #include <span>
 #include <string>
 #include <string_view>

@@ -1,6 +1,6 @@
 #include "KbdFixture.h"
 #include <doctest/doctest.h>
-#include <kernel/Keymap.h>
+#include <kernel/Kbd.h>
 
 TEST_CASE_FIXTURE(KbdFixture, "shift_make_and_type")
 {

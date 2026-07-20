@@ -1,5 +1,4 @@
 #include <cstdint>
-#include <cstring>
 
 #include <arch/i386/Paging.h>
 #include <kernel/Pmm.h>

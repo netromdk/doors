@@ -1,3 +1,8 @@
+#include <kernel/Scheduler.h>
+#include <kernel/Task.h>
+#include <kernel/Tty.h>
+#include <kernel/Vga.h>
+
 #include "TtyFixture.h"
 
 TEST_CASE_FIXTURE(TtyFixture, "Tty lock: basic acquire and release")

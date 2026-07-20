@@ -1,3 +1,5 @@
+#include <string>
+
 #include "Lib.h"
 
 #include <doctest/doctest.h>

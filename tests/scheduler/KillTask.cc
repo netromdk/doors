@@ -1,7 +1,10 @@
-#include "SchedulerFixture.h"
-#include <doctest/doctest.h>
+#include <cstddef>
+
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
+
+#include "SchedulerFixture.h"
+#include <doctest/doctest.h>
 
 namespace {
 

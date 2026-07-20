@@ -13,6 +13,10 @@
 #ifdef __IS_DOORS_KERNEL
 #include <arch/i386/Gdt.h>
 #include <arch/i386/Paging.h>
+#include <array>
+#include <kernel/Cpu.h>
+#include <kernel/Task.h>
+#include <string_view>
 #endif
 
 array<Task, Scheduler::MAX_TASKS> Scheduler::tasks_{};

@@ -1,3 +1,5 @@
+#include <span>
+
 #include "Commands.h"
 
 __attribute__((weak)) void cmdHelp(const span<string_view> &)

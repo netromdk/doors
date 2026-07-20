@@ -4,7 +4,9 @@
 
 #include <kernel/InterruptGuard.h>
 #include <kernel/Panic.h>
+#include <kernel/Scheduler.h>
 #include <kernel/Semaphore.h>
+#include <kernel/Task.h>
 
 void Semaphore::wait()
 {

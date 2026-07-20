@@ -1,15 +1,11 @@
-#include <cstring>
-
-#include <doctest/doctest.h>
+#include <cstdint>
 
 #include <kernel/Heap.h>
-#include <kernel/Pmm.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
 
-#include <arch/i386/Paging.h>
-
 #include "SchedulerTestAccess.h"
+#include <doctest/doctest.h>
 
 extern volatile uint64_t pitTicks;
 

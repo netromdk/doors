@@ -1,8 +1,10 @@
-#include "SchedulerFixture.h"
-#include <doctest/doctest.h>
-#include <kernel/Pit.h>
+#include <cstdint>
+
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
+
+#include "SchedulerFixture.h"
+#include <doctest/doctest.h>
 
 extern volatile uint64_t pitTicks;
 

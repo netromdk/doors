@@ -11,6 +11,7 @@
 #include <kernel/Tty.h>
 
 #include <arch/i386/Pic.h>
+#include <kernel/Semaphore.h>
 
 namespace {
 

@@ -1,4 +1,7 @@
+#include <cstdint>
+
 #include <doctest/doctest.h>
+
 #include <kernel/Heap.h>
 
 TEST_CASE("Heap::isInitialized lifecycle")

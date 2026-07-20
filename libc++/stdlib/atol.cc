@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <cstdint>
 
 int64_t atol(const char *str)
 {

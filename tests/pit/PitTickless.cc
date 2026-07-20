@@ -1,5 +1,8 @@
-#include <doctest/doctest.h>
+#include <cstdint>
+
 #include <kernel/Pit.h>
+
+#include <doctest/doctest.h>
 
 extern volatile uint64_t pitTicks;
 

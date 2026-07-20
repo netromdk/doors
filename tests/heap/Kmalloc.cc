@@ -1,6 +1,10 @@
+#include <cstdint>
+#include <cstring>
+
+#include <kernel/Heap.h>
+
 #include "HeapFixture.h"
 #include <doctest/doctest.h>
-#include <cstring>
 
 TEST_CASE_FIXTURE(HeapFixture, "kmalloc basic alloc")
 {

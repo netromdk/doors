@@ -1,9 +1,11 @@
+#include <cstdint>
 #include <type_traits>
 
-#include <doctest/doctest.h>
-#include <kernel/InterruptGuard.h>
-
 #include "CpuTestHooks.h"
+#include <doctest/doctest.h>
+
+#include <kernel/Cpu.h>
+#include <kernel/InterruptGuard.h>
 
 struct CpuFixture {
   CpuFixture()

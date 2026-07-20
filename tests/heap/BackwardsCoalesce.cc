@@ -1,5 +1,8 @@
+#include <cstddef>
+
+#include <kernel/Heap.h>
+
 #include "HeapFixture.h"
-#include <cstdint>
 #include <doctest/doctest.h>
 
 TEST_CASE_FIXTURE(HeapFixture, "free merges with preceding free block")

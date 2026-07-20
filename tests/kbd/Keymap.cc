@@ -1,5 +1,4 @@
 #include <doctest/doctest.h>
-#include <kernel/Kbd.h>
 #include <kernel/Keymap.h>
 
 TEST_CASE("letter_lower")
