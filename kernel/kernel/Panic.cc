@@ -39,8 +39,8 @@ void readCpuState(CpuState *state)
   sp->esi = static_cast<uint32_t>(tmp64[4]);
   sp->edi = static_cast<uint32_t>(tmp64[5]);
 
-  uint64_t rbp_val;
-  uint64_t rsp_val;
+  uint64_t rbp_val{};
+  uint64_t rsp_val{};
   __asm__ __volatile__("movq %%rbp, %0\n"
                        "movq %%rsp, %1\n"
                        : "=m"(rbp_val), "=m"(rsp_val));
@@ -50,7 +50,7 @@ void readCpuState(CpuState *state)
   // Use `sp` as an "r" input: the ASM writes CS/DS/ES/FS/GS/SS directly into the struct at the
   // offsets shown. 16-bit `mov` writes the low 16 bits of each `uint32_t` field and the upper 16
   // bits stay 0 because the struct is zero-initialized.
-  uint64_t efl_tmp;
+  uint64_t efl_tmp{};
   __asm__ __volatile__("mov %%cs, 0x24(%1)\n"
                        "mov %%ds, 0x2c(%1)\n"
                        "mov %%es, 0x30(%1)\n"

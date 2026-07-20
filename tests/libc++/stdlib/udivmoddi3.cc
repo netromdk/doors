@@ -41,7 +41,7 @@ TEST_CASE("__udivdi3 and __umoddi3")
 
 TEST_CASE("__udivmoddi4")
 {
-  uint64_t rem;
+  uint64_t rem{};
   CHECK(__udivmoddi4(10, 3, &rem) == 3);
   CHECK(rem == 1);
 
