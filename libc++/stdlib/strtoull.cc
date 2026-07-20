@@ -11,7 +11,7 @@ uint64_t strtoull(const char *str, char **endptr, int base)
     char ch = str[i];
 
     // Ignore signs here, it will be handle by strtoll() instead.
-    if (ch == '-' || ch == '+') {
+    if (ch == '-' || ch == '+') { // NOLINT(bugprone-branch-clone)
       continue;
     }
 
