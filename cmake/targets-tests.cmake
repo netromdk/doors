@@ -141,6 +141,9 @@ if (CODE_COVERAGE)
     list(APPEND _lcov_args --gcov-tool "${_DOORS_GCOV_EXE}")
   endif()
 
+  # Space-separated version of _lcov_args for embedding in sh -c strings.
+  string(REPLACE ";" " " _lcov_args_str "${_lcov_args}")
+
   set(_cov_dir "${CMAKE_BINARY_DIR}/coverage")
   set(_cov_info "${_cov_dir}/coverage.info")
   set(_cov_html "${_cov_dir}/html")
@@ -162,29 +165,15 @@ if (CODE_COVERAGE)
             --output-on-failure
 
     # Capture coverage data from the test binaries. `--no-external` excludes system/third-party
-    # headers.
-    COMMAND ${LCOV_EXE} --capture
-            --directory "${CMAKE_BINARY_DIR}/tests"
-            --base-directory "${CMAKE_SOURCE_DIR}"
-            --output-file "${_cov_info}"
-            --no-external
-            --ignore-errors gcov,inconsistent,unsupported,empty,format,count
-            ${_lcov_args}
+    # headers. Stderr is silenced because --ignore-errors already makes all warnings non-fatal, and
+    # the && chain still catches genuine errors via exit codes.
+    COMMAND sh -c "'${LCOV_EXE}' --capture --directory '${CMAKE_BINARY_DIR}/tests' --base-directory '${CMAKE_SOURCE_DIR}' --output-file '${_cov_info}' --no-external --ignore-errors gcov,inconsistent,unsupported,empty,format,count ${_lcov_args_str} 2>/dev/null"
 
     # Strip out the Doctest header-only library from the report.
-    COMMAND ${LCOV_EXE} --remove
-            "${_cov_info}"
-            */tests/doctest/*
-            --output-file "${_cov_info}"
-            --ignore-errors inconsistent,unsupported,format,empty,count,unused
-            --quiet
+    COMMAND sh -c "'${LCOV_EXE}' --remove '${_cov_info}' '*/tests/doctest/*' --output-file '${_cov_info}' --ignore-errors inconsistent,unsupported,format,empty,count,unused --quiet 2>/dev/null"
 
     # Generate an HTML report from the filtered .info file.
-    COMMAND ${GENHTML_EXE}
-            "${_cov_info}"
-            --output-directory "${_cov_html}"
-            --ignore-errors corrupt,inconsistent,count,empty,category
-            --quiet
+    COMMAND sh -c "'${GENHTML_EXE}' '${_cov_info}' --output-directory '${_cov_html}' --ignore-errors corrupt,inconsistent,count,empty,category --quiet 2>/dev/null"
 
     COMMAND "${CMAKE_COMMAND}" -E echo
             "Coverage report: ${_cov_html}/index.html"
@@ -258,4 +247,3 @@ if (CPPCHECK AND CPPCHECK_EXE)
     message(WARNING "CPPCHECK=ON but jq was not found on PATH. cppcheck target unavailable")
   endif()
 endif()
-
