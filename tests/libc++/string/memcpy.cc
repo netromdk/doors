@@ -1,6 +1,6 @@
 #include <doctest/doctest.h>
-#include <stdint.h>
-#include <string.h>
+#include <cstdint>
+#include <cstring>
 
 TEST_CASE("memcpy")
 {

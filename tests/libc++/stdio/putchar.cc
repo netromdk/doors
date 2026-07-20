@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include <stdio.h>
+#include <cstdio>
 
 TEST_CASE("putchar")
 {
