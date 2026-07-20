@@ -40,3 +40,7 @@ option(CLANG_TIDY
 option(CPPCHECK
   "Add a cppcheck custom target for static analysis"
   OFF)
+
+option(CODE_COVERAGE
+  "Enable gcov coverage instrumentation for host test builds"
+  OFF)

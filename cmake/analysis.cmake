@@ -20,3 +20,26 @@ if (CPPCHECK)
 else()
   message(STATUS "cppcheck: OFF")
 endif()
+
+if (CODE_COVERAGE)
+  find_program(LCOV_EXE lcov)
+  find_program(GENHTML_EXE genhtml)
+  if (NOT LCOV_EXE OR NOT GENHTML_EXE)
+    set(_missing "")
+    if (NOT LCOV_EXE)
+      string(APPEND _missing "  lcov\n")
+    endif()
+    if (NOT GENHTML_EXE)
+      string(APPEND _missing "  genhtml\n")
+    endif()
+    message(FATAL_ERROR
+      "CODE_COVERAGE is ON but the following tools were not found on PATH:\n"
+      "${_missing}"
+      "Install them:\n"
+      "  sudo apt install lcov\n"
+    )
+  endif()
+  message(STATUS "Code coverage: ON (-fprofile-arcs -ftest-coverage)")
+else()
+  message(STATUS "Code coverage: OFF")
+endif()
