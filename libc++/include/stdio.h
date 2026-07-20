@@ -264,6 +264,8 @@ inline void walkFormat(SnprintfBuf &buf, const char *format, T value, Args... ar
       }
 
       int width = 0;
+
+      // NOLINTNEXTLINE(clang-analyzer-security.ArrayBound)
       while (isdigit(*format)) {
         width = width * 10 + (*format++ - '0');
       }

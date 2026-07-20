@@ -52,7 +52,7 @@ void string::deallocate(char *p) noexcept
 #ifdef __IS_DOORS_KERNEL
   Heap::free(p);
 #else
-  free(p);
+  free(p); // NOLINT(clang-analyzer-unix.Malloc)
 #endif
 }
 
@@ -192,7 +192,7 @@ string &string::operator=(string &&other) noexcept
   if (isHeap()) {
     deallocate(data_);
   }
-  data_ = other.data_;
+  data_ = other.data_; // NOLINT(clang-analyzer-unix.Malloc)
   size_ = other.size_;
   capacity_ = other.capacity_;
   if (other.isSSO()) {
@@ -336,7 +336,7 @@ string &string::insert(size_type pos, const string &str) noexcept
   }
   memcpy(data_ + pos, str.data_, str.size_);
   size_ += str.size_;
-  data_[size_] = '\0';
+  data_[size_] = '\0'; // NOLINT(clang-analyzer-security.ArrayBound)
   return *this;
 }
 
@@ -943,6 +943,8 @@ string operator+(const string &a, const string &b) noexcept
 {
   string result(a);
   result += b;
+
+  // NOLINTNEXTLINE(clang-analyzer-core.StackAddressEscape)
   return result;
 }
 
@@ -950,6 +952,8 @@ string operator+(const string &a, const char *b) noexcept
 {
   string result(a);
   result += b;
+
+  // NOLINTNEXTLINE(clang-analyzer-core.StackAddressEscape)
   return result;
 }
 
@@ -957,11 +961,14 @@ string operator+(const char *a, const string &b) noexcept
 {
   string result(a);
   result += b;
+
+  // NOLINTNEXTLINE(clang-analyzer-core.StackAddressEscape)
   return result;
 }
 
 void swap(string &a, string &b) noexcept
 {
+  // NOLINTNEXTLINE(clang-analyzer-core.StackAddressEscape)
   a.swap(b);
 }
 

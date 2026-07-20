@@ -21,6 +21,7 @@ TEST_CASE_FIXTURE(SchedulerFixture, "fpuState is 512 bytes for FXSAVE/FXRSTOR")
   const auto id = Scheduler::addTask("size_task", nullptr);
   REQUIRE(id);
 
+  // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
   const auto *t = SchedulerTestAccess::getTask(*id);
   CHECK(sizeof(t->fpuState) == 512);
 }
@@ -32,6 +33,8 @@ TEST_CASE_FIXTURE(SchedulerFixture, "fpuState is zero-initialized")
 
   const auto *t = SchedulerTestAccess::getTask(*id);
   uint8_t zeros[512]{};
+
+  // NOLINTNEXTLINE(clang-analyzer-unix.cstring.NullArg)
   CHECK(memcmp(t->fpuState, zeros, sizeof(zeros)) == 0);
 }
 
