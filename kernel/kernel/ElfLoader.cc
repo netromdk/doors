@@ -254,7 +254,7 @@ optional<ElfLoader::LoadResult> ElfLoader::load(const void *elf, size_t size, ui
     }
   }
 
-  LoadResult result;
+  LoadResult result{};
   result.entry = ehdr->e_entry;
   result.numPages = numMapped;
   memcpy(result.pages, mapped, static_cast<size_t>(numMapped) * sizeof(MappedPage));

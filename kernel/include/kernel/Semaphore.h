@@ -9,7 +9,7 @@ class Semaphore {
 public:
   static constexpr int MAX_WAITERS = Scheduler::MAX_TASKS;
 
-  explicit Semaphore(int initialCount) : count_(initialCount), waitCount_(0)
+  explicit Semaphore(int initialCount) : count_(initialCount)
   {
   }
 
@@ -18,8 +18,8 @@ public:
 
 protected:
   volatile int count_;
-  volatile int waitCount_;
-  array<int, MAX_WAITERS> waiters_;
+  volatile int waitCount_{0};
+  array<int, MAX_WAITERS> waiters_{};
 };
 
 #endif // KERNEL_SEMAPHORE_H

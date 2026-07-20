@@ -19,7 +19,7 @@ public:
   };
 
   struct KeyEvent {
-    Key key;
+    Key key{};
     char ch{0};
   };
 
