@@ -53,7 +53,7 @@ void Heap::init(span<uint8_t> memory)
   heapStart_ = alignUp(reinterpret_cast<size_t>(memory.data()), Heap::BLOCK_ALIGN);
   heapEnd_ = heapStart_ + alignUp(memory.size(), Heap::BLOCK_ALIGN);
 
-  auto *first = reinterpret_cast<FreeNode *>(heapStart_);
+  auto *first = reinterpret_cast<FreeNode *>(heapStart_); // NOLINT(performance-no-int-to-ptr)
   first->header.size = static_cast<uint32_t>(heapEnd_ - heapStart_);
   first->header.magic = 0;
   first->next = nullptr;
@@ -91,7 +91,7 @@ void Heap::coalesce(FreeNode *node)
     return;
   }
 
-  auto *nextHdr = reinterpret_cast<Header *>(nextAddr);
+  auto *nextHdr = reinterpret_cast<Header *>(nextAddr); // NOLINT(performance-no-int-to-ptr)
   if (nextHdr->size == 0 || isAlloc(nextHdr->size) || nextHdr->magic != 0) {
     return;
   }
@@ -163,7 +163,8 @@ void *Heap::alloc(size_t size)
 
   if (residual >= Heap::MIN_BLOCK) {
     // Split: allocate `needed` bytes, leave `residual` free.
-    auto *remaining = reinterpret_cast<FreeNode *>(blockAddr + needed);
+    auto *remaining =
+      reinterpret_cast<FreeNode *>(blockAddr + needed); // NOLINT(performance-no-int-to-ptr)
     remaining->header.size = static_cast<uint32_t>(residual);
     remaining->header.magic = 0;
     remaining->next = best->next;
@@ -175,7 +176,7 @@ void *Heap::alloc(size_t size)
       freeList_ = remaining;
     }
 
-    auto *hdr = reinterpret_cast<Header *>(blockAddr);
+    auto *hdr = reinterpret_cast<Header *>(blockAddr); // NOLINT(performance-no-int-to-ptr)
     hdr->size = static_cast<uint32_t>(needed) | ALLOC_FLAG;
     hdr->magic = HEAP_MAGIC;
   }
@@ -188,12 +189,12 @@ void *Heap::alloc(size_t size)
       freeList_ = best->next;
     }
 
-    auto *hdr = reinterpret_cast<Header *>(blockAddr);
+    auto *hdr = reinterpret_cast<Header *>(blockAddr); // NOLINT(performance-no-int-to-ptr)
     hdr->size = static_cast<uint32_t>(freeSz) | ALLOC_FLAG;
     hdr->magic = HEAP_MAGIC;
   }
 
-  return reinterpret_cast<void *>(blockAddr + sizeof(Header));
+  return reinterpret_cast<void *>(blockAddr + sizeof(Header)); // NOLINT(performance-no-int-to-ptr)
 }
 
 void Heap::free(void *ptr)
@@ -204,7 +205,9 @@ void Heap::free(void *ptr)
 
   InterruptGuard guard;
 
-  auto *hdr = reinterpret_cast<Header *>(reinterpret_cast<size_t>(ptr) - sizeof(Header));
+  auto *hdr =
+    reinterpret_cast<Header *>(reinterpret_cast<size_t>(ptr) - // NOLINT(performance-no-int-to-ptr)
+                               sizeof(Header));
 
   if (!isAlloc(hdr->size) || hdr->magic != HEAP_MAGIC) {
     return;

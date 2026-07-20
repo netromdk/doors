@@ -60,7 +60,8 @@ uint32_t handleRead(uint32_t addr, int count)
     return static_cast<uint32_t>(-1);
   }
 
-  auto *const buf = reinterpret_cast<char *>(static_cast<uintptr_t>(addr));
+  auto *const buf =
+    reinterpret_cast<char *>(static_cast<uintptr_t>(addr)); // NOLINT(performance-no-int-to-ptr)
   Kbd::waitForChar();
   int n = 0;
   while (n < count && Kbd::charAvail()) {
@@ -75,7 +76,8 @@ uint32_t handleWriteSerial(uint32_t addr, uint32_t len)
   if (!isValidUserBuf(addr, static_cast<int>(len))) {
     return 0;
   }
-  auto *const buf = reinterpret_cast<const char *>(static_cast<uintptr_t>(addr));
+  auto *const buf = reinterpret_cast<const char *>( // NOLINT(performance-no-int-to-ptr)
+    static_cast<uintptr_t>(addr));
   for (uint32_t i = 0; i < len; ++i) {
     Serial::write(buf[i]);
   }
