@@ -32,3 +32,7 @@ option(CAPS_LOCK_IS_CTRL
 
 set(DOORS_BUILD_TYPE "Debug" CACHE STRING
   "Build type: Debug or Release")
+
+option(CLANG_TIDY
+  "Run clang-tidy static analysis on host-compiled targets"
+  OFF)

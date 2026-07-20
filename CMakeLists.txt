@@ -11,6 +11,9 @@ endif()
 
 project(doors VERSION 0.1 LANGUAGES CXX ASM)
 
+# Generate compile_commands.json for clang-tidy.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include(cmake/options.cmake)
 include(cmake/compilation.cmake)
 
