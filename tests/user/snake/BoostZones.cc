@@ -138,7 +138,9 @@ TEST_CASE_FIXTURE(SnakeFixture, "boost: moveIntervalMs unchanged before any boos
   // Step multiple times without direction changes. Since boost zones are passive (no collision),
   // stepping never activates boost on its own.
   for (int i = 0; i < 5; ++i) {
-    if (!g.step(0)) break;
+    if (!g.step(0)) {
+      break;
+    }
     CHECK(g.moveIntervalMs() == normal);
     if (g.boostActive()) {
       break;

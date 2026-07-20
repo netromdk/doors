@@ -6,7 +6,9 @@
 int64_t strtoll(const char *str, char **endptr, int base)
 {
   const int64_t res = static_cast<int64_t>(strtoull(str, endptr, base));
-  if (res == 0) return res;
+  if (res == 0) {
+    return res;
+  }
 
   // Handle sign.
   const size_t len = strlen(str);
@@ -18,8 +20,9 @@ int64_t strtoll(const char *str, char **endptr, int base)
     else if (ch == '-') {
       return res * -1;
     }
-    else
+    else {
       break;
+    }
   }
 
   return res;

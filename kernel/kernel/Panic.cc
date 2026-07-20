@@ -14,7 +14,9 @@
 
 void readCpuState(CpuState *state)
 {
-  if (!state) return;
+  if (!state) {
+    return;
+  }
 
   // This needed to be volatile to force the compiler to reload the pointer before every access. To
   // prevent register reuse across the ASM boundary (Clang was giving some issues..).
@@ -116,7 +118,9 @@ void readCpuState(CpuState *state)
 
 void dumpCpuState(const CpuState *state)
 {
-  if (!state) return;
+  if (!state) {
+    return;
+  }
 
   printf("CS=%x  EIP=%x  EFLAGS=%x\n", state->cs, state->eip, state->eflags);
   printf("EAX=%x  EBX=%x  ECX=%x  EDX=%x\n", state->eax, state->ebx, state->ecx, state->edx);

@@ -291,7 +291,9 @@ int Tty::scrollbackSize()
 
 const char *Tty::scrollbackLine(int n)
 {
-  if (n < 0 || n >= scrollbackCount_) return nullptr;
+  if (n < 0 || n >= scrollbackCount_) {
+    return nullptr;
+  }
   const int idx = (scrollbackHead_ - 1 - n + SCROLLBACK_LINES) % SCROLLBACK_LINES;
   return scrollbackBuf_[idx].data();
 }
@@ -400,7 +402,9 @@ void Tty::scrollbackPageUp()
 
 void Tty::scrollbackHome()
 {
-  if (scrollbackCount_ == 0) return;
+  if (scrollbackCount_ == 0) {
+    return;
+  }
   scrollbackShow(scrollbackCount_);
 }
 
@@ -411,7 +415,9 @@ int Tty::scrollbackOffset()
 
 void Tty::scrollbackLineUp()
 {
-  if (!scrollbackActive_) return;
+  if (!scrollbackActive_) {
+    return;
+  }
   const int offset = scrollbackOffset_ + 1;
   if (offset > scrollbackCount_) {
     return;
@@ -421,7 +427,9 @@ void Tty::scrollbackLineUp()
 
 void Tty::scrollbackLineDown()
 {
-  if (!scrollbackActive_) return;
+  if (!scrollbackActive_) {
+    return;
+  }
   const int offset = scrollbackOffset_ - 1;
   if (offset <= 0) {
     scrollbackExit();
@@ -432,7 +440,9 @@ void Tty::scrollbackLineDown()
 
 void Tty::scrollbackPageDown()
 {
-  if (!scrollbackActive_) return;
+  if (!scrollbackActive_) {
+    return;
+  }
   const int offset = scrollbackOffset_ - SCROLLBACK_VIEW_HEIGHT;
   if (offset <= 0) {
     scrollbackExit();

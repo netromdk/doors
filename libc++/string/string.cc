@@ -275,14 +275,20 @@ void string::reserve() noexcept
 
 void string::reserve(size_type newCap) noexcept
 {
-  if (newCap <= capacity()) return;
+  if (newCap <= capacity()) {
+    return;
+  }
   grow(newCap);
 }
 
 void string::shrink_to_fit() noexcept
 {
-  if (isSSO()) return;
-  if (size_ == capacity_) return;
+  if (isSSO()) {
+    return;
+  }
+  if (size_ == capacity_) {
+    return;
+  }
   if (size_ <= SSO_CAPACITY) {
     char tmp[SSO_CAPACITY + 1];
     memcpy(tmp, data_, size_);
@@ -921,7 +927,9 @@ void string::grow(size_type minCap) noexcept
     newCap = SSO_CAPACITY + 1;
   }
   char *newData = allocate(newCap);
-  if (size_ > 0) memcpy(newData, data_, size_);
+  if (size_ > 0) {
+    memcpy(newData, data_, size_);
+  }
   newData[size_] = '\0';
   if (isHeap()) {
     deallocate(data_);
@@ -931,8 +939,12 @@ void string::grow(size_type minCap) noexcept
 
 void string::reserveFor(size_type n) noexcept
 {
-  if (n <= capacity()) return;
-  if (isSSO() && n <= SSO_CAPACITY) return;
+  if (n <= capacity()) {
+    return;
+  }
+  if (isSSO() && n <= SSO_CAPACITY) {
+    return;
+  }
   grow(n);
 }
 
