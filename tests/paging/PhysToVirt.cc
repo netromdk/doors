@@ -17,22 +17,22 @@ TEST_CASE("virtToPhys subtracts KERNEL_VIRTUAL_BASE")
 
 TEST_CASE("physToVirt and virtToPhys are inverses")
 {
-  void *phys = reinterpret_cast<void *>(0x123456);
+  void *const phys = reinterpret_cast<void *>(0x123456);
   CHECK(virtToPhys(physToVirt(phys)) == phys);
 
-  void *virt = reinterpret_cast<void *>(0xC789ABC);
+  void *const virt = reinterpret_cast<void *>(0xC789ABC);
   CHECK(physToVirt(virtToPhys(virt)) == virt);
 }
 
 TEST_CASE("physToVirt32 and virtToPhys32 round-trip")
 {
-  void *phys = reinterpret_cast<void *>(0x300000);
-  auto *virt = physToVirt32(phys);
+  void *const phys = reinterpret_cast<void *>(0x300000);
+  auto *const virt = physToVirt32(phys);
   CHECK(virtToPhys32(virt) == 0x300000);
 }
 
 TEST_CASE("physToVirt and physToVirt32 stay in sync")
 {
-  void *phys = reinterpret_cast<void *>(0x400000);
+  void *const phys = reinterpret_cast<void *>(0x400000);
   CHECK(reinterpret_cast<void *>(physToVirt32(phys)) == physToVirt(phys));
 }

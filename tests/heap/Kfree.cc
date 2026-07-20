@@ -3,12 +3,12 @@
 
 TEST_CASE_FIXTURE(HeapFixture, "kfree reuse")
 {
-  void *p = Heap::alloc(64);
+  void *const p = Heap::alloc(64);
   REQUIRE(p != nullptr);
 
   Heap::free(p);
 
-  void *q = Heap::alloc(64);
+  void *const q = Heap::alloc(64);
   CHECK(q == p);
 }
 
@@ -19,12 +19,12 @@ TEST_CASE_FIXTURE(HeapFixture, "kfree nullptr")
 
 TEST_CASE_FIXTURE(HeapFixture, "kfree then smaller alloc")
 {
-  void *p = Heap::alloc(128);
+  void *const p = Heap::alloc(128);
   REQUIRE(p != nullptr);
 
   Heap::free(p);
 
-  void *q = Heap::alloc(32);
+  void *const q = Heap::alloc(32);
   REQUIRE(q != nullptr);
 
   size_t start = reinterpret_cast<size_t>(p);
@@ -36,7 +36,7 @@ TEST_CASE_FIXTURE(HeapFixture, "kfree then smaller alloc")
 
 TEST_CASE_FIXTURE(HeapFixture, "kfree double free")
 {
-  void *p = Heap::alloc(64);
+  void *const p = Heap::alloc(64);
   REQUIRE(p != nullptr);
 
   Heap::free(p);
@@ -45,11 +45,11 @@ TEST_CASE_FIXTURE(HeapFixture, "kfree double free")
 
 TEST_CASE_FIXTURE(HeapFixture, "kfree then alloc larger")
 {
-  void *p = Heap::alloc(64);
+  void *const p = Heap::alloc(64);
   REQUIRE(p != nullptr);
 
   Heap::free(p);
 
-  void *q = Heap::alloc(128);
+  void *const q = Heap::alloc(128);
   CHECK(q != nullptr);
 }

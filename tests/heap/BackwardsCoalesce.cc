@@ -6,9 +6,9 @@ TEST_CASE_FIXTURE(HeapFixture, "free merges with preceding free block")
 {
   // Allocate three blocks, free the middle one, then free the first one.
   // The two adjacent free blocks should merge into one via backwards coalescing.
-  void *a = Heap::alloc(16);
-  void *b = Heap::alloc(16);
-  void *c = Heap::alloc(16);
+  void *const a = Heap::alloc(16);
+  void *const b = Heap::alloc(16);
+  void *const c = Heap::alloc(16);
   REQUIRE(a != nullptr);
   REQUIRE(b != nullptr);
   REQUIRE(c != nullptr);
@@ -30,7 +30,7 @@ TEST_CASE_FIXTURE(HeapFixture, "free merges with preceding free block")
   //   36 > Heap::MIN_BLOCK -> fails.
   // - With coalescing: a+b merged = 2 * Heap::MIN_BLOCK bytes.
   //   36 < 2 * Heap::MIN_BLOCK -> succeeds.
-  void *d = Heap::alloc(17);
+  void *const d = Heap::alloc(17);
   CHECK(d != nullptr);
 }
 
@@ -38,13 +38,13 @@ TEST_CASE_FIXTURE(HeapFixture, "free merges backward then forward")
 {
   // Three adjacent blocks: alloc A, alloc B, alloc C. Free B first, then A, then C. A merges
   // backward into existing free B, then forward coalescing merges the combined free block with C.
-  void *a = Heap::alloc(8);
+  void *const a = Heap::alloc(8);
   REQUIRE(a != nullptr);
 
-  void *b = Heap::alloc(8);
+  void *const b = Heap::alloc(8);
   REQUIRE(b != nullptr);
 
-  void *c = Heap::alloc(8);
+  void *const c = Heap::alloc(8);
   REQUIRE(c != nullptr);
 
   Heap::free(b);
@@ -70,6 +70,6 @@ TEST_CASE_FIXTURE(HeapFixture, "backwards merge does not corrupt free list")
   Heap::free(ptrs[3]); // merges forward with `ptrs[1]`+`ptrs[2]` block.
 
   // Allocate a block from the coalesced region to verify free list integrity.
-  const void *big = Heap::alloc(Heap::MIN_BLOCK);
+  const void *const big = Heap::alloc(Heap::MIN_BLOCK);
   CHECK(big != nullptr);
 }
