@@ -2,6 +2,6 @@
 #define USER_UTIL_H
 
 int brandLen(const char *b);
-const char *taskStateStr(const unsigned char st);
+const char *taskStateStr(unsigned char st);
 
 #endif
