@@ -21,7 +21,8 @@ optional<int> Scheduler::addTaskAndBlock(string_view name, void (*entry)(), uint
 {
   InterruptGuard guard;
 
-  const auto id = addTaskImpl(name, entry, pageDir);
+  // non-const for implicit move on return!
+  auto id = addTaskImpl(name, entry, pageDir);
   if (!id) {
     return {};
   }
