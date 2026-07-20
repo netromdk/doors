@@ -5,7 +5,7 @@
 int brandLen(const char *b)
 {
   int n = 0;
-  while (n < 48 && b[n]) {
+  while (n < 48 && b[n] != '\0') {
     ++n;
   }
   return n;

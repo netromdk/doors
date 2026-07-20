@@ -172,7 +172,7 @@ void dumpCpuState(const CpuState *state)
   const uint8_t grey = vgaColor(COLOR_DARK_GREY, COLOR_BLACK);
   Tty::lock();
   for (int i = 0; i < 9; i++) {
-    for (int j = 0; hal[i][j]; j++) {
+    for (int j = 0; hal[i][j] != '\0'; j++) {
       VGA_RAM[((1 + i) * VGA_WIDTH) + 67 + j] = vgaEntry(hal[i][j], grey);
     }
   }
@@ -185,7 +185,7 @@ void dumpCpuState(const CpuState *state)
   const uint8_t whiteOnRed = vgaColor(COLOR_WHITE, COLOR_RED);
   size_t j = 0;
   const char *banner = " KERNEL PANIC!";
-  for (; banner[j]; j++) {
+  for (; banner[j] != '\0'; j++) {
     VGA_RAM[j] = vgaEntry(banner[j], whiteOnRed);
   }
   fill_n(VGA_RAM + j, VGA_WIDTH - j, vgaEntry(' ', whiteOnRed));
