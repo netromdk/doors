@@ -6,7 +6,7 @@ TEST_CASE("strncpy")
   const char *msg = "hello world";
   char buf[64] = {0};
   size_t num = 6;
-  char *res = strncpy(buf, msg, num);
+  const char *res = strncpy(buf, msg, num);
   CHECK(res == buf);
   CHECK(strlen(buf) == num);
   CHECK(strncmp(buf, msg, num) == 0);

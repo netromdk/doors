@@ -8,7 +8,7 @@ TEST_CASE_FIXTURE(HeapFixture, "kfree reuse")
 
   Heap::free(p);
 
-  void *const q = Heap::alloc(64);
+  const void *const q = Heap::alloc(64);
   CHECK(q == p);
 }
 
@@ -24,12 +24,12 @@ TEST_CASE_FIXTURE(HeapFixture, "kfree then smaller alloc")
 
   Heap::free(p);
 
-  void *const q = Heap::alloc(32);
+  const void *const q = Heap::alloc(32);
   REQUIRE(q != nullptr);
 
   size_t start = reinterpret_cast<size_t>(p);
   size_t end = start + 128;
-  size_t addr = reinterpret_cast<size_t>(q);
+  const size_t addr = reinterpret_cast<size_t>(q);
   CHECK(addr >= start);
   CHECK(addr < end);
 }
@@ -50,6 +50,6 @@ TEST_CASE_FIXTURE(HeapFixture, "kfree then alloc larger")
 
   Heap::free(p);
 
-  void *const q = Heap::alloc(128);
+  const void *const q = Heap::alloc(128);
   CHECK(q != nullptr);
 }

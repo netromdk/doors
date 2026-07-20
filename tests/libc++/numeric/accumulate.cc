@@ -39,7 +39,7 @@ TEST_CASE("accumulate unsigned char checksum pattern")
 TEST_CASE("accumulate with larger type")
 {
   const int arr[4] = {1000, 2000, 3000, 4000};
-  long result = accumulate(arr, arr + 4, 0L);
+  const long result = accumulate(arr, arr + 4, 0L);
   CHECK(result == 10000L);
 }
 

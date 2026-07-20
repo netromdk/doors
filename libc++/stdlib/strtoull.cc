@@ -6,8 +6,9 @@ uint64_t strtoull(const char *str, char **endptr, int base)
 {
   uint64_t res = 0;
 
-  size_t len = strlen(str), i;
-  for (i = 0; i < len; i++) {
+  const auto len = strlen(str);
+  size_t i = 0;
+  for (; i < len; i++) {
     char ch = str[i];
 
     // Ignore signs here, it will be handle by strtoll() instead.

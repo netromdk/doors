@@ -20,7 +20,7 @@ void itos(int32_t num, char *str, uint8_t base, bool upcase)
   }
   else {
     while (unum > 0) {
-      uint32_t rem = unum % base;
+      const uint32_t rem = unum % base;
       buf[i++] = static_cast<char>((rem < 10 ? rem + '0' : rem + 'a' - 10));
       if (upcase) {
         buf[i - 1] = static_cast<char>(toupper(buf[i - 1]));

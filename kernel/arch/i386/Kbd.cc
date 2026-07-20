@@ -21,7 +21,7 @@ bool extended_ = false;
 void deleteAt(string &buf, int delPos, int oldLen)
 {
   buf.erase(delPos, 1);
-  int len = static_cast<int>(buf.size());
+  const int len = static_cast<int>(buf.size());
   for (int i = delPos; i < len; i++) {
     printf("%c", buf[i]);
   }
@@ -34,7 +34,7 @@ void deleteAt(string &buf, int delPos, int oldLen)
 void insertAt(string &buf, int insPos, char ch)
 {
   buf.insert(insPos, 1, ch);
-  int len = static_cast<int>(buf.size());
+  const int len = static_cast<int>(buf.size());
   for (int i = insPos; i < len; i++) {
     printf("%c", buf[i]);
   }
@@ -49,12 +49,12 @@ void insertAt(string &buf, int insPos, char ch)
 // line shrinks.
 void redrawLine(const string &buf, int cursor, int oldLen)
 {
-  int len = static_cast<int>(buf.size());
+  const int len = static_cast<int>(buf.size());
   printf("\r> ");
   for (int i = 0; i < len; i++) {
     printf("%c", buf[i]);
   }
-  int maxLen = len > oldLen ? len : oldLen;
+  const int maxLen = len > oldLen ? len : oldLen;
   for (int i = len; i < maxLen; i++) {
     printf(" ");
   }
@@ -78,13 +78,13 @@ void loadHistory(const string &src, string &dst, int &pos, int oldLen)
 
 void historyUp(HistoryCtx *h, string &line, int &pos)
 {
-  int oldLen = static_cast<int>(line.size());
+  const int oldLen = static_cast<int>(line.size());
   if (*h->pos == -1) {
     if (h->count == 0) return;
     *h->pos = (h->head - 1 + h->size) % h->size;
   }
   else {
-    int prev = (*h->pos - 1 + h->size) % h->size;
+    const int prev = (*h->pos - 1 + h->size) % h->size;
     if (prev == (h->head - h->count + h->size) % h->size) {
       return;
     }
@@ -95,7 +95,7 @@ void historyUp(HistoryCtx *h, string &line, int &pos)
 
 void historyDown(HistoryCtx *h, string &line, int &pos)
 {
-  int oldLen = static_cast<int>(line.size());
+  const int oldLen = static_cast<int>(line.size());
   if (*h->pos == -1) return;
   *h->pos = -1;
   redrawLine(string{}, 0, oldLen);
@@ -283,7 +283,7 @@ void Kbd::readLine(string &line, HistoryCtx *history)
       continue;
     }
 
-    char ch = getChar();
+    const char ch = getChar();
 
     // Ctrl+P and Ctrl+N as alternative to Up/Down arrows.
     if (history && ch == Kbd::KEY_CTRL_P) {
@@ -363,7 +363,7 @@ void Kbd::readLine(string &line, HistoryCtx *history)
     // Handle backspace.
     if (ch == '\b') {
       if (pos > 0) {
-        int oldLen = static_cast<int>(line.size());
+        const int oldLen = static_cast<int>(line.size());
         pos--;
         printf("\b");
         deleteAt(line, pos, oldLen);
@@ -389,7 +389,7 @@ void Kbd::readLine(string &line, HistoryCtx *history)
 void Kbd::processScancode(uint8_t scancode, bool extended)
 {
   auto &entry = lookupScancode(scancode & 0x7F, extended);
-  bool release = scancode & 0x80;
+  const bool release = scancode & 0x80;
 
   // CapsLock toggles on make only (MOD_NONE in scancode table).
   if (entry.key == ::Key::CapsLock) {
@@ -468,7 +468,7 @@ void Kbd::processScancode(uint8_t scancode, bool extended)
     return;
   }
 
-  char ch = KeyMap::toText(entry.key, shiftPressed_, ctrlPressed_, capsLock_);
+  const char ch = KeyMap::toText(entry.key, shiftPressed_, ctrlPressed_, capsLock_);
   if (ch != 0) {
     pushChar(ch);
   }
@@ -476,7 +476,7 @@ void Kbd::processScancode(uint8_t scancode, bool extended)
 
 void Kbd::isrHandler()
 {
-  uint8_t scancode = Io::inb(KBD_DATA_PORT);
+  const uint8_t scancode = Io::inb(KBD_DATA_PORT);
 
   if (scancode == 0xE0) {
     extended_ = true;

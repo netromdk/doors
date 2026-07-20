@@ -33,7 +33,7 @@ TEST_CASE("printf")
   // -1 = (unsigned) 18446744073709551615 = +20
   // \n = +1
   // = 33
-  int64_t n = -1;
+  const int64_t n = -1;
   CHECK(printf("Unsign this %u\n", n) == 33);
 
   // (const char*) nullptr = (NULL) = +6

@@ -5,7 +5,7 @@
  */
 char *strncpy(char *dst, const char *src, size_t num)
 {
-  size_t len = strlen(src);
+  const size_t len = strlen(src);
   if (len < num) {
     // `strncpy()` pads, it doesn't null-terminate so skip that lint.
     memcpy(dst, src, len); // NOLINT(bugprone-not-null-terminated-result)

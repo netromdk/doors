@@ -27,7 +27,7 @@ void utos(uint32_t num, char *str, uint8_t base, bool upcase)
   i--;
   size_t j = 0;
   while (j < i) {
-    char tmp = str[i];
+    const char tmp = str[i];
     str[i] = str[j];
     str[j] = tmp;
     j++;

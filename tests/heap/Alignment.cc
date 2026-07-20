@@ -26,13 +26,13 @@ TEST_CASE_FIXTURE(HeapFixture, "large alloc 16-byte alignment")
 
 TEST_CASE_FIXTURE(HeapFixture, "consecutive allocs have distinct aligned addresses")
 {
-  void *a = Heap::alloc(16);
+  const void *a = Heap::alloc(16);
   REQUIRE(a != nullptr);
 
-  void *b = Heap::alloc(Heap::MIN_BLOCK);
+  const void *b = Heap::alloc(Heap::MIN_BLOCK);
   REQUIRE(b != nullptr);
 
-  void *c = Heap::alloc(2 * Heap::MIN_BLOCK);
+  const void *c = Heap::alloc(2 * Heap::MIN_BLOCK);
   REQUIRE(c != nullptr);
 
   CHECK((reinterpret_cast<size_t>(a) & ALIGN_MASK) == 0);
@@ -47,10 +47,10 @@ TEST_CASE_FIXTURE(HeapFixture, "consecutive 1-byte allocs are 16-byte aligned an
 {
   // 1-byte allocs should still return 16-byte aligned pointers with at least `Heap::BLOCK_ALIGN`
   // bytes of usable space between them.
-  void *p1 = Heap::alloc(1);
+  const void *p1 = Heap::alloc(1);
   REQUIRE(p1 != nullptr);
 
-  void *p2 = Heap::alloc(1);
+  const void *p2 = Heap::alloc(1);
   REQUIRE(p2 != nullptr);
 
   CHECK((reinterpret_cast<size_t>(p1) & ALIGN_MASK) == 0);

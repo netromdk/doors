@@ -36,7 +36,7 @@ void Pit::programForMs(uint32_t ms)
     ms = PIT_MAX_MS;
   }
 
-  InterruptGuard guard;
+  const InterruptGuard guard;
   auto ticks = static_cast<uint32_t>((PIT_BASE_CLOCK * ms) / 1000);
   ticks = clamp(ticks, uint32_t{1}, static_cast<uint32_t>(PIT_MAX_DIVISOR));
 
@@ -53,24 +53,24 @@ void Pit::tick()
 
 uint64_t Pit::uptimeMs()
 {
-  InterruptGuard guard;
+  const InterruptGuard guard;
   return pitTicks;
 }
 
 uint64_t Pit::uptimeSec()
 {
-  InterruptGuard guard;
+  const InterruptGuard guard;
   return pitTicks / 1000;
 }
 
 uint64_t Pit::msSince(uint64_t last)
 {
-  InterruptGuard guard;
+  const InterruptGuard guard;
   return pitTicks - last;
 }
 
 uint64_t Pit::deadline()
 {
-  InterruptGuard guard;
+  const InterruptGuard guard;
   return pitDeadlineMs;
 }

@@ -5,7 +5,7 @@ TEST_CASE("strcpy")
 {
   const char *msg = "hello world";
   char buf[64] = {0};
-  char *res = strcpy(buf, msg);
+  const char *res = strcpy(buf, msg);
   CHECK(res == buf);
   CHECK(strlen(buf) == strlen(msg));
   CHECK(strcmp(buf, msg) == 0);

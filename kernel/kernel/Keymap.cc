@@ -36,7 +36,7 @@ Key KeyMap::scancodeToKey(uint8_t scancode, bool extended)
 
 char KeyMap::toText(Key key, bool shift, bool ctrl, bool caps)
 {
-  auto const ukey = static_cast<uint32_t>(key);
+  const auto ukey = static_cast<uint32_t>(key);
 
   if (ctrl) {
     if (ukey >= static_cast<uint32_t>(Key::A) && ukey <= static_cast<uint32_t>(Key::Z)) {
@@ -46,7 +46,7 @@ char KeyMap::toText(Key key, bool shift, bool ctrl, bool caps)
   }
 
   if (ukey >= static_cast<uint32_t>(Key::A) && ukey <= static_cast<uint32_t>(Key::Z)) {
-    bool const effectiveShift = shift ^ caps;
+    const bool effectiveShift = shift ^ caps;
     if (effectiveShift) {
       return static_cast<char>(ukey);
     }

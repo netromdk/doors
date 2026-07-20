@@ -35,7 +35,7 @@ char *string::allocate(size_type cap) noexcept
 
   char *p = static_cast<char *>(Heap::alloc(cap + 1));
 #else
-  char *p = static_cast<char *>(malloc(cap + 1));
+  char *p = static_cast<char *>(malloc(cap + 1)); // NOLINT(misc-const-correctness)
 #endif
   if (!p) {
     for (;;) {
@@ -78,7 +78,7 @@ string::string() noexcept : data_(sso_), size_(0), capacity_(SSO_CAPACITY)
 string::string(const char *s) noexcept
 {
   checkNotNull(s);
-  size_type n = strlen(s);
+  const size_type n = strlen(s);
   if (n <= SSO_CAPACITY) {
     setSSO(s, n);
     capacity_ = SSO_CAPACITY;
@@ -216,7 +216,7 @@ string &string::assign(const string &other) noexcept
 string &string::assign(const char *s) noexcept
 {
   checkNotNull(s);
-  size_type n = strlen(s);
+  const size_type n = strlen(s);
   if (n <= SSO_CAPACITY) {
     if (isHeap()) {
       deallocate(data_);
@@ -623,7 +623,7 @@ string::size_type string::find_first_of(const char *s, size_type pos) const noex
   if (pos >= size_) {
     return npos;
   }
-  size_type sLen = strlen(s);
+  const size_type sLen = strlen(s);
   for (size_type i = pos; i < size_; ++i) {
     for (size_type j = 0; j < sLen; ++j) {
       if (data_[i] == s[j]) {
@@ -880,8 +880,8 @@ bool string::ends_with(char ch) const noexcept
 
 int string::compare(const string &str) const noexcept
 {
-  size_type n = size_ < str.size_ ? size_ : str.size_;
-  int cmp = memcmp(data_, str.data_, n);
+  const size_type n = size_ < str.size_ ? size_ : str.size_;
+  const int cmp = memcmp(data_, str.data_, n);
   if (cmp != 0) {
     return cmp;
   }
@@ -901,7 +901,7 @@ int string::compare(const char *s) const noexcept
 
 strong_ordering string::operator<=>(const string &other) const noexcept
 {
-  int c = compare(other);
+  const int c = compare(other);
   if (c < 0) {
     return strong_ordering::less;
   }

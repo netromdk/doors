@@ -19,12 +19,12 @@ TEST_CASE("array value init")
 
 TEST_CASE("array size empty max_size")
 {
-  array<int, 3> a{};
+  const array<int, 3> a{};
   CHECK(a.size() == 3);
   CHECK(a.max_size() == 3);
   CHECK(!a.empty());
 
-  array<int, 0> b{};
+  const array<int, 0> b{};
   CHECK(b.size() == 0);
   CHECK(b.max_size() == 0);
   CHECK(b.empty());
@@ -113,7 +113,7 @@ TEST_CASE("array begin end const")
 
 TEST_CASE("array ranged for by value")
 {
-  array<int, 3> a = {2, 4, 6};
+  const array<int, 3> a = {2, 4, 6};
   int sum = 0;
   for (auto v : a) {
     sum += v;
@@ -144,7 +144,7 @@ TEST_CASE("array ranged for by const ref")
 
 TEST_CASE("array ranged for by ref const array")
 {
-  array<int, 3> a = {5, 6, 7};
+  const array<int, 3> a = {5, 6, 7};
   const auto &ca = a;
   int sum = 0;
   for (const auto &v : ca) {
@@ -155,7 +155,7 @@ TEST_CASE("array ranged for by ref const array")
 
 TEST_CASE("array cbegin cend")
 {
-  array<int, 3> a = {1, 2, 3};
+  const array<int, 3> a = {1, 2, 3};
   int sum = 0;
   for (auto it = a.cbegin(); it != a.cend(); ++it) {
     sum += *it;
@@ -195,17 +195,17 @@ TEST_CASE("array operator[] const")
 
 TEST_CASE("array equality")
 {
-  array<int, 3> a = {1, 2, 3};
+  const array<int, 3> a = {1, 2, 3};
   array<int, 3> b = {1, 2, 3};
-  array<int, 3> c = {1, 2, 4};
+  const array<int, 3> c = {1, 2, 4};
   CHECK(a == b);
   CHECK(!(a == c));
 }
 
 TEST_CASE("array inequality")
 {
-  array<int, 3> a = {1, 2, 3};
-  array<int, 3> b = {1, 2, 3};
+  const array<int, 3> a = {1, 2, 3};
+  const array<int, 3> b = {1, 2, 3};
   array<int, 3> c = {1, 2, 4};
   CHECK(!(a != b));
   CHECK(a != c);
@@ -213,7 +213,7 @@ TEST_CASE("array inequality")
 
 TEST_CASE("array less")
 {
-  array<int, 3> a = {1, 2, 3};
+  const array<int, 3> a = {1, 2, 3};
   array<int, 3> b = {1, 2, 4};
   CHECK(a < b);
   CHECK(!(b < a));
@@ -222,14 +222,14 @@ TEST_CASE("array less")
 TEST_CASE("array greater")
 {
   array<int, 3> a = {1, 2, 3};
-  array<int, 3> b = {1, 2, 4};
+  const array<int, 3> b = {1, 2, 4};
   CHECK(b > a);
   CHECK(!(a > b));
 }
 
 TEST_CASE("array less equal")
 {
-  array<int, 3> a = {1, 2, 3};
+  const array<int, 3> a = {1, 2, 3};
   array<int, 3> b = {1, 2, 3};
   array<int, 3> c = {1, 2, 4};
   CHECK(a <= b);
@@ -241,7 +241,7 @@ TEST_CASE("array greater equal")
 {
   array<int, 3> a = {1, 2, 3};
   array<int, 3> b = {1, 2, 3};
-  array<int, 3> c = {1, 2, 4};
+  const array<int, 3> c = {1, 2, 4};
   CHECK(a >= b);
   CHECK(c >= a);
   CHECK(!(a >= c));

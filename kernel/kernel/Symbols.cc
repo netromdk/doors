@@ -31,11 +31,11 @@ const char *lookupSymbol(uint32_t addr)
   int lo = 0;
   int hi = symbol_table_count - 1;
   while (lo <= hi) {
-    int mid = lo + (hi - lo) / 2;
-    uint32_t midAddr = symbol_table[mid].address;
+    const int mid = lo + (hi - lo) / 2;
+    const uint32_t midAddr = symbol_table[mid].address;
 
     if (addr >= midAddr) {
-      uint32_t nextAddr =
+      const uint32_t nextAddr =
         (mid == symbol_table_count - 1) ? 0xFFFFFFFF : symbol_table[mid + 1].address;
       if (addr < nextAddr) {
         return symbol_table[mid].name;

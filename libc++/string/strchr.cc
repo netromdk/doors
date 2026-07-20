@@ -6,7 +6,7 @@
  */
 const char *strchr(const char *str, int value)
 {
-  size_t len = strlen(str);
+  const size_t len = strlen(str);
   for (size_t i = 0; i <= len; i++) {
     if (str[i] == (char) value) {
       return str + i;

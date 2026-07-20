@@ -15,7 +15,7 @@ TEST_CASE("default constructor")
 // SSO: Simple String Optimization.
 TEST_CASE("c-string constructor: SSO")
 {
-  string s("hello");
+  const string s("hello");
   CHECK(s.size() == 5);
   CHECK(s.capacity() == string::SSO_CAPACITY);
   CHECK(strcmp(s.c_str(), "hello") == 0);
@@ -24,7 +24,7 @@ TEST_CASE("c-string constructor: SSO")
 TEST_CASE("c-string constructor: heap")
 {
   const char *longStr = "this a very long string that exceeds SSO buffer capacity";
-  string s(longStr);
+  const string s(longStr);
   CHECK(s.size() == strlen(longStr));
   CHECK(s.capacity() >= s.size());
   CHECK(strcmp(s.c_str(), longStr) == 0);
@@ -32,7 +32,7 @@ TEST_CASE("c-string constructor: heap")
 
 TEST_CASE("fill constructor: SSO")
 {
-  string s(5, 'x');
+  const string s(5, 'x');
   CHECK(s.size() == 5);
   CHECK(s.capacity() == string::SSO_CAPACITY);
   CHECK(strcmp(s.c_str(), "xxxxx") == 0);
@@ -50,8 +50,8 @@ TEST_CASE("fill constructor: heap")
 
 TEST_CASE("copy constructor: SSO")
 {
-  string a("hello");
-  string b(a); // NOLINT(performance-unnecessary-copy-initialization)
+  const string a("hello");
+  const string b(a); // NOLINT(performance-unnecessary-copy-initialization)
   CHECK(b.size() == 5);
   CHECK(strcmp(b.c_str(), "hello") == 0);
   CHECK(b.capacity() == string::SSO_CAPACITY);
@@ -60,8 +60,8 @@ TEST_CASE("copy constructor: SSO")
 TEST_CASE("copy constructor: heap")
 {
   const char *heapStr = "this is a very long string that must be on the heap for sure";
-  string a(heapStr);
-  string b(a); // NOLINT(performance-unnecessary-copy-initialization)
+  const string a(heapStr);
+  const string b(a); // NOLINT(performance-unnecessary-copy-initialization)
   CHECK(b.size() == a.size());
   CHECK(strcmp(b.c_str(), a.c_str()) == 0);
   CHECK(b.capacity() >= b.size());
@@ -70,7 +70,7 @@ TEST_CASE("copy constructor: heap")
 TEST_CASE("move constructor: SSO")
 {
   string a("hello");
-  string b(static_cast<string &&>(a));
+  const string b(static_cast<string &&>(a));
   CHECK(b.size() == 5);
   CHECK(strcmp(b.c_str(), "hello") == 0);
   CHECK(a.empty());
@@ -91,7 +91,7 @@ TEST_CASE("move constructor: heap")
 
 TEST_CASE("copy assignment")
 {
-  string a("world");
+  const string a("world");
   string b("hello");
   b = a;
   CHECK(strcmp(b.c_str(), "world") == 0);
@@ -100,7 +100,7 @@ TEST_CASE("copy assignment")
 
 TEST_CASE("copy assignment: heap to heap")
 {
-  string a("this is a very long string that must be on the heap for sure");
+  const string a("this is a very long string that must be on the heap for sure");
   string b("another long string that should also be on the heap yes indeed");
   b = a;
   CHECK(strcmp(b.c_str(), a.c_str()) == 0);
@@ -240,13 +240,13 @@ TEST_CASE("front and back")
 
 TEST_CASE("c_str null-terminated: SSO")
 {
-  string s("hello");
+  const string s("hello");
   CHECK(s.c_str()[5] == '\0');
 }
 
 TEST_CASE("c_str null-terminated: heap")
 {
-  string s("this is a long string that lives on the heap");
+  const string s("this is a long string that lives on the heap");
   CHECK(s.c_str()[s.size()] == '\0');
 }
 
@@ -260,15 +260,15 @@ TEST_CASE("data equals c_str")
 
 TEST_CASE("empty")
 {
-  string s;
+  const string s;
   CHECK(s.empty());
-  string t("hello");
+  const string t("hello");
   CHECK(!t.empty());
 }
 
 TEST_CASE("size and length")
 {
-  string s("hello");
+  const string s("hello");
   CHECK(s.size() == 5);
   CHECK(s.length() == 5);
 }
@@ -440,8 +440,8 @@ TEST_CASE("swap heap heap")
 {
   string a("this is a very long string on the heap");
   string b("another long heap string here as well");
-  string aOrig(a);
-  string bOrig(b);
+  const string aOrig(a);
+  const string bOrig(b);
   a.swap(b);
   CHECK(strcmp(a.c_str(), bOrig.c_str()) == 0);
   CHECK(strcmp(b.c_str(), aOrig.c_str()) == 0);
@@ -451,8 +451,8 @@ TEST_CASE("swap SSO heap")
 {
   string a("hello");
   string b("this is a string on the heap for swapping");
-  string aOrig(a);
-  string bOrig(b);
+  const string aOrig(a);
+  const string bOrig(b);
   a.swap(b);
   CHECK(strcmp(a.c_str(), bOrig.c_str()) == 0);
   CHECK(strcmp(b.c_str(), aOrig.c_str()) == 0);
@@ -460,7 +460,7 @@ TEST_CASE("swap SSO heap")
 
 TEST_CASE("find char from start")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find('h') == 0);
   CHECK(s.find('o') == 4);
   CHECK(s.find('w') == 6);
@@ -468,116 +468,116 @@ TEST_CASE("find char from start")
 
 TEST_CASE("find char from pos")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find('o', 5) == 7);
 }
 
 TEST_CASE("find char not found")
 {
-  string s("hello");
+  const string s("hello");
   CHECK(s.find('z') == string::npos);
 }
 
 TEST_CASE("find string from start")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find(string("world")) == 6);
   CHECK(s.find(string("hello")) == 0);
 }
 
 TEST_CASE("find string not found")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find(string("xyz")) == string::npos);
 }
 
 TEST_CASE("rfind char from end")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.rfind('l') == 9);
   CHECK(s.rfind('d') == 10);
 }
 
 TEST_CASE("rfind char not found")
 {
-  string s("hello");
+  const string s("hello");
   CHECK(s.rfind('z') == string::npos);
 }
 
 TEST_CASE("find_first_of")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find_first_of("ow") == 4);
 }
 
 TEST_CASE("starts_with string")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.starts_with(string("hello")));
   CHECK(!s.starts_with(string("world")));
 }
 
 TEST_CASE("starts_with char")
 {
-  string s("hello");
+  const string s("hello");
   CHECK(s.starts_with('h'));
   CHECK(!s.starts_with('x'));
 }
 
 TEST_CASE("ends_with string")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.ends_with(string("world")));
   CHECK(!s.ends_with(string("hello")));
 }
 
 TEST_CASE("ends_with char")
 {
-  string s("hello");
+  const string s("hello");
   CHECK(s.ends_with('o'));
   CHECK(!s.ends_with('x'));
 }
 
 TEST_CASE("compare equal")
 {
-  string a("hello");
-  string b("hello");
+  const string a("hello");
+  const string b("hello");
   CHECK(a.compare(b) == 0);
 }
 
 TEST_CASE("compare less")
 {
-  string a("apple");
-  string b("banana");
+  const string a("apple");
+  const string b("banana");
   CHECK(a.compare(b) < 0);
 }
 
 TEST_CASE("compare greater")
 {
-  string a("banana");
-  string b("apple");
+  const string a("banana");
+  const string b("apple");
   CHECK(a.compare(b) > 0);
 }
 
 TEST_CASE("operator==")
 {
-  string a("hello");
+  const string a("hello");
   string b("hello");
-  string c("world");
+  const string c("world");
   CHECK(a == b);
   CHECK(!(a == c));
 }
 
 TEST_CASE("operator!=")
 {
-  string a("hello");
+  const string a("hello");
   string b("world");
   CHECK(a != b);
 }
 
 TEST_CASE("operator<")
 {
-  string a("apple");
+  const string a("apple");
   string b("banana");
   CHECK(a < b);
   CHECK(!(b < a));
@@ -585,14 +585,14 @@ TEST_CASE("operator<")
 
 TEST_CASE("operator>")
 {
-  string a("banana");
+  const string a("banana");
   string b("apple");
   CHECK(a > b);
 }
 
 TEST_CASE("operator<=")
 {
-  string a("apple");
+  const string a("apple");
   string b("apple");
   CHECK(a <= b);
   CHECK(a <= string("banana"));
@@ -600,7 +600,7 @@ TEST_CASE("operator<=")
 
 TEST_CASE("operator>=")
 {
-  string a("banana");
+  const string a("banana");
   string b("banana");
   CHECK(a >= b);
   CHECK(a >= string("apple"));
@@ -608,7 +608,7 @@ TEST_CASE("operator>=")
 
 TEST_CASE("empty string c_str")
 {
-  string s;
+  const string s;
   CHECK(strcmp(s.c_str(), "") == 0);
 }
 
@@ -660,7 +660,7 @@ TEST_CASE("embedded null character")
 TEST_CASE("self copy assignment")
 {
   string s("hello");
-  string &ref = s;
+  const string &ref = s;
   s = ref;
   CHECK(strcmp(s.c_str(), "hello") == 0);
 }
@@ -669,7 +669,7 @@ TEST_CASE("multiple moves")
 {
   string a("hello world");
   string b(static_cast<string &&>(a));
-  string c(static_cast<string &&>(b));
+  const string c(static_cast<string &&>(b));
   CHECK(strcmp(c.c_str(), "hello world") == 0);
   CHECK(a.empty());
   CHECK(b.empty());
@@ -677,33 +677,33 @@ TEST_CASE("multiple moves")
 
 TEST_CASE("operator+ string string")
 {
-  string a("hello ");
-  string b("world");
-  string c = a + b;
+  const string a("hello ");
+  const string b("world");
+  const string c = a + b;
   CHECK(strcmp(c.c_str(), "hello world") == 0);
 }
 
 TEST_CASE("operator+ string cstr")
 {
-  string a("hello ");
-  string c = a + "world";
+  const string a("hello ");
+  const string c = a + "world";
   CHECK(strcmp(c.c_str(), "hello world") == 0);
 }
 
 TEST_CASE("operator+ cstr string")
 {
-  string b(" world");
-  string c = "hello" + b;
+  const string b(" world");
+  const string c = "hello" + b;
   CHECK(strcmp(c.c_str(), "hello world") == 0);
 }
 
 TEST_CASE("SSO strings on stack: no fragmentation")
 {
-  string a("one");
-  string b("two");
-  string c("three");
-  string d("four");
-  string e("five");
+  const string a("one");
+  const string b("two");
+  const string c("three");
+  const string d("four");
+  const string e("five");
   CHECK(strcmp(a.c_str(), "one") == 0);
   CHECK(strcmp(b.c_str(), "two") == 0);
   CHECK(strcmp(c.c_str(), "three") == 0);
@@ -714,20 +714,20 @@ TEST_CASE("SSO strings on stack: no fragmentation")
 TEST_CASE("string as local variable in loop")
 {
   for (int i = 0; i < 100; ++i) {
-    string s("temporary");
+    const string s("temporary");
     CHECK(strcmp(s.c_str(), "temporary") == 0);
   }
 }
 
 TEST_CASE("fill constructor: count zero")
 {
-  string s(0, 'x');
+  const string s(0, 'x');
   CHECK(s.empty());
 }
 
 TEST_CASE("substring constructor with null")
 {
-  string s("hello", 5);
+  const string s("hello", 5);
   CHECK(s.size() == 5);
   CHECK(strcmp(s.c_str(), "hello") == 0);
 }
@@ -771,9 +771,9 @@ TEST_CASE("const iterators")
 
 TEST_CASE("range-for loop SSO")
 {
-  string s("abc");
+  const string s("abc");
   string result;
-  for (char c : s) {
+  for (const char c : s) {
     result.push_back(c);
   }
   CHECK(strcmp(result.c_str(), "abc") == 0);
@@ -781,9 +781,9 @@ TEST_CASE("range-for loop SSO")
 
 TEST_CASE("range-for loop heap")
 {
-  string s("a long string to iterate over the heap");
+  const string s("a long string to iterate over the heap");
   size_t count = 0;
-  for (char c : s) {
+  for (const char c : s) {
     (void) c;
     ++count;
   }
@@ -792,8 +792,8 @@ TEST_CASE("range-for loop heap")
 
 TEST_CASE("range-for loop empty")
 {
-  string s;
-  for (char c : s) {
+  const string s;
+  for (const char c : s) {
     (void) c;
 
     // Should not execute. The loop body must not be entered for empty string.
@@ -803,7 +803,7 @@ TEST_CASE("range-for loop empty")
 
 TEST_CASE("contains char")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.contains('h'));
   CHECK(s.contains('d'));
   CHECK(s.contains(' '));
@@ -812,7 +812,7 @@ TEST_CASE("contains char")
 
 TEST_CASE("contains string")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.contains(string("world")));
   CHECK(s.contains(string("hello")));
   CHECK(!s.contains(string("xyz")));
@@ -820,50 +820,50 @@ TEST_CASE("contains string")
 
 TEST_CASE("contains empty string")
 {
-  string s;
+  const string s;
   CHECK(!s.contains('a'));
   CHECK(!s.contains(string("anything")));
 }
 
 TEST_CASE("substr from start")
 {
-  string s("hello world");
-  string sub = s.substr(0, 5);
+  const string s("hello world");
+  const string sub = s.substr(0, 5);
   CHECK(strcmp(sub.c_str(), "hello") == 0);
 }
 
 TEST_CASE("substr from middle")
 {
-  string s("hello world");
-  string sub = s.substr(6);
+  const string s("hello world");
+  const string sub = s.substr(6);
   CHECK(strcmp(sub.c_str(), "world") == 0);
 }
 
 TEST_CASE("substr entire string")
 {
-  string s("hello");
-  string sub = s.substr(0);
+  const string s("hello");
+  const string sub = s.substr(0);
   CHECK(strcmp(sub.c_str(), "hello") == 0);
 }
 
 TEST_CASE("substr empty result")
 {
-  string s("hello");
-  string sub = s.substr(3, 0);
+  const string s("hello");
+  const string sub = s.substr(3, 0);
   CHECK(sub.empty());
 }
 
 TEST_CASE("substr beyond end")
 {
-  string s("hello");
-  string sub = s.substr(100);
+  const string s("hello");
+  const string sub = s.substr(100);
   CHECK(sub.empty());
 }
 
 TEST_CASE("substr heap")
 {
-  string s("this string is on the heap for the substr test");
-  string sub = s.substr(5, 10);
+  const string s("this string is on the heap for the substr test");
+  const string sub = s.substr(5, 10);
   CHECK(sub.size() == 10);
   CHECK(memcmp(sub.c_str(), s.c_str() + 5, 10) == 0);
 }
@@ -884,14 +884,14 @@ TEST_CASE("front/back const access")
 
 TEST_CASE("max_size")
 {
-  string s;
+  const string s;
   CHECK(s.max_size() > 0);
   CHECK(s.max_size() == static_cast<string::size_type>(-1) / 2);
 }
 
 TEST_CASE("rfind string")
 {
-  string s("hello world world");
+  const string s("hello world world");
   CHECK(s.rfind(string("world")) == 12);
   CHECK(s.rfind(string("hello")) == 0);
   CHECK(s.rfind(string("xyz")) == string::npos);
@@ -899,7 +899,7 @@ TEST_CASE("rfind string")
 
 TEST_CASE("rfind c-string")
 {
-  string s("hello world world");
+  const string s("hello world world");
   CHECK(s.rfind("world") == 12);
   CHECK(s.rfind("hello") == 0);
   CHECK(s.rfind("xyz") == string::npos);
@@ -907,100 +907,100 @@ TEST_CASE("rfind c-string")
 
 TEST_CASE("rfind string with pos")
 {
-  string s("hello world world");
+  const string s("hello world world");
   CHECK(s.rfind(string("world"), 11) == 6);
 }
 
 TEST_CASE("find_first_of string")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find_first_of(string("wo")) == 4);
 }
 
 TEST_CASE("find_first_of char")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find_first_of('o') == 4);
   CHECK(s.find_first_of('z') == string::npos);
 }
 
 TEST_CASE("find_first_of char from pos")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find_first_of('o', 5) == 7);
 }
 
 TEST_CASE("find_last_of char")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find_last_of('o') == 7);
   CHECK(s.find_last_of('z') == string::npos);
 }
 
 TEST_CASE("find_last_of string")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find_last_of(string("lo")) == 9);
 }
 
 TEST_CASE("find_last_of c-string")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find_last_of("lo") == 9);
 }
 
 TEST_CASE("find_last_of empty string")
 {
-  string s;
+  const string s;
   CHECK(s.find_last_of('a') == string::npos);
 }
 
 TEST_CASE("find_first_not_of char")
 {
-  string s("aaab");
+  const string s("aaab");
   CHECK(s.find_first_not_of('a') == 3);
   CHECK(s.find_first_not_of('b') == 0);
 }
 
 TEST_CASE("find_first_not_of string")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find_first_not_of(string("helo ")) == 6);
 }
 
 TEST_CASE("find_first_not_of c-string")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find_first_not_of("helo ") == 6);
 }
 
 TEST_CASE("find_first_not_of all match")
 {
-  string s("aaaa");
+  const string s("aaaa");
   CHECK(s.find_first_not_of('a') == string::npos);
 }
 
 TEST_CASE("find_last_not_of char")
 {
-  string s("baaa");
+  const string s("baaa");
   CHECK(s.find_last_not_of('a') == 0);
 }
 
 TEST_CASE("find_last_not_of string")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find_last_not_of(string("world ")) == 1);
 }
 
 TEST_CASE("find_last_not_of c-string")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find_last_not_of("world ") == 1);
 }
 
 TEST_CASE("find_last_not_of all match")
 {
-  string s("aaaa");
+  const string s("aaaa");
   CHECK(s.find_last_not_of('a') == string::npos);
 }
 
@@ -1042,42 +1042,42 @@ TEST_CASE("replace with c-string")
 TEST_CASE("replace with string object")
 {
   string s("abc");
-  string repl("xyz");
+  const string repl("xyz");
   s.replace(0, 3, repl);
   CHECK(strcmp(s.c_str(), "xyz") == 0);
 }
 
 TEST_CASE("copy to buffer")
 {
-  string s("hello");
+  const string s("hello");
   char buf[10] = {};
-  size_t n = s.copy(buf, 5);
+  const size_t n = s.copy(buf, 5);
   CHECK(n == 5);
   CHECK(memcmp(buf, "hello", 5) == 0);
 }
 
 TEST_CASE("copy partial from pos")
 {
-  string s("hello world");
+  const string s("hello world");
   char buf[10] = {};
-  size_t n = s.copy(buf, 5, 6);
+  const size_t n = s.copy(buf, 5, 6);
   CHECK(n == 5);
   CHECK(memcmp(buf, "world", 5) == 0);
 }
 
 TEST_CASE("copy beyond end")
 {
-  string s("hello");
+  const string s("hello");
   char buf[10] = {};
-  size_t n = s.copy(buf, 10, 100);
+  const size_t n = s.copy(buf, 10, 100);
   CHECK(n == 0);
 }
 
 TEST_CASE("copy exceeding size")
 {
-  string s("hello");
+  const string s("hello");
   char buf[10] = {};
-  size_t n = s.copy(buf, 10, 2);
+  const size_t n = s.copy(buf, 10, 2);
   CHECK(n == 3);
   CHECK(buf[0] == 'l');
   CHECK(buf[1] == 'l');
@@ -1097,8 +1097,8 @@ TEST_CASE("non-member swap heap heap")
 {
   string a("this is a long string on the heap");
   string b("another long heap string here as well");
-  string aOrig(a);
-  string bOrig(b);
+  const string aOrig(a);
+  const string bOrig(b);
   swap(a, b);
   CHECK(strcmp(a.c_str(), bOrig.c_str()) == 0);
   CHECK(strcmp(b.c_str(), aOrig.c_str()) == 0);
@@ -1108,8 +1108,8 @@ TEST_CASE("non-member swap SSO heap")
 {
   string a("hello");
   string b("this is a string on the heap for swapping");
-  string aOrig(a);
-  string bOrig(b);
+  const string aOrig(a);
+  const string bOrig(b);
   swap(a, b);
   CHECK(strcmp(a.c_str(), bOrig.c_str()) == 0);
   CHECK(strcmp(b.c_str(), aOrig.c_str()) == 0);
@@ -1117,34 +1117,34 @@ TEST_CASE("non-member swap SSO heap")
 
 TEST_CASE("starts_with on empty string")
 {
-  string s;
+  const string s;
   CHECK(!s.starts_with('a'));
   CHECK(!s.starts_with(string("a")));
 }
 
 TEST_CASE("ends_with on empty string")
 {
-  string s;
+  const string s;
   CHECK(!s.ends_with('a'));
   CHECK(!s.ends_with(string("a")));
 }
 
 TEST_CASE("starts_with with empty needle")
 {
-  string s("hello");
+  const string s("hello");
   CHECK(s.starts_with(string("")));
 }
 
 TEST_CASE("ends_with with empty needle")
 {
-  string s("hello");
+  const string s("hello");
   CHECK(s.ends_with(string("")));
 }
 
 TEST_CASE("substr with embedded nulls")
 {
   char data[] = "he\0llo!";
-  string s(data, 7);
+  const string s(data, 7);
   string sub = s.substr(2, 2);
   CHECK(sub.size() == 2);
   CHECK(sub[0] == '\0');
@@ -1155,21 +1155,21 @@ TEST_CASE("compare with embedded nulls")
 {
   char data1[] = "he\0llo";
   char data2[] = "he\0xxx";
-  string a(data1, 6);
-  string b(data2, 6);
+  const string a(data1, 6);
+  const string b(data2, 6);
   CHECK(a.compare(b) < 0);
 }
 
 TEST_CASE("find empty string always returns pos")
 {
-  string s("hello");
+  const string s("hello");
   CHECK(s.find(string(""), 2) == 2);
   CHECK(s.find(string(""), 100) == string::npos);
 }
 
 TEST_CASE("find at position beyond size")
 {
-  string s("hello");
+  const string s("hello");
   CHECK(s.find('a', 100) == string::npos);
   CHECK(s.find(string("anything"), 100) == string::npos);
 }
@@ -1233,9 +1233,9 @@ TEST_CASE("insert repeated char heap")
 
 TEST_CASE("copy on empty string")
 {
-  string s;
+  const string s;
   char buf[10] = {0};
-  size_t n = s.copy(buf, 10);
+  const size_t n = s.copy(buf, 10);
   CHECK(n == 0);
 }
 
@@ -1262,8 +1262,8 @@ TEST_CASE("erase with count exceeding size")
 
 TEST_CASE("spaceship equal")
 {
-  string a("hello");
-  string b("hello");
+  const string a("hello");
+  const string b("hello");
   CHECK((a <=> b) == 0);
   CHECK((a <=> b) >= 0);
   CHECK((a <=> b) <= 0);
@@ -1271,39 +1271,39 @@ TEST_CASE("spaceship equal")
 
 TEST_CASE("spaceship less")
 {
-  string a("apple");
-  string b("banana");
+  const string a("apple");
+  const string b("banana");
   CHECK((a <=> b) < 0);
   CHECK(!((a <=> b) > 0));
 }
 
 TEST_CASE("spaceship greater")
 {
-  string a("banana");
-  string b("apple");
+  const string a("banana");
+  const string b("apple");
   CHECK((a <=> b) > 0);
   CHECK(!((a <=> b) < 0));
 }
 
 TEST_CASE("spaceship with prefix")
 {
-  string a("abc");
-  string b("abcdef");
+  const string a("abc");
+  const string b("abcdef");
   CHECK((a <=> b) < 0);
   CHECK((b <=> a) > 0);
 }
 
 TEST_CASE("spaceship equal heap")
 {
-  string a("a long string that lives on the heap for testing");
-  string b("a long string that lives on the heap for testing");
+  const string a("a long string that lives on the heap for testing");
+  const string b("a long string that lives on the heap for testing");
   CHECK((a <=> b) == 0);
 }
 
 TEST_CASE("erase free removes all occurrences")
 {
   string s("hello world");
-  size_t n = erase(s, 'l');
+  const size_t n = erase(s, 'l');
   CHECK(n == 3);
   CHECK(strcmp(s.c_str(), "heo word") == 0);
 }
@@ -1311,7 +1311,7 @@ TEST_CASE("erase free removes all occurrences")
 TEST_CASE("erase free no match")
 {
   string s("hello");
-  size_t n = erase(s, 'z');
+  const size_t n = erase(s, 'z');
   CHECK(n == 0);
   CHECK(strcmp(s.c_str(), "hello") == 0);
 }
@@ -1319,7 +1319,7 @@ TEST_CASE("erase free no match")
 TEST_CASE("erase free all removed")
 {
   string s("aaaaa");
-  size_t n = erase(s, 'a');
+  const size_t n = erase(s, 'a');
   CHECK(n == 5);
   CHECK(s.empty());
 }
@@ -1327,7 +1327,7 @@ TEST_CASE("erase free all removed")
 TEST_CASE("erase free empty string")
 {
   string s;
-  size_t n = erase(s, 'a');
+  const size_t n = erase(s, 'a');
   CHECK(n == 0);
   CHECK(s.empty());
 }
@@ -1335,14 +1335,14 @@ TEST_CASE("erase free empty string")
 TEST_CASE("erase_if removes matching chars")
 {
   string s("a1b2c3");
-  size_t n = erase_if(s, [](char c) { return c >= '0' && c <= '9'; });
+  const size_t n = erase_if(s, [](char c) { return c >= '0' && c <= '9'; });
   CHECK(n == 3);
   CHECK(strcmp(s.c_str(), "abc") == 0);
 }
 
 TEST_CASE("find 3-arg finds counted substring")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find("wo", 0, 2) == 6);
   CHECK(s.find("wor", 0, 3) == 6);
   CHECK(s.find("world", 0, 5) == 6);
@@ -1350,32 +1350,32 @@ TEST_CASE("find 3-arg finds counted substring")
 
 TEST_CASE("find 3-arg not found")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find("xyz", 0, 3) == string::npos);
 }
 
 TEST_CASE("find 3-arg with embedded null")
 {
   const char needle[] = "he\0llo";
-  string haystack("he\0llo world", 12);
+  const string haystack("he\0llo world", 12);
   CHECK(haystack.find(needle, 0, 6) == 0);
 }
 
 TEST_CASE("find 3-arg with pos beyond size")
 {
-  string s("hello");
+  const string s("hello");
   CHECK(s.find("lo", 100, 2) == string::npos);
 }
 
 TEST_CASE("find 3-arg zero count")
 {
-  string s("hello");
+  const string s("hello");
   CHECK(s.find("anything", 2, 0) == 2);
 }
 
 TEST_CASE("rfind 3-arg")
 {
-  string s("hello world world");
+  const string s("hello world world");
   CHECK(s.rfind("world", 17, 5) == 12);
   CHECK(s.rfind("world", 11, 5) == 6);
   CHECK(s.rfind("xyz", 17, 3) == string::npos);
@@ -1383,14 +1383,14 @@ TEST_CASE("rfind 3-arg")
 
 TEST_CASE("find_first_of 3-arg")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find_first_of("xyzwo", 0, 5) == 4);
   CHECK(s.find_first_of("xyz", 0, 3) == string::npos);
 }
 
 TEST_CASE("find_last_of 3-arg")
 {
-  string s("hello world");
+  const string s("hello world");
   CHECK(s.find_last_of("lo", 17, 2) == 9);
   CHECK(s.find_last_of("xz", 17, 2) == string::npos);
 }

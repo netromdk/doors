@@ -8,7 +8,7 @@ TEST_CASE_FIXTURE(HeapFixture, "free merges with preceding free block")
   // The two adjacent free blocks should merge into one via backwards coalescing.
   void *const a = Heap::alloc(16);
   void *const b = Heap::alloc(16);
-  void *const c = Heap::alloc(16);
+  const void *const c = Heap::alloc(16);
   REQUIRE(a != nullptr);
   REQUIRE(b != nullptr);
   REQUIRE(c != nullptr);
@@ -30,7 +30,7 @@ TEST_CASE_FIXTURE(HeapFixture, "free merges with preceding free block")
   //   36 > Heap::MIN_BLOCK -> fails.
   // - With coalescing: a+b merged = 2 * Heap::MIN_BLOCK bytes.
   //   36 < 2 * Heap::MIN_BLOCK -> succeeds.
-  void *const d = Heap::alloc(17);
+  const void *const d = Heap::alloc(17);
   CHECK(d != nullptr);
 }
 

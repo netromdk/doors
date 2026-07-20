@@ -6,7 +6,7 @@ TEST_CASE("strtol")
   CHECK(strtol("123", nullptr, 10) == 123);
 
   const char *buf = "hello 123 there";
-  char *ptr = nullptr;
+  char *ptr = nullptr; // NOLINT(misc-const-correctness): &ptr passed as char ** to strtol
   CHECK(strtol(buf + 6, &ptr, 10) == 123);
 
   // 'ptr' must point to right after the number found.
