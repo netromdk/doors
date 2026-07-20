@@ -6,7 +6,8 @@
 
 class SnakeGame {
 public:
-  enum class Dir { Up, Down, Left, Right };
+  enum class Dir : uint8_t { Up, Down, Left, Right };
+
   struct Pos {
     int row, col;
   };
