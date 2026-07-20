@@ -344,7 +344,7 @@ void SnakeGame::drawGameOver() const
   const int scoreRow = CENTER_ROW + 1;
   constexpr uint8_t COLOR_SCORE = 0x0F; // white on black
   char buf[64];
-  int len = snprintf(buf, sizeof(buf), "Score: %d  Best: %d", score_, highScore_);
+  const int len = snprintf(buf, sizeof(buf), "Score: %d  Best: %d", score_, highScore_);
   int c = (TOTAL_COLS - len) / 2;
   drawStr(scoreRow, c, buf, COLOR_SCORE);
 
@@ -590,7 +590,7 @@ void SnakeGame::placeFood()
         break;
       }
     }
-    bool onObstacle =
+    const bool onObstacle =
       !onSnake && any_of(obstacles_.begin(), obstacles_.begin() + obstacleCount_,
                          [p](const Pos &o) { return o.row == p.row && o.col == p.col; });
     if (!onSnake && !onObstacle) {
@@ -651,8 +651,8 @@ void SnakeGame::drawStatus() const
 
   if (started_) {
     const char *modeStr = wrapMode_ ? "Wrap" : "Classic";
-    int modeLen = static_cast<int>(strlen(modeStr));
-    int modeCol = RIGHT_WALL - modeLen;
+    const int modeLen = static_cast<int>(strlen(modeStr));
+    const int modeCol = RIGHT_WALL - modeLen;
     for (int i = 0; i < modeLen; ++i) {
       Screen::put(STATUS_ROW, modeCol + i, modeStr[i], COLOR_MODE);
     }
@@ -662,7 +662,7 @@ void SnakeGame::drawStatus() const
 
   // Show score.
   char scoreBuf[32];
-  int scoreLen = snprintf(scoreBuf, sizeof(scoreBuf), "Score: %d", score_);
+  const int scoreLen = snprintf(scoreBuf, sizeof(scoreBuf), "Score: %d", score_);
   int pos = 1;
   for (int i = 0; i < scoreLen && pos < RIGHT_WALL; ++i) {
     Screen::put(STATUS_ROW, pos++, scoreBuf[i], scoreColor);

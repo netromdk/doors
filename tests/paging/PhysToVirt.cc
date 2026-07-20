@@ -20,7 +20,7 @@ TEST_CASE("physToVirt and virtToPhys are inverses")
   void *const phys = reinterpret_cast<void *>(0x123456);
   CHECK(virtToPhys(physToVirt(phys)) == phys);
 
-  void *const virt = reinterpret_cast<void *>(0xC789ABC);
+  const void *const virt = reinterpret_cast<const void *>(0xC789ABC);
   CHECK(physToVirt(virtToPhys(virt)) == virt);
 }
 

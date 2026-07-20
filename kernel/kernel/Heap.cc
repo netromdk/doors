@@ -12,7 +12,7 @@ constexpr uint32_t HEAP_MAGIC = 0x48455041; // "HEAP"
 
 size_t alignUp(size_t n, size_t a)
 {
-  size_t mask = a - 1;
+  const size_t mask = a - 1;
   if (n > static_cast<size_t>(-1) - mask) {
     return static_cast<size_t>(-1);
   }
@@ -86,7 +86,7 @@ void Heap::removeFromFreeList(FreeNode *target, FreeNode *prev)
 
 void Heap::coalesce(FreeNode *node)
 {
-  size_t nextAddr = reinterpret_cast<size_t>(node) + node->header.size;
+  const size_t nextAddr = reinterpret_cast<size_t>(node) + node->header.size;
   if (nextAddr >= heapEnd_) {
     return;
   }
@@ -117,10 +117,10 @@ void *Heap::alloc(size_t size)
     return nullptr;
   }
 
-  InterruptGuard guard;
+  const InterruptGuard guard;
 
   // Total size needed: header + usable space, rounded up.
-  size_t alignedSize = alignUp(size, 4);
+  const size_t alignedSize = alignUp(size, 4);
   if (alignedSize == static_cast<size_t>(-1) ||
       alignedSize > static_cast<size_t>(-1) - sizeof(Header)) {
     return nullptr;
@@ -132,13 +132,13 @@ void *Heap::alloc(size_t size)
   needed = alignUp(needed, Heap::BLOCK_ALIGN);
 
   // Best-fit search.
-  FreeNode *best = nullptr;
+  const FreeNode *best = nullptr;
   FreeNode *bestPrev = nullptr;
   FreeNode *prev = nullptr;
   FreeNode *curr = freeList_;
 
   while (curr != nullptr) {
-    size_t freeSz = rawSize(curr->header.size);
+    const size_t freeSz = rawSize(curr->header.size);
     if (freeSz >= needed) {
       if (best == nullptr || freeSz < rawSize(best->header.size)) {
         best = curr;
@@ -156,10 +156,10 @@ void *Heap::alloc(size_t size)
     return nullptr;
   }
 
-  size_t freeSz = rawSize(best->header.size);
-  size_t residual = freeSz - needed;
+  const size_t freeSz = rawSize(best->header.size);
+  const size_t residual = freeSz - needed;
 
-  size_t blockAddr = reinterpret_cast<size_t>(best);
+  const size_t blockAddr = reinterpret_cast<size_t>(best);
 
   if (residual >= Heap::MIN_BLOCK) {
     // Split: allocate `needed` bytes, leave `residual` free.
@@ -203,7 +203,7 @@ void Heap::free(void *ptr)
     return;
   }
 
-  InterruptGuard guard;
+  const InterruptGuard guard;
 
   auto *hdr =
     reinterpret_cast<Header *>(reinterpret_cast<size_t>(ptr) - // NOLINT(performance-no-int-to-ptr)
@@ -251,7 +251,7 @@ size_t Heap::largestFreeBlock()
 {
   size_t largest = 0;
   for (auto *c = freeList_; c != nullptr; c = c->next) {
-    size_t sz = rawSize(c->header.size);
+    const size_t sz = rawSize(c->header.size);
     if (sz > largest) {
       largest = sz;
     }

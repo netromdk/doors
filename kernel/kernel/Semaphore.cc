@@ -8,7 +8,7 @@
 
 void Semaphore::wait()
 {
-  InterruptGuard guard;
+  const InterruptGuard guard;
 
   // Non-zero count: decrement and return.
   if (volatileLoad(count_) > 0) {
@@ -49,7 +49,7 @@ void Semaphore::wait()
 
 void Semaphore::signal()
 {
-  InterruptGuard guard;
+  const InterruptGuard guard;
 
   if (waitCount_ > 0) {
     // Wake the longest-waiting task. Take the first and shift the rest to one the left, such that

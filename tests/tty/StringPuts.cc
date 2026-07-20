@@ -63,7 +63,7 @@ TEST_CASE_FIXTURE(TtyFixture, "putLine_fills_entire_row")
   Tty::setColor(vgaColor(COLOR_WHITE, COLOR_RED));
   Tty::putLine(string("ab"), 2);
 
-  uint8_t attr = vgaColor(COLOR_WHITE, COLOR_RED);
+  const uint8_t attr = vgaColor(COLOR_WHITE, COLOR_RED);
   CHECK(VGA_RAM[2 * VGA_WIDTH + 0] == vgaEntry('a', attr));
   CHECK(VGA_RAM[2 * VGA_WIDTH + 1] == vgaEntry('b', attr));
   for (size_t col = 2; col < VGA_WIDTH; ++col) {

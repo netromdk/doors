@@ -4,14 +4,14 @@
 
 TEST_CASE("optional default empty")
 {
-  optional<int> o;
+  const optional<int> o;
   CHECK(!o.has_value());
   CHECK(!o);
 }
 
 TEST_CASE("optional nullopt empty")
 {
-  optional<int> o{nullopt};
+  const optional<int> o{nullopt};
   CHECK(!o.has_value());
 }
 
@@ -32,7 +32,7 @@ TEST_CASE("optional value access")
 
 TEST_CASE("optional copy construct")
 {
-  optional<int> a{42};
+  const optional<int> a{42};
   optional<int> b{a}; // NOLINT(performance-unnecessary-copy-initialization)
   CHECK(*b == 42);
 }
@@ -72,7 +72,7 @@ TEST_CASE("optional assign value")
 TEST_CASE("optional assign optional")
 {
   optional<int> a{10};
-  optional<int> b{20};
+  const optional<int> b{20};
   a = b;
   CHECK(*a == 20);
 }
@@ -87,13 +87,13 @@ TEST_CASE("optional reset")
 
 TEST_CASE("optional value or")
 {
-  optional<int> o{};
+  const optional<int> o{};
   CHECK(o.value_or(5) == 5);
 }
 
 TEST_CASE("optional value or with value")
 {
-  optional<int> o{10};
+  const optional<int> o{10};
   CHECK(o.value_or(5) == 10);
 }
 
@@ -112,28 +112,28 @@ TEST_CASE("optional value with value")
 
 TEST_CASE("optional equality same value")
 {
-  optional<int> a{42};
+  const optional<int> a{42};
   optional<int> b{42};
   CHECK(a == b);
 }
 
 TEST_CASE("optional equality different value")
 {
-  optional<int> a{42};
+  const optional<int> a{42};
   optional<int> b{7};
   CHECK(a != b);
 }
 
 TEST_CASE("optional equality empty vs empty")
 {
-  optional<int> a{};
+  const optional<int> a{};
   optional<int> b{};
   CHECK(a == b);
 }
 
 TEST_CASE("optional equality empty vs value")
 {
-  optional<int> a{};
+  const optional<int> a{};
   optional<int> b{42};
   CHECK(a != b);
 }
@@ -189,7 +189,7 @@ TEST_CASE("optional with class")
 
 TEST_CASE("optional default constructed destructor")
 {
-  optional<int> o;
+  const optional<int> o;
   // Should not crash.
 }
 
@@ -227,22 +227,22 @@ TEST_CASE("optional multiple emplace cycles")
 
 TEST_CASE("optional copy construct from empty")
 {
-  optional<int> a;
-  optional<int> b{a}; // NOLINT(performance-unnecessary-copy-initialization)
+  const optional<int> a;
+  const optional<int> b{a}; // NOLINT(performance-unnecessary-copy-initialization)
   CHECK(!b);
 }
 
 TEST_CASE("optional move construct from empty")
 {
   optional<int> a;
-  optional<int> b{static_cast<optional<int> &&>(a)};
+  const optional<int> b{static_cast<optional<int> &&>(a)};
   CHECK(!b);
 }
 
 TEST_CASE("optional copy assign from empty")
 {
   optional<int> a{42};
-  optional<int> b;
+  const optional<int> b;
   a = b;
   CHECK(!a);
 }
@@ -265,7 +265,7 @@ TEST_CASE("optional assign value on filled")
 TEST_CASE("optional assign optional empty to filled")
 {
   optional<int> a{42};
-  optional<int> b;
+  const optional<int> b;
   a = b;
   CHECK(!a);
 }
@@ -273,7 +273,7 @@ TEST_CASE("optional assign optional empty to filled")
 TEST_CASE("optional assign optional filled to empty")
 {
   optional<int> a;
-  optional<int> b{42};
+  const optional<int> b{42};
   a = b;
   CHECK(*a == 42);
 }
@@ -293,13 +293,13 @@ TEST_CASE("optional const dereference")
 
 TEST_CASE("optional value or different type")
 {
-  optional<int> o;
+  const optional<int> o;
   CHECK(o.value_or(5L) == 5L);
 }
 
 TEST_CASE("optional value or with value different type")
 {
-  optional<int> o{10};
+  const optional<int> o{10};
   CHECK(o.value_or(5L) == 10L);
 }
 

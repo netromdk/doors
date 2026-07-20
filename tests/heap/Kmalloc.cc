@@ -44,15 +44,15 @@ TEST_CASE_FIXTURE(HeapFixture, "kmalloc multi alloc no overlap")
 
 TEST_CASE_FIXTURE(HeapFixture, "kmalloc zero size")
 {
-  void *const p = Heap::alloc(0);
+  const void *const p = Heap::alloc(0);
   CHECK(p == nullptr);
 }
 
 TEST_CASE_FIXTURE(HeapFixture, "kmalloc max size")
 {
-  size_t freeMem = Heap::freeMem();
+  const size_t freeMem = Heap::freeMem();
   REQUIRE(freeMem > Heap::MIN_BLOCK);
 
-  void *const p = Heap::alloc(freeMem - Heap::MIN_BLOCK);
+  const void *const p = Heap::alloc(freeMem - Heap::MIN_BLOCK);
   CHECK(p != nullptr);
 }

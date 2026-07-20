@@ -42,7 +42,7 @@ TEST_CASE("span_iteration")
 TEST_CASE("span_begin_end")
 {
   int arr[3] = {10, 20, 30};
-  span<int> s(arr, 3);
+  const span<int> s(arr, 3);
   CHECK(*s.begin() == 10);
   CHECK(*(s.end() - 1) == 30);
 }
@@ -58,7 +58,7 @@ TEST_CASE("span_const")
 TEST_CASE("span_write_through_pointer")
 {
   int val = 42;
-  span<int> s(&val, 1);
+  const span<int> s(&val, 1);
   s[0] = 99;
   CHECK(s[0] == 99);
 }
@@ -72,7 +72,7 @@ TEST_CASE("span_empty_from_default")
 TEST_CASE("span_string")
 {
   string arr[2] = {"hello", "world"};
-  span<string> s(arr, 2);
+  const span<string> s(arr, 2);
   CHECK(s[0] == "hello");
   CHECK(s[1] == "world");
 }

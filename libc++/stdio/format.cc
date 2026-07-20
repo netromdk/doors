@@ -51,7 +51,7 @@ void formatRaw(SnprintfBuf &buf, const void *value, char)
   const unsigned long addr = reinterpret_cast<unsigned long>(value);
   char tmp[65];
   ltos(addr, tmp, 16, false);
-  for (char *p = tmp; *p; p++) {
+  for (char *p = tmp; *p; p++) { // NOLINT(misc-const-correctness)
     buf.put(*p);
   }
 }

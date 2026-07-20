@@ -19,7 +19,7 @@
 
 optional<int> Scheduler::addTaskAndBlock(string_view name, void (*entry)(), uint32_t pageDir)
 {
-  InterruptGuard guard;
+  const InterruptGuard guard;
 
   // non-const for implicit move on return!
   auto id = addTaskImpl(name, entry, pageDir);
@@ -631,7 +631,7 @@ void Scheduler::handleNm()
   // Disable interrupts so the current task's state transition to DEAD and the CR3 switch in
   // `switchTo()` are not interrupted. This function never returns, so the InterruptGuard destructor
   // is never called.
-  InterruptGuard guard;
+  const InterruptGuard guard;
 
   // Send EOI before direct context switch. When called from `deliverPendingSignals()` inside the
   // tick ISR, the normal path through `intTick()` (which calls `sendEoi()`) is bypassed. Without

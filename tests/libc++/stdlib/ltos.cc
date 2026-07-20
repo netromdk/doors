@@ -5,7 +5,7 @@
 TEST_CASE("ltos")
 {
   char str[64]{};
-  uint64_t num = 100000000000ULL;
+  const uint64_t num = 100000000000ULL;
 
   // Decimal.
   ltos(num, str);

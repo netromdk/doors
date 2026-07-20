@@ -183,7 +183,7 @@ TEST_CASE_FIXTURE(TtyFixture, "scrollback_status_indicator")
 
   // Row 0 should contain the status indicator.
   uint16_t entry = VGA_RAM[0 * VGA_WIDTH + 0];
-  char first = static_cast<char>(entry & 0xFF);
+  const char first = static_cast<char>(entry & 0xFF);
   CHECK(first == '-');
   entry = VGA_RAM[0 * VGA_WIDTH + 1];
   CHECK(static_cast<char>(entry & 0xFF) == '-');

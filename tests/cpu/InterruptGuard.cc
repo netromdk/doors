@@ -50,7 +50,7 @@ TEST_CASE_FIXTURE(CpuFixture, "Cpu::setEflags restores previously saved eflags")
 TEST_CASE_FIXTURE(CpuFixture, "InterruptGuard disables interrupts on construction")
 {
   {
-    InterruptGuard guard;
+    const InterruptGuard guard;
     (void) guard;
     CHECK_FALSE(Cpu::interruptsEnabled());
     CHECK(cpuTestDisableCount() == 1);
@@ -62,7 +62,7 @@ TEST_CASE_FIXTURE(CpuFixture, "InterruptGuard restores interrupts on destruction
   CHECK(Cpu::interruptsEnabled());
 
   {
-    InterruptGuard guard;
+    const InterruptGuard guard;
     (void) guard;
     CHECK_FALSE(Cpu::interruptsEnabled());
   }
@@ -75,7 +75,7 @@ TEST_CASE_FIXTURE(CpuFixture, "InterruptGuard preserves EFLAGS across scope")
   const uint32_t eflagsBefore = Cpu::getEflags();
 
   {
-    InterruptGuard guard;
+    const InterruptGuard guard;
     (void) guard;
   }
 
@@ -85,11 +85,11 @@ TEST_CASE_FIXTURE(CpuFixture, "InterruptGuard preserves EFLAGS across scope")
 TEST_CASE_FIXTURE(CpuFixture, "InterruptGuard nesting works")
 {
   {
-    InterruptGuard outer;
+    const InterruptGuard outer;
     CHECK_FALSE(Cpu::interruptsEnabled());
 
     {
-      InterruptGuard inner;
+      const InterruptGuard inner;
       CHECK_FALSE(Cpu::interruptsEnabled());
     }
 
@@ -110,7 +110,7 @@ TEST_CASE_FIXTURE(CpuFixture, "InterruptGuard with interrupts initially disabled
   CHECK_FALSE(Cpu::interruptsEnabled());
 
   {
-    InterruptGuard guard;
+    const InterruptGuard guard;
     (void) guard;
     CHECK_FALSE(Cpu::interruptsEnabled());
   }

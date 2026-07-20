@@ -153,7 +153,7 @@ void dumpCpuState(const CpuState *state)
 
 #ifdef __IS_DOORS_KERNEL
   // Show HAL's eye at the top-right corner.
-  static const char *hal[] = {
+  static const char *const hal[] = {
     "     .---.",
     "   /       \\",
     "  |  .---.  |",
@@ -164,7 +164,7 @@ void dumpCpuState(const CpuState *state)
     "   \\       /",
     "     '---'",
   };
-  uint8_t grey = vgaColor(COLOR_DARK_GREY, COLOR_BLACK);
+  const uint8_t grey = vgaColor(COLOR_DARK_GREY, COLOR_BLACK);
   Tty::lock();
   for (int i = 0; i < 9; i++) {
     for (int j = 0; hal[i][j]; j++) {
@@ -173,11 +173,11 @@ void dumpCpuState(const CpuState *state)
   }
 
   // Make the eye red.
-  uint8_t red = vgaColor(COLOR_RED, COLOR_BLACK);
+  const uint8_t red = vgaColor(COLOR_RED, COLOR_BLACK);
   VGA_RAM[5 * VGA_WIDTH + 74] = vgaEntry('O', red);
 
   // KERNEL PANIC banner on top row.
-  uint8_t whiteOnRed = vgaColor(COLOR_WHITE, COLOR_RED);
+  const uint8_t whiteOnRed = vgaColor(COLOR_WHITE, COLOR_RED);
   size_t j = 0;
   const char *banner = " KERNEL PANIC!";
   for (; banner[j]; j++) {

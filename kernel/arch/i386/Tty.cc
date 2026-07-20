@@ -292,7 +292,7 @@ int Tty::scrollbackSize()
 const char *Tty::scrollbackLine(int n)
 {
   if (n < 0 || n >= scrollbackCount_) return nullptr;
-  int idx = (scrollbackHead_ - 1 - n + SCROLLBACK_LINES) % SCROLLBACK_LINES;
+  const int idx = (scrollbackHead_ - 1 - n + SCROLLBACK_LINES) % SCROLLBACK_LINES;
   return scrollbackBuf_[idx].data();
 }
 
@@ -345,16 +345,16 @@ void Tty::scrollbackShow(int offset)
 
   // Display scrollback content on rows 1 to Tty::ROWS-1.
   for (size_t row = 1; row < Tty::ROWS; row++) {
-    int lineFromEnd = top - static_cast<int>(row - 1);
+    const int lineFromEnd = top - static_cast<int>(row - 1);
 
     if (lineFromEnd > scrollbackCount_ || lineFromEnd < bottom) {
       fill_n(&VGA_RAM[row * VGA_WIDTH], VGA_WIDTH, vgaEntry(' ', Tty::DEFAULT_COLOR));
     }
     else {
-      int actualIdx = (scrollbackHead_ - lineFromEnd + SCROLLBACK_LINES) % SCROLLBACK_LINES;
+      const int actualIdx = (scrollbackHead_ - lineFromEnd + SCROLLBACK_LINES) % SCROLLBACK_LINES;
       const char *line = scrollbackBuf_[actualIdx].data();
       for (size_t col = 0; col < VGA_WIDTH; col++) {
-        char ch = line[col] != '\0' ? line[col] : ' ';
+        const char ch = line[col] != '\0' ? line[col] : ' ';
         VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(ch, Tty::DEFAULT_COLOR);
       }
     }
@@ -412,7 +412,7 @@ int Tty::scrollbackOffset()
 void Tty::scrollbackLineUp()
 {
   if (!scrollbackActive_) return;
-  int offset = scrollbackOffset_ + 1;
+  const int offset = scrollbackOffset_ + 1;
   if (offset > scrollbackCount_) {
     return;
   }
@@ -422,7 +422,7 @@ void Tty::scrollbackLineUp()
 void Tty::scrollbackLineDown()
 {
   if (!scrollbackActive_) return;
-  int offset = scrollbackOffset_ - 1;
+  const int offset = scrollbackOffset_ - 1;
   if (offset <= 0) {
     scrollbackExit();
     return;
@@ -433,7 +433,7 @@ void Tty::scrollbackLineDown()
 void Tty::scrollbackPageDown()
 {
   if (!scrollbackActive_) return;
-  int offset = scrollbackOffset_ - SCROLLBACK_VIEW_HEIGHT;
+  const int offset = scrollbackOffset_ - SCROLLBACK_VIEW_HEIGHT;
   if (offset <= 0) {
     scrollbackExit();
     return;

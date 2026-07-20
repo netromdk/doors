@@ -6,7 +6,7 @@ TEST_CASE("strtoull")
   CHECK(strtoull("123", nullptr, 10) == 123ULL);
 
   const char *buf = "hello 123 there";
-  char *ptr = nullptr;
+  char *ptr = nullptr; // NOLINT(misc-const-correctness): &ptr passed as char ** to strtoull
   CHECK(strtoull(buf + 6, &ptr, 10) == 123ULL);
   CHECK(ptr == buf + 9);
 

@@ -4,7 +4,7 @@
 
 TEST_CASE("memmove")
 {
-  uint8_t val = 42;
+  const uint8_t val = 42;
   const uint8_t buf[3] = {val, val, val};
   uint8_t buf2[3] = {0};
   auto *res = memmove(buf2, buf, 3);

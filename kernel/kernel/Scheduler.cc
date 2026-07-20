@@ -79,7 +79,7 @@ optional<int> Scheduler::addTask(string_view name, void (*entry)(), uint32_t pag
 {
   // Disable interrupts while modifying the shared task table so the timer ISR, which calls
   // `tick()`, does not see a partially-initialized slot.
-  InterruptGuard guard;
+  const InterruptGuard guard;
   return addTaskImpl(name, entry, pageDir, priority);
 }
 
@@ -293,7 +293,7 @@ uint32_t Scheduler::switchTo(int next)
   // directory. Disable interrupts during CR3 load to prevent being interrupted mid-switch with a
   // half-configured address space.
   {
-    InterruptGuard guard;
+    const InterruptGuard guard;
     const auto pd = tasks_[currentIdx_].pageDir;
     Cpu::writeCr3(pd != 0 ? pd : Paging::kernelPageDirPhys());
 
