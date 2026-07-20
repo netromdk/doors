@@ -32,7 +32,7 @@ span<const Command> getCmdTable()
 
 int dispatch(const span<string_view> &args)
 {
-  if (args.size() == 0 || args[0].empty()) {
+  if (args.empty() || args[0].empty()) {
     return 0;
   }
 
