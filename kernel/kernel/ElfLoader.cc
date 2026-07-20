@@ -3,12 +3,15 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <optional>
 
 #include <kernel/Elf32.h>
 #include <kernel/ElfLoader.h>
-#include <kernel/Pmm.h>
 
+#ifdef __IS_DOORS_KERNEL
+#include <kernel/Pmm.h>
 #include <arch/i386/Paging.h>
+#endif
 
 bool ElfLoader::validate(const void *elf, size_t size)
 {

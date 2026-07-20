@@ -1,8 +1,11 @@
-#include "SchedulerFixture.h"
+#include <cstdint>
 #include <cstring>
-#include <doctest/doctest.h>
+
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
+
+#include "SchedulerFixture.h"
+#include <doctest/doctest.h>
 
 TEST_CASE_FIXTURE(SchedulerFixture, "fpuValid starts false for new tasks")
 {

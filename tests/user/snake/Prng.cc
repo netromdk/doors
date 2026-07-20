@@ -2,6 +2,7 @@
 #include <doctest/doctest.h>
 
 #include "TestLcg.h"
+#include "Game.h"
 
 TEST_CASE_FIXTURE(SnakeFixture, "lcg: known seed produces known first value")
 {

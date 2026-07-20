@@ -1,3 +1,7 @@
+#include <cstddef>
+
+#include <kernel/Heap.h>
+
 #include "HeapFixture.h"
 #include <doctest/doctest.h>
 

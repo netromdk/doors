@@ -1,10 +1,11 @@
-#include <cstddef>
-
-#include <doctest/doctest.h>
+#include <cstdint>
+#include <sys/syscall.h>
 
 #include <arch/i386/Paging.h>
 #include <kernel/Kbd.h>
 #include <kernel/Syscall.h>
+
+#include <doctest/doctest.h>
 
 struct SyscallReadFixture {
   SyscallReadFixture()

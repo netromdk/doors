@@ -1,6 +1,8 @@
 #include <algorithm>
+#include <cstdint>
 
 #include <arch/i386/Pic.h>
+
 #include <kernel/InterruptGuard.h>
 #include <kernel/Io.h>
 #include <kernel/Pit.h>

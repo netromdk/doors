@@ -1,4 +1,9 @@
+#include <cstddef>
+#include <cstdint>
 #include <string>
+
+#include <kernel/Tty.h>
+#include <kernel/Vga.h>
 
 #include "TtyFixture.h"
 

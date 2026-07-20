@@ -1,6 +1,8 @@
-#include <doctest/doctest.h>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
+
+#include <doctest/doctest.h>
 
 TEST_CASE("itos")
 {

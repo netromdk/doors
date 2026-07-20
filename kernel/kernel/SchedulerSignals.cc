@@ -1,11 +1,10 @@
 #include <cstdint>
-#include <cstring>
 
-#include <kernel/Pmm.h>
 #include <kernel/Scheduler.h>
 
 #ifdef __IS_DOORS_KERNEL
 #include <arch/i386/Paging.h>
+#include <kernel/Task.h>
 #endif
 
 #ifdef __IS_DOORS_KERNEL

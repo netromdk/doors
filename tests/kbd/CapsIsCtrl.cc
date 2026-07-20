@@ -1,6 +1,10 @@
+#include <cstdint>
+
+#include <kernel/Kbd.h>
+#include <kernel/Scancodes.h>
+
 #include "KbdFixture.h"
 #include <doctest/doctest.h>
-#include <kernel/Scancodes.h>
 
 namespace {
 

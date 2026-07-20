@@ -1,7 +1,10 @@
-#include "PagingTestAccess.h"
+#include <cstdint>
+
 #include <arch/i386/Paging.h>
-#include <doctest/doctest.h>
 #include <kernel/Pmm.h>
+
+#include "PagingTestAccess.h"
+#include <doctest/doctest.h>
 
 struct PagingFixture {
   alignas(4096) uint32_t kernelPd[1024] = {};

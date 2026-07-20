@@ -1,3 +1,7 @@
+#include <cstddef>
+
+#include <kernel/Kbd.h>
+
 #include "KbdFixture.h"
 #include <doctest/doctest.h>
 

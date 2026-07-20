@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include "Input.h"
 #include "Screen.h"
 

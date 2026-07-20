@@ -1,9 +1,10 @@
 #include <cstdint>
 #include <cstdio>
+
 #include <kernel/Backtrace.h>
-#include <kernel/Symbols.h>
 #ifdef __IS_DOORS_KERNEL
 #include <kernel/Scheduler.h>
+#include <kernel/Symbols.h>
 #endif
 
 void dumpBacktrace()

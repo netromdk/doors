@@ -1,9 +1,11 @@
 #include <cassert>
 #include <cstddef>
-#include <cstdint>
 #include <string>
 
 #ifdef __IS_DOORS_KERNEL
+#include <compare>
+#include <cstdlib>
+#include <cstring>
 #include <kernel/Heap.h>
 #else
 extern "C" void *malloc(size_t size);

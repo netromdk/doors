@@ -1,9 +1,12 @@
-#include "SchedulerFixture.h"
-#include "SchedulerTestAccess.h"
-#include <doctest/doctest.h>
+#include <cstdint>
+
 #include <kernel/Pit.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
+
+#include "SchedulerFixture.h"
+#include "SchedulerTestAccess.h"
+#include <doctest/doctest.h>
 
 TEST_CASE_FIXTURE(SchedulerFixture, "tickless: quantumStartMs starts at 0")
 {

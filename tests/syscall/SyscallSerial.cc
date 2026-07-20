@@ -1,8 +1,10 @@
-#include "doctest/doctest.h"
+#include <cstdint>
+#include <sys/syscall.h>
 
 #include <arch/i386/Paging.h>
 #include <kernel/Syscall.h>
-#include <sys/syscall.h>
+
+#include "doctest/doctest.h"
 
 TEST_CASE("SYS_SERIAL rejects null address")
 {

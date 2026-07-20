@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <cstdint>
+
 #include <kernel/Keymap.h>
 #include <kernel/Scancodes.h>
 

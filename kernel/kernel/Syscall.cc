@@ -4,7 +4,6 @@
 
 #include <arch/i386/Paging.h>
 #include <kernel/Acpi.h>
-#include <kernel/Cpu.h>
 #include <kernel/Io.h>
 #include <kernel/Kbd.h>
 #include <kernel/Scheduler.h>
@@ -20,6 +19,7 @@
 #include <kernel/Pit.h>
 #include <kernel/Pmm.h>
 #include <kernel/Vga.h>
+#include <sys/syscall.h>
 #endif
 
 namespace {

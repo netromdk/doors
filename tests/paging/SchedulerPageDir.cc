@@ -1,13 +1,12 @@
-#include <doctest/doctest.h>
-
-#include <kernel/Heap.h>
-#include <kernel/Scheduler.h>
-#include <kernel/Task.h>
+#include <cstdint>
 
 #include <arch/i386/Paging.h>
+#include <kernel/Heap.h>
+#include <kernel/Scheduler.h>
 
 #include "PmmTestHooks.h"
 #include "SchedulerTestAccess.h"
+#include <doctest/doctest.h>
 
 struct SchedulerPagingFixture {
   alignas(16) static inline uint8_t pool[262144];

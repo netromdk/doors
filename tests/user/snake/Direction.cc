@@ -1,6 +1,8 @@
 #include "SnakeFixture.h"
 #include <doctest/doctest.h>
 
+#include "Game.h"
+
 using Dir = SnakeGame::Dir;
 
 TEST_CASE_FIXTURE(SnakeFixture, "isOpposite: Up/Down are opposite")

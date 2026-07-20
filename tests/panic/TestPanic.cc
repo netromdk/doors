@@ -1,4 +1,3 @@
-#include <cstdint>
 #include <doctest/doctest.h>
 #include <kernel/Backtrace.h>
 #include <kernel/Panic.h>

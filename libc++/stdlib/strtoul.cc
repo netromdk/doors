@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <cstdint>
 
 uint32_t strtoul(const char *str, char **endptr, int base)
 {

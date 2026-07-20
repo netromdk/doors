@@ -1,8 +1,10 @@
+#include <cstdint>
+
 #include "SnakeFixture.h"
-#include <cstdio>
 #include <doctest/doctest.h>
 
 #include "TestLcg.h"
+#include "Game.h"
 
 // Navigate from (curRow, curCol) to (targetRow, targetCol), changing direction and stepping.
 // Returns the number of steps taken.

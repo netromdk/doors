@@ -7,14 +7,17 @@
 #include <kernel/Heap.h>
 #include <kernel/InterruptGuard.h>
 #include <kernel/Panic.h>
-#include <kernel/Pmm.h>
 #include <kernel/Scheduler.h>
 
 #ifdef __IS_DOORS_KERNEL
 #include <arch/i386/Gdt.h>
 #include <arch/i386/Paging.h>
 #include <arch/i386/Pic.h>
+#include <kernel/Cpu.h>
 #include <kernel/ElfLoader.h>
+#include <kernel/Syscall.h>
+#include <kernel/Task.h>
+#include <string_view>
 #endif
 
 optional<int> Scheduler::addTaskAndBlock(string_view name, void (*entry)(), uint32_t pageDir)

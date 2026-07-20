@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 
 void ltos(uint64_t num, char *str, uint8_t base, bool upcase)

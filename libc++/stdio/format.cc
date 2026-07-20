@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <cstdio>
 
 namespace detail {

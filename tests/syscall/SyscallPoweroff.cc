@@ -1,8 +1,10 @@
-#include "doctest/doctest.h"
+#include <cstdint>
 
 #include <kernel/Acpi.h>
 #include <kernel/Syscall.h>
 #include <sys/syscall.h>
+
+#include "doctest/doctest.h"
 
 // Defined in "tests/stubs.cc".
 extern uint16_t lastOutwPort;

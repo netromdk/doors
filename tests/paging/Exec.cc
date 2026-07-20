@@ -1,17 +1,13 @@
-#include <cstring>
+#include <cstdint>
 
-#include <doctest/doctest.h>
-
-#include <kernel/Elf32.h>
-#include <kernel/ElfLoader.h>
 #include <kernel/Heap.h>
-#include <kernel/Pmm.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
 
 #include <arch/i386/Paging.h>
 
 #include "SchedulerTestAccess.h"
+#include <doctest/doctest.h>
 
 extern volatile uint64_t pitTicks;
 extern "C" uint32_t syscallFrameEsp;

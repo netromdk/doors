@@ -1,5 +1,4 @@
 #include <cstdint>
-#include <cstring>
 
 #include <kernel/Elf32.h>
 #include <kernel/Heap.h>

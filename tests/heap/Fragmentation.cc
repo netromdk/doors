@@ -1,6 +1,8 @@
 #include "HeapFixture.h"
 #include <doctest/doctest.h>
 
+#include <kernel/Heap.h>
+
 TEST_CASE_FIXTURE(HeapFixture, "coalesce adjacent blocks")
 {
   void *const a = Heap::alloc(Heap::MIN_BLOCK);

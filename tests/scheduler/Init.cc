@@ -1,8 +1,10 @@
+#include <cstdint>
+
+#include <kernel/Scheduler.h>
+
 #include "SchedulerFixture.h"
 #include "SchedulerTestAccess.h"
 #include <doctest/doctest.h>
-#include <kernel/Scheduler.h>
-#include <kernel/Task.h>
 
 TEST_CASE_FIXTURE(SchedulerFixture, "init: task 0 is RUNNING, all others DEAD")
 {

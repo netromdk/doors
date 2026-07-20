@@ -1,5 +1,6 @@
+#include <cstddef>
+
 #include "HeapFixture.h"
-#include <cstdint>
 #include <doctest/doctest.h>
 
 TEST_CASE_FIXTURE(HeapFixture, "exhaust heap then alloc fails")

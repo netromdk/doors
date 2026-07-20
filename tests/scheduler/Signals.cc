@@ -1,8 +1,10 @@
-#include <doctest/doctest.h>
+#include <cstdint>
+
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
 
 #include "SchedulerFixture.h"
+#include <doctest/doctest.h>
 
 TEST_CASE_FIXTURE(SchedulerFixture, "Signals: initial state is zero")
 {
