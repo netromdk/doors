@@ -134,14 +134,14 @@ TEST_CASE("assignment from c-string")
 
 TEST_CASE("SSO boundary: SSO_CAPACITY chars fits in SSO")
 {
-  string s("12345678901234567890123");
+  const string s("12345678901234567890123");
   CHECK(s.size() == string::SSO_CAPACITY);
   CHECK(s.capacity() == string::SSO_CAPACITY);
 }
 
 TEST_CASE("SSO boundary: SSO_CAPACITY+1 chars goes to heap")
 {
-  string s("123456789012345678901234");
+  const string s("123456789012345678901234");
   CHECK(s.size() == string::SSO_CAPACITY + 1);
   CHECK(s.capacity() >= string::SSO_CAPACITY + 1);
 }

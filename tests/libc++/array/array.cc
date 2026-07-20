@@ -11,7 +11,7 @@ TEST_CASE("array aggregate init")
 
 TEST_CASE("array value init")
 {
-  array<int, 3> a{};
+  const array<int, 3> a{};
   CHECK(a[0] == 0);
   CHECK(a[1] == 0);
   CHECK(a[2] == 0);
