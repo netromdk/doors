@@ -52,7 +52,8 @@ TEST_CASE_FIXTURE(SnakeFixture, "eating bonus adds BONUS_POINTS")
   auto bonus = g.bonusPos();
 
   // Step moved head from (12, 40) right to (12, 41). Track it.
-  int r = 12, c = 41;
+  int r = 12;
+  int c = 41;
 
   // Navigate vertically to bonus row.
   auto moveVertical = [&](int target) {

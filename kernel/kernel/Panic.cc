@@ -39,7 +39,8 @@ void readCpuState(CpuState *state)
   sp->esi = static_cast<uint32_t>(tmp64[4]);
   sp->edi = static_cast<uint32_t>(tmp64[5]);
 
-  uint64_t rbp_val, rsp_val;
+  uint64_t rbp_val;
+  uint64_t rsp_val;
   __asm__ __volatile__("movq %%rbp, %0\n"
                        "movq %%rsp, %1\n"
                        : "=m"(rbp_val), "=m"(rsp_val));
