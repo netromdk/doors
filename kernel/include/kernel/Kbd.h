@@ -55,7 +55,7 @@ public:
   };
 
   struct KeyEvent {
-    Key key;
+    Key key{};
     char ch{0}; // Set when `key == Key::Char`.
   };
 

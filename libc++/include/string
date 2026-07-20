@@ -213,9 +213,9 @@ public:
   strong_ordering operator<=>(const string &other) const noexcept;
 
 private:
-  char *data_;
-  size_type size_;
-  size_type capacity_;
+  char *data_ = sso_;
+  size_type size_ = 0;
+  size_type capacity_ = SSO_CAPACITY;
   char sso_[SSO_CAPACITY + 1];
 
   constexpr bool isSSO() const noexcept

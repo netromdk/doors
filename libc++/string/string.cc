@@ -72,7 +72,7 @@ void string::setHeap(char *p, size_type n, size_type cap) noexcept
   data_[n] = '\0';
 }
 
-string::string() noexcept : data_(sso_), size_(0), capacity_(SSO_CAPACITY)
+string::string() noexcept
 {
   sso_[0] = '\0';
 }
