@@ -53,11 +53,7 @@ bool ElfLoader::validate(const void *elf, size_t size)
   const auto phoff = static_cast<size_t>(ehdr->e_phoff);
   const auto phnum = static_cast<size_t>(ehdr->e_phnum);
   const auto phentsize = static_cast<size_t>(ehdr->e_phentsize);
-  if (phoff + (phnum * phentsize) > size) {
-    return false;
-  }
-
-  return true;
+  return phoff + (phnum * phentsize) <= size;
 }
 
 uint32_t ElfLoader::entryPoint(const void *elf)
