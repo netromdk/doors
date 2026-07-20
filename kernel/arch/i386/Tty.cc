@@ -89,7 +89,7 @@ void Tty::decCol()
 
 void Tty::cursorUpdate()
 {
-  const uint16_t pos = static_cast<uint16_t>(termRow_ * VGA_WIDTH + termCol_);
+  const auto pos = static_cast<uint16_t>(termRow_ * VGA_WIDTH + termCol_);
 
   Io::outb(0x3D4, 0x0E);
   Io::outb(0x3D5, static_cast<uint8_t>(pos >> 8));

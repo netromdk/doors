@@ -23,7 +23,7 @@ void dumpBacktrace()
     }
 #endif
 
-    const uint32_t pc = (uint32_t) (unsigned long long) frame[1];
+    const auto pc = (uint32_t) (unsigned long long) frame[1];
     printf("  #%d  0x%x", i, pc);
 
 #ifdef __IS_DOORS_KERNEL

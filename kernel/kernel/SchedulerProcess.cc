@@ -98,7 +98,7 @@ bool allocAndMapUserPage(uint32_t vaddr, MappedFrame &out)
     return false;
   }
 
-  const uint32_t phys32 = static_cast<uint32_t>(reinterpret_cast<unsigned long long>(phys));
+  const auto phys32 = static_cast<uint32_t>(reinterpret_cast<unsigned long long>(phys));
   if (!Paging::mapPage(vaddr, phys32, PAGE_PRESENT | PAGE_RW | PAGE_USER)) {
     Pmm::freeFrame(phys);
     return false;
@@ -209,7 +209,7 @@ optional<int> Scheduler::addUserTask(string_view name)
 
   auto *codeDst = static_cast<uint8_t *>(
     physToVirt(reinterpret_cast<void *>(codeFrame.phys))); // NOLINT(performance-no-int-to-ptr)
-  const size_t codeSize = static_cast<size_t>(userTestEnd - userTestStart);
+  const auto codeSize = static_cast<size_t>(userTestEnd - userTestStart);
   memcpy(codeDst, userTestStart, codeSize);
 
   t.esp = initUserStackFrame(static_cast<uint8_t *>(kstack.ptr), USER_BASE,

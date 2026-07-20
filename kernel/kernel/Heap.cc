@@ -159,7 +159,7 @@ void *Heap::alloc(size_t size)
   const size_t freeSz = rawSize(best->header.size);
   const size_t residual = freeSz - needed;
 
-  const size_t blockAddr = reinterpret_cast<size_t>(best);
+  const auto blockAddr = reinterpret_cast<size_t>(best);
 
   if (residual >= Heap::MIN_BLOCK) {
     // Split: allocate `needed` bytes, leave `residual` free.
@@ -220,7 +220,7 @@ void Heap::free(void *ptr)
   auto *node = reinterpret_cast<FreeNode *>(hdr);
 
   // Backwards coalescing: check if a free block ends right before this one.
-  const size_t nodeAddr = reinterpret_cast<size_t>(node);
+  const auto nodeAddr = reinterpret_cast<size_t>(node);
   FreeNode *currBwd = freeList_;
   while (currBwd != nullptr) {
     const size_t currEnd = reinterpret_cast<size_t>(currBwd) + rawSize(currBwd->header.size);

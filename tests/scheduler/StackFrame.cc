@@ -117,7 +117,7 @@ TEST_CASE_FIXTURE(SchedulerFixture, "addTask: task.esp points to correct offset 
 
   // esp must equal `stackBuf + TASK_STACK_SIZE - FRAME_SIZE`. On a host build the full pointer is
   // wider than uint32_t, so compare the truncated-to-32-bit values.
-  const uint32_t expected =
+  const auto expected =
     static_cast<uint32_t>(reinterpret_cast<unsigned long long>(t->stackBuf) +
                           Scheduler::TASK_STACK_SIZE - Scheduler::FRAME_SIZE);
   CHECK(t->esp == expected);

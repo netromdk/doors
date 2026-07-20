@@ -48,7 +48,7 @@ void formatRaw(SnprintfBuf &buf, const void *value, char)
 {
   buf.put('0');
   buf.put('x');
-  const unsigned long addr = reinterpret_cast<unsigned long>(value);
+  const auto addr = reinterpret_cast<unsigned long>(value);
   char tmp[65];
   ltos(addr, tmp, 16, false);
   for (char *p = tmp; *p; p++) { // NOLINT(misc-const-correctness)
