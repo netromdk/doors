@@ -12,12 +12,12 @@
 
 namespace {
 
-static constexpr size_t FRAME_COUNT = 512;
-alignas(4096) static uint8_t framePool[FRAME_COUNT][4096]; // 2 MiB total
-static bool frameUsed[FRAME_COUNT] = {false};
-static size_t freeCount = 0;
-static int allocCount = 0;
-static int freeCountCalls = 0;
+constexpr size_t FRAME_COUNT = 512;
+alignas(4096) uint8_t framePool[FRAME_COUNT][4096]; // 2 MiB total
+bool frameUsed[FRAME_COUNT] = {false};
+size_t freeCount = 0;
+int allocCount = 0;
+int freeCountCalls = 0;
 
 } // namespace
 

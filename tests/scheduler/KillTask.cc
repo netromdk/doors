@@ -5,7 +5,7 @@
 
 namespace {
 
-static int onKillCalls_ = 0;
+int onKillCalls_ = 0;
 
 void incOnKill()
 {
