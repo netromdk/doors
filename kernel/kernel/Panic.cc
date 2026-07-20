@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
 
@@ -6,7 +7,6 @@
 #include <kernel/Panic.h>
 
 #ifdef __IS_DOORS_KERNEL
-#include <algorithm>
 #include <kernel/Tty.h>
 #include <kernel/Vga.h>
 #include <string_view>
