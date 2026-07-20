@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -127,9 +128,7 @@ void *Heap::alloc(size_t size)
     return nullptr;
   }
   size_t needed = sizeof(Header) + alignedSize;
-  if (needed < Heap::MIN_BLOCK) {
-    needed = Heap::MIN_BLOCK;
-  }
+  needed = max(needed, Heap::MIN_BLOCK);
   needed = alignUp(needed, Heap::BLOCK_ALIGN);
 
   // Best-fit search.
@@ -253,9 +252,7 @@ size_t Heap::largestFreeBlock()
   size_t largest = 0;
   for (auto *c = freeList_; c != nullptr; c = c->next) {
     const size_t sz = rawSize(c->header.size);
-    if (sz > largest) {
-      largest = sz;
-    }
+    largest = max(sz, largest);
   }
   return largest;
 }

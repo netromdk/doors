@@ -1,10 +1,10 @@
+#include <algorithm>
 #include <cassert>
-#include <cstddef>
+#include <cstdint>
 #include <string>
 
 #ifdef __IS_DOORS_KERNEL
 #include <compare>
-#include <cstdlib>
 #include <cstring>
 #include <kernel/Heap.h>
 #else
@@ -329,9 +329,7 @@ void string::pop_back() noexcept
 
 string &string::insert(size_type pos, const string &str) noexcept
 {
-  if (pos > size_) {
-    pos = size_;
-  }
+  pos = min(pos, size_);
   reserveFor(size_ + str.size_);
   if (pos < size_) {
     memmove(data_ + pos + str.size_, data_ + pos, size_ - pos);
@@ -349,9 +347,7 @@ string &string::insert(size_type pos, const char *s) noexcept
 
 string &string::insert(size_type pos, size_type count, char ch) noexcept
 {
-  if (pos > size_) {
-    pos = size_;
-  }
+  pos = min(pos, size_);
   reserveFor(size_ + count);
   if (pos < size_) {
     memmove(data_ + pos + count, data_ + pos, size_ - pos);
@@ -447,9 +443,7 @@ string &string::replace(size_type pos, size_type count, const char *s) noexcept
 string &string::replace(size_type pos, size_type count, const char *s, size_type count2) noexcept
 {
   checkNotNull(s);
-  if (pos > size_) {
-    pos = size_;
-  }
+  pos = min(pos, size_);
   if (count == npos || pos + count > size_) {
     count = size_ - pos;
   }
@@ -469,9 +463,7 @@ string::size_type string::copy(char *s, size_type count, size_type pos) const no
   if (pos >= size_) {
     return 0;
   }
-  if (count > size_ - pos) {
-    count = size_ - pos;
-  }
+  count = min(count, size_ - pos);
   memcpy(s, data_ + pos, count);
   return count;
 }
@@ -552,9 +544,7 @@ string::size_type string::rfind(const string &str, size_type pos) const noexcept
   if (str.size_ > size_) {
     return npos;
   }
-  if (pos > size_ - str.size_) {
-    pos = size_ - str.size_;
-  }
+  pos = min(pos, size_ - str.size_);
   size_type i = pos + 1;
   while (i > 0) {
     --i;
@@ -579,9 +569,7 @@ string::size_type string::rfind(const char *s, size_type pos, size_type count) c
   if (count > size_) {
     return npos;
   }
-  if (pos > size_ - count) {
-    pos = size_ - count;
-  }
+  pos = min(pos, size_ - count);
   size_type i = pos + 1;
   while (i > 0) {
     --i;
@@ -922,12 +910,8 @@ strong_ordering string::operator<=>(const string &other) const noexcept
 void string::grow(size_type minCap) noexcept
 {
   size_type newCap = capacity() * 2;
-  if (newCap < minCap) {
-    newCap = minCap;
-  }
-  if (newCap < SSO_CAPACITY + 1) {
-    newCap = SSO_CAPACITY + 1;
-  }
+  newCap = max(newCap, minCap);
+  newCap = max(newCap, static_cast<size_type>(SSO_CAPACITY + 1));
   char *newData = allocate(newCap);
   if (size_ > 0) {
     memcpy(newData, data_, size_);
