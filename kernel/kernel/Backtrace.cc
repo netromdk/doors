@@ -24,7 +24,7 @@ void dumpBacktrace()
     }
 #endif
 
-    const auto pc = (uint32_t) (unsigned long long) frame[1];
+    const auto pc = static_cast<uint32_t>(reinterpret_cast<unsigned long long>(frame[1]));
     printf("  #%d  0x%x", i, pc);
 
 #ifdef __IS_DOORS_KERNEL
@@ -34,6 +34,6 @@ void dumpBacktrace()
 #endif
 
     printf("\n");
-    frame = (void **) frame[0];
+    frame = static_cast<void **>(frame[0]);
   }
 }
