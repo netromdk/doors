@@ -51,7 +51,7 @@ TEST_CASE("fill constructor: heap")
 TEST_CASE("copy constructor: SSO")
 {
   string a("hello");
-  string b(a);
+  string b(a); // NOLINT(performance-unnecessary-copy-initialization)
   CHECK(b.size() == 5);
   CHECK(strcmp(b.c_str(), "hello") == 0);
   CHECK(b.capacity() == string::SSO_CAPACITY);
@@ -61,7 +61,7 @@ TEST_CASE("copy constructor: heap")
 {
   const char *heapStr = "this is a very long string that must be on the heap for sure";
   string a(heapStr);
-  string b(a);
+  string b(a); // NOLINT(performance-unnecessary-copy-initialization)
   CHECK(b.size() == a.size());
   CHECK(strcmp(b.c_str(), a.c_str()) == 0);
   CHECK(b.capacity() >= b.size());
