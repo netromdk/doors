@@ -100,7 +100,7 @@ PageRange pageRange(uint32_t vaddr, uint32_t rangeStart, uint32_t rangeEnd)
   return {0, 0};
 }
 
-static inline void *uint32ToVoidPtr(uint32_t v)
+inline void *uint32ToVoidPtr(uint32_t v)
 {
   return reinterpret_cast<void *>(static_cast<uintptr_t>(v)); // NOLINT(performance-no-int-to-ptr)
 }
