@@ -795,7 +795,9 @@ TEST_CASE("range-for loop empty")
   string s;
   for (char c : s) {
     (void) c;
-    CHECK(!"should not execute");
+
+    // Should not execute. The loop body must not be entered for empty string.
+    CHECK(false);
   }
 }
 
@@ -1441,4 +1443,3 @@ TEST_CASE("replace counted with count exceeding size")
   s.replace(2, 100, "xyz", 3);
   CHECK(strcmp(s.c_str(), "hexyz") == 0);
 }
-
