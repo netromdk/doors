@@ -33,7 +33,7 @@ TEST_CASE("optional value access")
 TEST_CASE("optional copy construct")
 {
   optional<int> a{42};
-  optional<int> b{a};
+  optional<int> b{a}; // NOLINT(performance-unnecessary-copy-initialization)
   CHECK(*b == 42);
 }
 
@@ -228,7 +228,7 @@ TEST_CASE("optional multiple emplace cycles")
 TEST_CASE("optional copy construct from empty")
 {
   optional<int> a;
-  optional<int> b{a};
+  optional<int> b{a}; // NOLINT(performance-unnecessary-copy-initialization)
   CHECK(!b);
 }
 
