@@ -14,7 +14,7 @@ extern "C" void free(void *ptr);
 
 void string::checkNotNull(const char *p) noexcept
 {
-  if (!p) {
+  if (p == nullptr) {
     for (;;) {
       __asm__("hlt");
     }
@@ -27,7 +27,7 @@ char *string::allocate(size_type cap) noexcept
   if (!Heap::isInitialized()) {
     const char *msg = "string alloc before Heap::init()";
     auto *vga = reinterpret_cast<uint16_t *>(0xB8000);
-    for (int i = 0; msg[i]; i++) {
+    for (int i = 0; msg[i] != 0; i++) {
       vga[i] = static_cast<uint16_t>(msg[i]) | 0x0C00;
     }
     for (;;) {
@@ -39,7 +39,7 @@ char *string::allocate(size_type cap) noexcept
 #else
   char *p = static_cast<char *>(malloc(cap + 1)); // NOLINT(misc-const-correctness)
 #endif
-  if (!p) {
+  if (p == nullptr) {
     for (;;) {
       __asm__("hlt");
     }

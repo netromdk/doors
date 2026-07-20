@@ -14,7 +14,7 @@
 
 void readCpuState(CpuState *state)
 {
-  if (!state) {
+  if (state == nullptr) {
     return;
   }
 
@@ -119,7 +119,7 @@ void readCpuState(CpuState *state)
 
 void dumpCpuState(const CpuState *state)
 {
-  if (!state) {
+  if (state == nullptr) {
     return;
   }
 

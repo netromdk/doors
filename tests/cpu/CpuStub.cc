@@ -24,7 +24,7 @@ void Cpu::enableInterrupts()
 
 bool Cpu::interruptsEnabled()
 {
-  return trackedEflags & (1u << 9);
+  return (trackedEflags & (1u << 9)) != 0;
 }
 
 uint32_t Cpu::getEflags()

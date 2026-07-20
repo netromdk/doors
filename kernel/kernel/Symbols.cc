@@ -26,7 +26,7 @@ extern const int symbol_table_count;
 //   ...
 const char *lookupSymbol(uint32_t addr)
 {
-  if (!symbol_table_count) {
+  if (symbol_table_count == 0) {
     return nullptr;
   }
 
