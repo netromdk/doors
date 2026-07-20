@@ -20,7 +20,7 @@ TEST_CASE("from const char*")
 
 TEST_CASE("from const char* with count")
 {
-  const char *s = "hello world";
+  const char *const s = "hello world";
   const string_view sv(s, 5);
   CHECK(sv.size() == 5);
   CHECK(sv[0] == 'h');
@@ -29,7 +29,7 @@ TEST_CASE("from const char* with count")
 
 TEST_CASE("from nullptr const char*")
 {
-  const char *p = nullptr;
+  const char *const p = nullptr;
   const string_view sv(p);
   CHECK(sv.size() == 0);
   CHECK(sv.empty());
@@ -37,7 +37,7 @@ TEST_CASE("from nullptr const char*")
 
 TEST_CASE("data and size")
 {
-  const char *s = "test";
+  const char *const s = "test";
   const string_view sv(s);
   CHECK(sv.data() == s);
   CHECK(sv.size() == 4);
@@ -90,7 +90,7 @@ TEST_CASE("copy")
 {
   const string_view sv("hello");
   char buf[8] = {};
-  auto n = sv.copy(buf, 3, 1);
+  const auto n = sv.copy(buf, 3, 1);
   CHECK(n == 3);
   CHECK(buf[0] == 'e');
   CHECK(buf[1] == 'l');
@@ -100,7 +100,7 @@ TEST_CASE("copy")
 TEST_CASE("substr")
 {
   const string_view sv("hello world");
-  auto sub = sv.substr(6, 5);
+  const auto sub = sv.substr(6, 5);
   CHECK(sub.size() == 5);
   CHECK(sub[0] == 'w');
   CHECK(sub[4] == 'd');
@@ -109,14 +109,14 @@ TEST_CASE("substr")
 TEST_CASE("substr past end")
 {
   const string_view sv("hi");
-  auto sub = sv.substr(10);
+  const auto sub = sv.substr(10);
   CHECK(sub.empty());
 }
 
 TEST_CASE("substr npos")
 {
   const string_view sv("hello");
-  auto sub = sv.substr(2, string_view::npos);
+  const auto sub = sv.substr(2, string_view::npos);
   CHECK(sub.size() == 3);
   CHECK(sub[0] == 'l');
   CHECK(sub[2] == 'o');
@@ -124,28 +124,28 @@ TEST_CASE("substr npos")
 
 TEST_CASE("compare equal")
 {
-  string_view a("hello"), b("hello");
+  const string_view a("hello"), b("hello");
   CHECK(a.compare(b) == 0);
   CHECK(a == b);
 }
 
 TEST_CASE("compare less")
 {
-  string_view a("apple"), b("banana");
+  const string_view a("apple"), b("banana");
   CHECK(a.compare(b) < 0);
   CHECK(a < b);
 }
 
 TEST_CASE("compare greater")
 {
-  string_view a("banana"), b("apple");
+  const string_view a("banana"), b("apple");
   CHECK(a.compare(b) > 0);
   CHECK(a > b);
 }
 
 TEST_CASE("comparison operators")
 {
-  string_view a("abc"), b("abc"), c("abd"), d("ab");
+  const string_view a("abc"), b("abc"), c("abd"), d("ab");
   CHECK(a == b);
   CHECK(a != c);
   CHECK(a < c);

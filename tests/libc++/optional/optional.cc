@@ -17,7 +17,7 @@ TEST_CASE("optional nullopt empty")
 
 TEST_CASE("optional value construction")
 {
-  optional<int> o{42};
+  const optional<int> o{42};
   CHECK(o.has_value());
   CHECK(*o == 42);
 }
