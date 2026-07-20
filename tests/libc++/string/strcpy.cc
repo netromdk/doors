@@ -11,7 +11,7 @@ TEST_CASE("strcpy")
   CHECK(strcmp(buf, msg) == 0);
 
   char buf2[64] = {0};
-  char *ptr = buf2 + 10;
+  char *const ptr = buf2 + 10;
   res = strcpy(ptr, msg);
   CHECK(res == ptr);
   CHECK(strlen(ptr) == strlen(msg));
