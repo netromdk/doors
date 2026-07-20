@@ -1397,14 +1397,14 @@ TEST_CASE("find_last_of 3-arg")
 
 TEST_CASE("find_first_not_of 3-arg")
 {
-  string s("aabbc");
+  const string s("aabbc");
   CHECK(s.find_first_not_of("ab", 0, 2) == 4);
   CHECK(s.find_first_not_of("abc", 0, 3) == string::npos);
 }
 
 TEST_CASE("find_last_not_of 3-arg")
 {
-  string s("bcaaa");
+  const string s("bcaaa");
   CHECK(s.find_last_not_of("a", 17, 1) == 1);
   CHECK(s.find_last_not_of("abc", 17, 3) == string::npos);
 }
