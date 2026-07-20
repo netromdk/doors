@@ -144,7 +144,7 @@ bool mapSegmentRange(const void *elf, const Elf32_Phdr *phdr, MappedPage *mapped
       }
     }
 
-    uint32_t phys32;
+    uint32_t phys32{};
     if (mappedIdx >= 0) {
       // Reuse the existing physical frame from the earlier segment.
       phys32 = mapped[mappedIdx].phys;
