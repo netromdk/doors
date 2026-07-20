@@ -2,7 +2,30 @@ if (CLANG_TIDY)
   find_program(CLANG_TIDY_EXE NAMES clang-tidy)
   if (CLANG_TIDY_EXE)
     message(STATUS "clang-tidy: ${CLANG_TIDY_EXE}")
-    set(_DOORS_CLANG_TIDY_EXE "${CLANG_TIDY_EXE}")
+    set(_DOORS_CLANG_TIDY_EXTRA "")
+    if (DOORS_HOST_CXX)
+      # Clang-tidy is Clang, so `DOCTEST_CLANG` is defined in "doctest.h".
+      execute_process(COMMAND ${DOORS_HOST_CXX} --version
+        OUTPUT_VARIABLE _host_cxx_version ERROR_QUIET)
+
+      # GCC: -stdlib=libstdc++ finds `<version>`, avoiding the "doctest.h" `<ciso646>` fallback
+      # path.
+      # Clang: defaults to libc++ which has all headers. No extra args needed.
+      if (NOT _host_cxx_version MATCHES "clang")
+        execute_process(COMMAND ${DOORS_HOST_CXX} -dumpversion
+          OUTPUT_VARIABLE _gcc_version OUTPUT_STRIP_TRAILING_WHITESPACE)
+        execute_process(COMMAND ${DOORS_HOST_CXX} -dumpmachine
+          OUTPUT_VARIABLE _gcc_machine OUTPUT_STRIP_TRAILING_WHITESPACE)
+        set(_gcc_install_dir "/usr/lib/gcc/${_gcc_machine}/${_gcc_version}")
+        set(_DOORS_CLANG_TIDY_EXTRA
+          "--extra-arg=-stdlib=libstdc++;--extra-arg=--gcc-install-dir=${_gcc_install_dir}")
+      endif()
+    endif()
+    if (_DOORS_CLANG_TIDY_EXTRA)
+      set(_DOORS_CLANG_TIDY_EXE "${CLANG_TIDY_EXE};${_DOORS_CLANG_TIDY_EXTRA}")
+    else()
+      set(_DOORS_CLANG_TIDY_EXE "${CLANG_TIDY_EXE}")
+    endif()
   else()
     message(WARNING "CLANG_TIDY=ON but clang-tidy was not found on PATH")
   endif()
