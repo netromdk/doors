@@ -87,11 +87,10 @@ void historyUp(HistoryCtx *h, string &line, int &pos)
     *h->pos = (h->head - 1 + h->size) % h->size;
   }
   else {
-    const int prev = (*h->pos - 1 + h->size) % h->size;
-    if (prev == (h->head - h->count + h->size) % h->size) {
+    if (*h->pos == (h->head - h->count + h->size) % h->size) {
       return;
     }
-    *h->pos = prev;
+    *h->pos = (*h->pos - 1 + h->size) % h->size;
   }
   loadHistory(h->buf[*h->pos], line, pos, oldLen);
 }
