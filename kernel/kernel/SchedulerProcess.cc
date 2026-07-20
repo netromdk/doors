@@ -210,9 +210,12 @@ optional<int> Scheduler::addUserTask(string_view name)
 
   t.pageDir = Paging::clonePageDir();
 
-  auto *codeDst = static_cast<uint8_t *>(
-    physToVirt(reinterpret_cast<void *>(codeFrame.phys))); // NOLINT(performance-no-int-to-ptr)
+  // NOLINTNEXTLINE(performance-no-int-to-ptr)
+  auto *codeDst = static_cast<uint8_t *>(physToVirt(reinterpret_cast<void *>(codeFrame.phys)));
+
+  // NOLINTNEXTLINE(clang-analyzer-security.PointerSub)
   const auto codeSize = static_cast<size_t>(userTestEnd - userTestStart);
+
   memcpy(codeDst, userTestStart, codeSize);
 
   t.esp = initUserStackFrame(static_cast<uint8_t *>(kstack.ptr), USER_BASE,

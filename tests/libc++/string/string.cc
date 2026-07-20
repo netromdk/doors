@@ -74,6 +74,8 @@ TEST_CASE("move constructor: SSO")
   CHECK(b.size() == 5);
   CHECK(strcmp(b.c_str(), "hello") == 0);
   CHECK(a.empty());
+
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.Move)
   CHECK(strcmp(a.c_str(), "") == 0);
 }
 
@@ -86,6 +88,8 @@ TEST_CASE("move constructor: heap")
   CHECK(b.size() == strlen(heapStr));
   CHECK(b.data() == origData);
   CHECK(a.empty());
+
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.Move)
   CHECK(strcmp(a.c_str(), "") == 0);
 }
 

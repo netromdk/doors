@@ -5,6 +5,8 @@ TEST_CASE("strcpy")
 {
   const char *msg = "hello world";
   char buf[64] = {0};
+
+  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.strcpy)
   const char *res = strcpy(buf, msg);
   CHECK(res == buf);
   CHECK(strlen(buf) == strlen(msg));
@@ -12,6 +14,8 @@ TEST_CASE("strcpy")
 
   char buf2[64] = {0};
   char *const ptr = buf2 + 10;
+
+  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.strcpy)
   res = strcpy(ptr, msg);
   CHECK(res == ptr);
   CHECK(strlen(ptr) == strlen(msg));

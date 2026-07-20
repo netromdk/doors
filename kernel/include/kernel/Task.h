@@ -12,7 +12,7 @@ enum class TaskState : uint8_t {
   BLOCKED = 3, // Waiting for an event (e.g. a child task to finish).
 };
 
-struct Task {
+struct Task {             // NOLINT(clang-analyzer-optin.performance.Padding)
   uint32_t esp{};         // Saved stack pointer.
   TaskState state{};      // Current lifecycle state.
   uint8_t id{};           // Index into `Scheduler::tasks_[]`.
