@@ -12,7 +12,7 @@ extern uint16_t *VGA_RAM;
 static constexpr size_t VGA_WIDTH = 80, VGA_HEIGHT = 25;
 
 // VGA standard hardware colors.
-enum VgaColor {
+enum VgaColor : uint8_t {
   COLOR_BLACK = 0x0,
   COLOR_BLUE = 0x1,
   COLOR_GREEN = 0x2,

@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <sys/syscall.h>
 
-enum IoctlCmd : uint32_t {
+enum IoctlCmd : uint8_t {
   IOCTL_CLEAR = 1,
   IOCTL_HALT = 2,
   IOCTL_REBOOT = 3,
@@ -17,7 +17,7 @@ enum IoctlCmd : uint32_t {
   IOCTL_INJECT_CHAR = 10,  // push a character into the keyboard buffer
 };
 
-enum TaskctlCmd : uint32_t {
+enum TaskctlCmd : uint8_t {
   TASKCTL_COUNT = 1,  // Returns packed (alive<<24 | running<<16 | blocked<<8 | dead).
   TASKCTL_LIST = 2,   // ECX=buf, EDX=max_entries. Writes TaskEntry array.
   TASKCTL_KILL = 3,   // ECX=task_id.
@@ -45,7 +45,7 @@ struct TaskDetail {
   uint32_t quantumRemaining;
 };
 
-enum SysinfoCmd : uint32_t {
+enum SysinfoCmd : uint8_t {
   SYSINFO_UPTIME = 1,   // Returns uptime in ms.
   SYSINFO_MEMFREE = 2,  // Returns heap free bytes.
   SYSINFO_MEMBLOCK = 3, // Returns largest free heap block.
