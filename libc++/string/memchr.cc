@@ -3,9 +3,9 @@
 
 const void *memchr(const void *ptr, int value, size_t num)
 {
-  auto *ptr_ = (const uint8_t *) ptr;
+  auto *ptr_ = static_cast<const uint8_t *>(ptr);
   for (size_t i = 0; i < num; i++) {
-    if (ptr_[i] == (uint8_t) value) {
+    if (ptr_[i] == static_cast<uint8_t>(value)) {
       return ptr_ + i;
     }
   }
