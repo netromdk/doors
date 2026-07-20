@@ -5,7 +5,7 @@
 
 int64_t strtoll(const char *str, char **endptr, int base)
 {
-  int64_t res = strtoull(str, endptr, base);
+  int64_t res = static_cast<int64_t>(strtoull(str, endptr, base));
   if (res == 0) return res;
 
   // Handle sign.

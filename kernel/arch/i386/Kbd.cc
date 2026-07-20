@@ -21,7 +21,7 @@ bool extended_ = false;
 void deleteAt(string &buf, int delPos, int oldLen)
 {
   buf.erase(delPos, 1);
-  int len = buf.size();
+  int len = static_cast<int>(buf.size());
   for (int i = delPos; i < len; i++) {
     printf("%c", buf[i]);
   }
@@ -34,7 +34,7 @@ void deleteAt(string &buf, int delPos, int oldLen)
 void insertAt(string &buf, int insPos, char ch)
 {
   buf.insert(insPos, 1, ch);
-  int len = buf.size();
+  int len = static_cast<int>(buf.size());
   for (int i = insPos; i < len; i++) {
     printf("%c", buf[i]);
   }
@@ -49,7 +49,7 @@ void insertAt(string &buf, int insPos, char ch)
 // line shrinks.
 void redrawLine(const string &buf, int cursor, int oldLen)
 {
-  int len = buf.size();
+  int len = static_cast<int>(buf.size());
   printf("\r> ");
   for (int i = 0; i < len; i++) {
     printf("%c", buf[i]);
@@ -72,13 +72,13 @@ void clearRange(string &buf, int from, int oldLen)
 void loadHistory(const string &src, string &dst, int &pos, int oldLen)
 {
   dst = src;
-  pos = dst.size();
+  pos = static_cast<int>(dst.size());
   redrawLine(dst, pos, oldLen);
 }
 
 void historyUp(HistoryCtx *h, string &line, int &pos)
 {
-  int oldLen = line.size();
+  int oldLen = static_cast<int>(line.size());
   if (*h->pos == -1) {
     if (h->count == 0) return;
     *h->pos = (h->head - 1 + h->size) % h->size;
@@ -95,7 +95,7 @@ void historyUp(HistoryCtx *h, string &line, int &pos)
 
 void historyDown(HistoryCtx *h, string &line, int &pos)
 {
-  int oldLen = line.size();
+  int oldLen = static_cast<int>(line.size());
   if (*h->pos == -1) return;
   *h->pos = -1;
   redrawLine(string{}, 0, oldLen);
@@ -341,7 +341,7 @@ void Kbd::readLine(string &line, HistoryCtx *history)
     // Ctrl+D delete character under cursor.
     if (ch == Kbd::KEY_CTRL_D) {
       if (pos < static_cast<int>(line.size())) {
-        deleteAt(line, pos, line.size());
+        deleteAt(line, pos, static_cast<int>(line.size()));
       }
       continue;
     }
@@ -349,7 +349,7 @@ void Kbd::readLine(string &line, HistoryCtx *history)
     // Ctrl+K kill from cursor to end of line.
     if (ch == Kbd::KEY_CTRL_K) {
       if (pos < static_cast<int>(line.size())) {
-        clearRange(line, pos, line.size());
+        clearRange(line, pos, static_cast<int>(line.size()));
       }
       continue;
     }
@@ -363,7 +363,7 @@ void Kbd::readLine(string &line, HistoryCtx *history)
     // Handle backspace.
     if (ch == '\b') {
       if (pos > 0) {
-        int oldLen = line.size();
+        int oldLen = static_cast<int>(line.size());
         pos--;
         printf("\b");
         deleteAt(line, pos, oldLen);
@@ -374,7 +374,7 @@ void Kbd::readLine(string &line, HistoryCtx *history)
     // Ctrl+U erase entire line.
     if (ch == Kbd::KEY_CTRL_U) {
       if (!line.empty()) {
-        clearRange(line, 0, line.size());
+        clearRange(line, 0, static_cast<int>(line.size()));
         pos = 0;
       }
       continue;
