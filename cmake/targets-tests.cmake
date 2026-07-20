@@ -28,6 +28,26 @@ else()
   set(_build_flags "--quiet")
 endif()
 
+if (DOORS_HOST_CXX MATCHES "clang\\+\\+")
+  # clang++ needs `-stdlib=libstdc++` to find `<version>`, to avoid doctest.h's `<ciso646>`
+  # fallback, and `--gcc-install-dir` so the linker can find `libstdc++.so`. The host may have
+  # multiple GCC installations so pick the highest one that actually ships the library rather than
+  # just `crt*.o`.
+  file(GLOB _gcc_candidates "/usr/lib/gcc/*/*/libstdc++.so")
+  if (_gcc_candidates)
+    list(GET _gcc_candidates -1 _gcc_libstdcxx)
+    get_filename_component(_gcc_install_dir "${_gcc_libstdcxx}" DIRECTORY)
+    set(_test_cxx_flags
+      "-DCMAKE_CXX_FLAGS=-stdlib=libstdc++ --gcc-install-dir=${_gcc_install_dir}")
+  else()
+    message(WARNING "libstdc++.so not found under /usr/lib/gcc/ so"
+      "clang++ test link step may fail")
+    set(_test_cxx_flags "-DCMAKE_CXX_FLAGS=-stdlib=libstdc++")
+  endif()
+else()
+  set(_test_cxx_flags "")
+endif()
+
 ExternalProject_Add(tests
   PREFIX     "${CMAKE_BINARY_DIR}/tests"
   SOURCE_DIR "${CMAKE_SOURCE_DIR}/tests"
@@ -37,6 +57,7 @@ ExternalProject_Add(tests
     "-G${CMAKE_GENERATOR}"
     "-DCMAKE_CXX_COMPILER=${DOORS_HOST_CXX}"
     "-DCMAKE_AR=ar"
+    ${_test_cxx_flags}
     "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
     "-DDOORS_LIBC_SRC_DIR=${CMAKE_SOURCE_DIR}/libc++"
     "-DDOORS_LIBC_INC_DIR=${CMAKE_SOURCE_DIR}/libc++/include"
