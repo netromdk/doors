@@ -52,10 +52,11 @@ TEST_CASE_FIXTURE(SnakeFixture, "boost: consuming a zone activates boost")
   auto zone = g.boostZonePos(0);
 
   // Step once: head moves from (12, 40) to (12, 41).
-  int r = 12, c = 41;
   g.step(0);
 
   if (!g.boostActive()) {
+    int r = 12;
+    int c = 41;
     // Navigate vertically to the target row.
     if (zone.row < r) {
       g.setDir(SnakeGame::Dir::Up);
@@ -94,10 +95,11 @@ TEST_CASE_FIXTURE(SnakeFixture, "boost: zone count decreases after consumption")
   REQUIRE(initialCount > 0);
 
   auto zone = g.boostZonePos(0);
-  int r = 12, c = 41;
   g.step(0);
 
   if (!g.boostActive()) {
+    int r = 12;
+    int c = 41;
     if (zone.row < r) {
       g.setDir(SnakeGame::Dir::Up);
       while (r > zone.row && g.step(0)) {
@@ -149,10 +151,11 @@ TEST_CASE_FIXTURE(SnakeFixture, "boost: moveIntervalMs decreases when boost acti
   const int normal = g.moveIntervalMs();
 
   auto zone = g.boostZonePos(0);
-  int r = 12, c = 41;
   g.step(0);
 
   if (!g.boostActive()) {
+    int r = 12;
+    int c = 41;
     if (zone.row < r) {
       g.setDir(SnakeGame::Dir::Up);
       while (r > zone.row && g.step(0)) {
@@ -187,10 +190,11 @@ TEST_CASE_FIXTURE(SnakeFixture, "boost: moveIntervalMs decreases when boost acti
 TEST_CASE_FIXTURE(SnakeFixture, "boost: boost timer counts down with dtMs")
 {
   auto zone = g.boostZonePos(0);
-  int r = 12, c = 41;
   g.step(0);
 
   if (!g.boostActive()) {
+    int r = 12;
+    int c = 41;
     if (zone.row < r) {
       g.setDir(SnakeGame::Dir::Up);
       while (r > zone.row && g.step(0)) {
