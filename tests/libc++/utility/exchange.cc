@@ -11,7 +11,8 @@ TEST_CASE("exchange int")
 
 TEST_CASE("exchange pointer")
 {
-  int a = 1, b = 2;
+  int a = 1;
+  int b = 2;
   int *p = &a;
   int *const old = exchange(p, &b);
   CHECK(old == &a);
