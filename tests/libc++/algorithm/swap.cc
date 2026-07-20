@@ -16,7 +16,7 @@ TEST_CASE("swap constexpr")
     int x = 10;
     int y = 20;
     swap(x, y);
-    return x * 10 + y;
+    return (x * 10) + y;
   }();
   CHECK(result == 210);
 }

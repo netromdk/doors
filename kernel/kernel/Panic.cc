@@ -173,13 +173,13 @@ void dumpCpuState(const CpuState *state)
   Tty::lock();
   for (int i = 0; i < 9; i++) {
     for (int j = 0; hal[i][j]; j++) {
-      VGA_RAM[(1 + i) * VGA_WIDTH + 67 + j] = vgaEntry(hal[i][j], grey);
+      VGA_RAM[((1 + i) * VGA_WIDTH) + 67 + j] = vgaEntry(hal[i][j], grey);
     }
   }
 
   // Make the eye red.
   const uint8_t red = vgaColor(COLOR_RED, COLOR_BLACK);
-  VGA_RAM[5 * VGA_WIDTH + 74] = vgaEntry('O', red);
+  VGA_RAM[(5 * VGA_WIDTH) + 74] = vgaEntry('O', red);
 
   // KERNEL PANIC banner on top row.
   const uint8_t whiteOnRed = vgaColor(COLOR_WHITE, COLOR_RED);

@@ -55,7 +55,7 @@ uint64_t strtoull(const char *str, char **endptr, int base)
       ich = ich - ('0' - 10) - 1;
     }
 
-    res = res * base + ich;
+    res = (res * base) + ich;
   }
 
   if (endptr != nullptr) {

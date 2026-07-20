@@ -38,7 +38,7 @@ void Tty::clearRow(uint8_t row)
 
 void Tty::swapRows(uint8_t row1, uint8_t row2)
 {
-  swap_ranges(&VGA_RAM[row1 * VGA_WIDTH], &VGA_RAM[row1 * VGA_WIDTH + VGA_WIDTH],
+  swap_ranges(&VGA_RAM[row1 * VGA_WIDTH], &VGA_RAM[(row1 * VGA_WIDTH) + VGA_WIDTH],
               &VGA_RAM[row2 * VGA_WIDTH]);
 }
 
@@ -92,7 +92,7 @@ void Tty::decCol()
 
 void Tty::cursorUpdate()
 {
-  const auto pos = static_cast<uint16_t>(termRow_ * VGA_WIDTH + termCol_);
+  const auto pos = static_cast<uint16_t>((termRow_ * VGA_WIDTH) + termCol_);
 
   Io::outb(0x3D4, 0x0E);
   Io::outb(0x3D5, static_cast<uint8_t>(pos >> 8));
@@ -120,7 +120,7 @@ int Tty::rawPuts(string_view sv)
       decCol();
     }
     else {
-      VGA_RAM[termRow_ * VGA_WIDTH + termCol_] = vgaEntry(sv[i], termColor_);
+      VGA_RAM[(termRow_ * VGA_WIDTH) + termCol_] = vgaEntry(sv[i], termColor_);
       advCol();
     }
   }
@@ -225,7 +225,7 @@ void Tty::putc(char ch)
     decCol();
   }
   else {
-    VGA_RAM[termRow_ * VGA_WIDTH + termCol_] = vgaEntry(ch, termColor_);
+    VGA_RAM[(termRow_ * VGA_WIDTH) + termCol_] = vgaEntry(ch, termColor_);
     advCol();
   }
 
@@ -237,7 +237,7 @@ void Tty::putc(char ch)
 void Tty::putc(char ch, uint8_t row, uint8_t col)
 {
   lock();
-  VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(ch, termColor_);
+  VGA_RAM[(row * VGA_WIDTH) + col] = vgaEntry(ch, termColor_);
   unlock();
 }
 
@@ -267,12 +267,12 @@ void Tty::putLine(string_view str, uint8_t row)
 
   size_t i = 0;
   for (; i < str.size() && i < VGA_WIDTH; ++i) {
-    VGA_RAM[row * VGA_WIDTH + i] = vgaEntry(str[i], termColor_);
+    VGA_RAM[(row * VGA_WIDTH) + i] = vgaEntry(str[i], termColor_);
   }
   termCol_ = static_cast<uint8_t>(i);
 
   // Fill the rest of the line.
-  fill_n(&VGA_RAM[row * VGA_WIDTH + i], VGA_WIDTH - i, vgaEntry(' ', termColor_));
+  fill_n(&VGA_RAM[(row * VGA_WIDTH) + i], VGA_WIDTH - i, vgaEntry(' ', termColor_));
 
   cursorUpdate();
 
@@ -345,7 +345,7 @@ void Tty::scrollbackShow(int offset)
   const size_t slen = strlen(buf);
   for (size_t col = 0; col < VGA_WIDTH; col++) {
     const char ch = col < slen ? buf[col] : ' ';
-    VGA_RAM[0 * VGA_WIDTH + col] = vgaEntry(ch, Tty::DEFAULT_COLOR);
+    VGA_RAM[(0 * VGA_WIDTH) + col] = vgaEntry(ch, Tty::DEFAULT_COLOR);
   }
 
   // Display scrollback content on rows 1 to Tty::ROWS-1.
@@ -360,7 +360,7 @@ void Tty::scrollbackShow(int offset)
       const char *line = scrollbackBuf_[actualIdx].data();
       for (size_t col = 0; col < VGA_WIDTH; col++) {
         const char ch = line[col] != '\0' ? line[col] : ' ';
-        VGA_RAM[row * VGA_WIDTH + col] = vgaEntry(ch, Tty::DEFAULT_COLOR);
+        VGA_RAM[(row * VGA_WIDTH) + col] = vgaEntry(ch, Tty::DEFAULT_COLOR);
       }
     }
   }

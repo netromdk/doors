@@ -33,7 +33,7 @@ const char *lookupSymbol(uint32_t addr)
   int lo = 0;
   int hi = symbol_table_count - 1;
   while (lo <= hi) {
-    const int mid = lo + (hi - lo) / 2;
+    const int mid = lo + ((hi - lo) / 2);
     const uint32_t midAddr = symbol_table[mid].address;
 
     if (addr >= midAddr) {
