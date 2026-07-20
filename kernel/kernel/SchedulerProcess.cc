@@ -67,7 +67,7 @@ struct MappedFrame {
   {
     if (owned) {
       Paging::unmapPage(vaddr);
-      Pmm::freeFrame(reinterpret_cast<void *>(phys));
+      Pmm::freeFrame(reinterpret_cast<void *>(phys)); // NOLINT(performance-no-int-to-ptr)
     }
   }
 };
@@ -129,7 +129,7 @@ void freePageArray(int count, const uint32_t *vaddrs, const uint32_t *phys)
 {
   for (int i = 0; i < count; ++i) {
     Paging::unmapPage(vaddrs[i]);
-    Pmm::freeFrame(reinterpret_cast<void *>(phys[i]));
+    Pmm::freeFrame(reinterpret_cast<void *>(phys[i])); // NOLINT(performance-no-int-to-ptr)
   }
 }
 
@@ -143,7 +143,7 @@ bool cloneChildStackPages(Task &child, const Task &parent)
     void *newPhys = Pmm::allocFrame();
     if (newPhys == nullptr) {
       freePageArray(i, child.userStackVaddr, child.userStackPhys);
-      Pmm::freeFrame(reinterpret_cast<void *>(child.pageDir));
+      Pmm::freeFrame(reinterpret_cast<void *>(child.pageDir)); // NOLINT(performance-no-int-to-ptr)
       child.pageDir = 0;
       return false;
     }
@@ -154,14 +154,15 @@ bool cloneChildStackPages(Task &child, const Task &parent)
     if (!Paging::mapPage(vaddr, newPhys32, PAGE_PRESENT | PAGE_RW | PAGE_USER, child.pageDir)) {
       Pmm::freeFrame(newPhys);
       freePageArray(i, child.userStackVaddr, child.userStackPhys);
-      Pmm::freeFrame(reinterpret_cast<void *>(child.pageDir));
+      Pmm::freeFrame(reinterpret_cast<void *>(child.pageDir)); // NOLINT(performance-no-int-to-ptr)
       child.pageDir = 0;
       return false;
     }
 
-    const auto *src =
-      static_cast<const uint8_t *>(physToVirt(reinterpret_cast<void *>(parent.userStackPhys[i])));
-    auto *dst = static_cast<uint8_t *>(physToVirt(reinterpret_cast<void *>(newPhys32)));
+    const auto *src = static_cast<const uint8_t *>(physToVirt(
+      reinterpret_cast<void *>(parent.userStackPhys[i]))); // NOLINT(performance-no-int-to-ptr)
+    auto *dst = static_cast<uint8_t *>(
+      physToVirt(reinterpret_cast<void *>(newPhys32))); // NOLINT(performance-no-int-to-ptr)
     __builtin_memcpy(dst, src, Pmm::PAGE_SIZE);
 
     child.userStackVaddr[i] = vaddr;
@@ -205,7 +206,8 @@ optional<int> Scheduler::addUserTask(string_view name)
 
   t.pageDir = Paging::clonePageDir();
 
-  auto *codeDst = static_cast<uint8_t *>(physToVirt(reinterpret_cast<void *>(codeFrame.phys)));
+  auto *codeDst = static_cast<uint8_t *>(
+    physToVirt(reinterpret_cast<void *>(codeFrame.phys))); // NOLINT(performance-no-int-to-ptr)
   const size_t codeSize = static_cast<size_t>(userTestEnd - userTestStart);
   memcpy(codeDst, userTestStart, codeSize);
 
@@ -336,8 +338,10 @@ uint32_t Scheduler::fork()
   // Copy the parent's register frame from the kernel stack to the child's kernel stack. The frame
   // sits at the top of the stack buffer, same layout as `initUserStackFrame()` produces.
   const auto frameOffset = TASK_STACK_SIZE - frameSize;
-  __builtin_memcpy(childStack + frameOffset, reinterpret_cast<const uint8_t *>(syscallFrameEsp),
-                   frameSize);
+  __builtin_memcpy(
+    childStack + frameOffset,
+    reinterpret_cast<const uint8_t *>(syscallFrameEsp), // NOLINT(performance-no-int-to-ptr)
+    frameSize);
 
   // Set child's EAX to 0, which is the fork return value in the child. The EAX slot in the `pushal`
   // frame is at offset 28 bytes from the start of the `pushal` frame (7th dword: EDI, ESI, EBP,
@@ -424,8 +428,8 @@ uint32_t Scheduler::exec(int modIdx)
   t.savedSignalEflags = 0;
   t.savedSignalEsp = 0;
 
-  const auto *modPtr =
-    physToVirt(reinterpret_cast<void *>(static_cast<uintptr_t>(Pmm::modulePhysStart(modIdx))));
+  const auto *modPtr = physToVirt(reinterpret_cast<void *>( // NOLINT(performance-no-int-to-ptr)
+    static_cast<uintptr_t>(Pmm::modulePhysStart(modIdx))));
   const auto modSize = Pmm::modulePhysSize(modIdx);
 
   // Validate the ELF before freeing anything so the old image is not destroyed on bad input.
@@ -444,7 +448,7 @@ uint32_t Scheduler::exec(int modIdx)
   // Free old code page if this was a non-ELF user task (loaded via `addUserTask()`).
   if (t.userCodeBuf != 0) {
     Paging::unmapPage(USER_BASE);
-    Pmm::freeFrame(reinterpret_cast<void *>(t.userCodeBuf));
+    Pmm::freeFrame(reinterpret_cast<void *>(t.userCodeBuf)); // NOLINT(performance-no-int-to-ptr)
     t.userCodeBuf = 0;
   }
 
@@ -492,7 +496,7 @@ uint32_t Scheduler::exec(int modIdx)
   //     +40 EFLAGS
   //     +44 user ESP
   //     +48 user SS
-  auto *frame = reinterpret_cast<uint32_t *>(syscallFrameEsp);
+  auto *frame = reinterpret_cast<uint32_t *>(syscallFrameEsp); // NOLINT(performance-no-int-to-ptr)
 
   // EIP (+32/4 = 8) = ELF entry point.
   frame[8] = loadResult->entry;
@@ -778,7 +782,8 @@ void Scheduler::killTask(int id)
   // never freed.
 #ifdef __IS_DOORS_KERNEL
   if (tasks_[id].pageDir != 0) {
-    Pmm::freeFrame(reinterpret_cast<void *>(tasks_[id].pageDir));
+    Pmm::freeFrame(
+      reinterpret_cast<void *>(tasks_[id].pageDir)); // NOLINT(performance-no-int-to-ptr)
     tasks_[id].pageDir = 0;
   }
 
@@ -787,7 +792,8 @@ void Scheduler::killTask(int id)
   tasks_[id].userStackPageCount = 0;
   if (tasks_[id].userCodeBuf != 0) {
     Paging::unmapPage(USER_BASE);
-    Pmm::freeFrame(reinterpret_cast<void *>(tasks_[id].userCodeBuf));
+    Pmm::freeFrame(
+      reinterpret_cast<void *>(tasks_[id].userCodeBuf)); // NOLINT(performance-no-int-to-ptr)
     tasks_[id].userCodeBuf = 0;
   }
 

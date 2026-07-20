@@ -102,7 +102,7 @@ PageRange pageRange(uint32_t vaddr, uint32_t rangeStart, uint32_t rangeEnd)
 
 static inline void *uint32ToVoidPtr(uint32_t v)
 {
-  return reinterpret_cast<void *>(static_cast<uintptr_t>(v));
+  return reinterpret_cast<void *>(static_cast<uintptr_t>(v)); // NOLINT(performance-no-int-to-ptr)
 }
 
 bool validateSegment(const Elf32_Phdr *phdr)

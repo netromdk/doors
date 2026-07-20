@@ -29,7 +29,8 @@ uint32_t Scheduler::writeSignalTrampoline(Task &t, uint32_t originalUserEsp, int
       if (vaddr >= t.userStackVaddr[i] && vaddr < t.userStackVaddr[i] + Pmm::PAGE_SIZE) {
         const auto offset = vaddr - t.userStackVaddr[i];
         const auto physAddr = t.userStackPhys[i] + offset;
-        auto *dst = static_cast<uint8_t *>(physToVirt(reinterpret_cast<void *>(physAddr)));
+        auto *dst = static_cast<uint8_t *>(
+          physToVirt(reinterpret_cast<void *>(physAddr))); // NOLINT(performance-no-int-to-ptr)
         __builtin_memcpy(dst, data, len);
         return;
       }
@@ -187,7 +188,7 @@ void Scheduler::deliverPendingSignals()
 
 #ifdef __IS_DOORS_KERNEL
   if (t.signalHandlers[sigNum] != nullptr) {
-    auto *frame = reinterpret_cast<uint32_t *>(t.esp);
+    auto *frame = reinterpret_cast<uint32_t *>(t.esp); // NOLINT(performance-no-int-to-ptr)
 
     // Check CS ring level to see if the timer fired while in kernel mode (ring 0), the interrupt
     // frame lacks the SS/ESP dwords, so frame offsets are wrong. Defer delivery to the next tick

@@ -114,22 +114,25 @@ private:
 // byte-address (e.g. from `Pmm::allocFrame()`). When `KERNEL_VIRTUAL_BASE` is 0 this is identity.
 static inline void *physToVirt(void *physAddr)
 {
-  return reinterpret_cast<void *>(reinterpret_cast<unsigned long long>(physAddr) +
-                                  KERNEL_VIRTUAL_BASE);
+  return reinterpret_cast<void *>( // NOLINT(performance-no-int-to-ptr)
+    reinterpret_cast<unsigned long long>(physAddr) +
+    KERNEL_VIRTUAL_BASE);
 }
 
 // Convert a virtual pointer back to its physical address.
 static inline void *virtToPhys(const void *virtAddr)
 {
-  return reinterpret_cast<void *>(reinterpret_cast<unsigned long long>(virtAddr) -
-                                  KERNEL_VIRTUAL_BASE);
+  return reinterpret_cast<void *>( // NOLINT(performance-no-int-to-ptr)
+    reinterpret_cast<unsigned long long>(virtAddr) -
+    KERNEL_VIRTUAL_BASE);
 }
 
 // Convert a physical address to a `uint32_t*` for page-table manipulation.
 static inline uint32_t *physToVirt32(void *physAddr)
 {
-  return reinterpret_cast<uint32_t *>(reinterpret_cast<unsigned long long>(physAddr) +
-                                      KERNEL_VIRTUAL_BASE);
+  return reinterpret_cast<uint32_t *>( // NOLINT(performance-no-int-to-ptr)
+    reinterpret_cast<unsigned long long>(physAddr) +
+    KERNEL_VIRTUAL_BASE);
 }
 
 // Convert a virtual pointer accessible through the identity map back to its physical address.
