@@ -62,7 +62,7 @@ char KeyMap::toText(Key key, bool shift, bool ctrl, bool caps)
     return static_cast<char>(ukey);
   }
 
-  constexpr auto symEnd = symbolTable + sizeof(symbolTable) / sizeof(symbolTable[0]);
+  constexpr auto symEnd = symbolTable + (sizeof(symbolTable) / sizeof(symbolTable[0]));
   const auto it =
     find_if(symbolTable, symEnd, [key](const SymbolEntry &e) { return e.key == key; });
   if (it != symEnd) {

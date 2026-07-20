@@ -46,9 +46,9 @@ TEST_CASE_FIXTURE(TtyFixture, "Tty lock: putLine under lock")
   Tty::putLine("abc", 5);
   Tty::unlock();
 
-  CHECK((VGA_RAM[5 * VGA_WIDTH + 0] & 0xFF) == 'a');
-  CHECK((VGA_RAM[5 * VGA_WIDTH + 1] & 0xFF) == 'b');
-  CHECK((VGA_RAM[5 * VGA_WIDTH + 2] & 0xFF) == 'c');
+  CHECK((VGA_RAM[(5 * VGA_WIDTH) + 0] & 0xFF) == 'a');
+  CHECK((VGA_RAM[(5 * VGA_WIDTH) + 1] & 0xFF) == 'b');
+  CHECK((VGA_RAM[(5 * VGA_WIDTH) + 2] & 0xFF) == 'c');
 }
 
 TEST_CASE_FIXTURE(TtyFixture, "Tty lock: cls under lock")

@@ -29,8 +29,8 @@ constexpr int RIGHT_WALL = SG::BOARD_COLS + 1;
 constexpr int TOTAL_COLS = SG::BOARD_COLS + 2;
 
 // Center of the playable area (row 1..BOARD_ROWS, col 1..BOARD_COLS).
-constexpr int CENTER_ROW = 1 + SG::BOARD_ROWS / 2;
-constexpr int CENTER_COL = 1 + SG::BOARD_COLS / 2;
+constexpr int CENTER_ROW = 1 + (SG::BOARD_ROWS / 2);
+constexpr int CENTER_COL = 1 + (SG::BOARD_COLS / 2);
 
 // Status bar layout constants.
 constexpr int STATUS_ROW = TOP_WALL;
@@ -406,7 +406,7 @@ SnakeGame::Pos SnakeGame::boostZonePos(int i) const
 
 int SnakeGame::baseIntervalMs() const
 {
-  return clamp(200 - length_ * 8, 60, 200);
+  return clamp(200 - (length_ * 8), 60, 200);
 }
 
 int SnakeGame::moveIntervalMs() const
@@ -425,7 +425,7 @@ int SnakeGame::moveIntervalMs() const
 
 uint64_t SnakeGame::bonusDurationMs() const
 {
-  const uint64_t ms = BONUS_INTERVAL_MS - static_cast<uint64_t>(length_) * 200;
+  const uint64_t ms = BONUS_INTERVAL_MS - (static_cast<uint64_t>(length_) * 200);
   return ms < BONUS_DURATION_MIN_MS ? BONUS_DURATION_MIN_MS : ms;
 }
 
@@ -632,7 +632,7 @@ uint32_t SnakeGame::lcgNext()
 {
   // Linear Congruential Generator (LCG): x_{n+1} = (a * x_n + c) mod 2^32.
   // Parameters from Knuth's MMIX (hypothetical CPU in The Art of Computer Programming).
-  lcg_ = lcg_ * 1664525u + 1013904223u;
+  lcg_ = (lcg_ * 1664525u) + 1013904223u;
   return lcg_;
 }
 

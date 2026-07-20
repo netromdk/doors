@@ -117,7 +117,7 @@ bool mapUserStackPages(Task &t)
 {
   for (uint32_t i = 0; i < Scheduler::USER_STACK_PAGES; ++i) {
     MappedFrame frame{};
-    const uint32_t vaddr = Scheduler::USER_STACK_VADDR - i * Pmm::PAGE_SIZE;
+    const uint32_t vaddr = Scheduler::USER_STACK_VADDR - (i * Pmm::PAGE_SIZE);
     if (!allocAndMapUserPage(vaddr, frame)) {
       return false;
     }

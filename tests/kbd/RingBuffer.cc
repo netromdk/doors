@@ -26,10 +26,10 @@ TEST_CASE_FIXTURE(KbdFixture, "wrap")
   // Fill buffer to capacity, drain, repeat to verify head/tail wrap-around.
   for (int cycle = 0; cycle < 3; cycle++) {
     for (size_t i = 0; i < Kbd::BUF_SIZE; i++) {
-      Kbd::pushChar(static_cast<char>('A' + (cycle + i) % ALPHABET_SIZE));
+      Kbd::pushChar(static_cast<char>('A' + ((cycle + i) % ALPHABET_SIZE)));
     }
     for (size_t i = 0; i < Kbd::BUF_SIZE; i++) {
-      CHECK(Kbd::getChar() == static_cast<char>('A' + (cycle + i) % ALPHABET_SIZE));
+      CHECK(Kbd::getChar() == static_cast<char>('A' + ((cycle + i) % ALPHABET_SIZE)));
     }
   }
   CHECK(Kbd::charAvail() == false);

@@ -139,7 +139,7 @@ TEST_CASE_FIXTURE(TtyFixture, "scrollback_home_goes_to_beginning")
 {
 
   // Generate 3 pages of scrollback.
-  for (size_t i = 0; i < 3 * VGA_HEIGHT + 5; i++) {
+  for (size_t i = 0; i < (3 * VGA_HEIGHT) + 5; i++) {
     Tty::puts("x\n");
   }
   REQUIRE(Tty::scrollbackSize() >= 55);
@@ -186,10 +186,10 @@ TEST_CASE_FIXTURE(TtyFixture, "scrollback_status_indicator")
   REQUIRE(Tty::scrollbackActive());
 
   // Row 0 should contain the status indicator.
-  uint16_t entry = VGA_RAM[0 * VGA_WIDTH + 0];
+  uint16_t entry = VGA_RAM[(0 * VGA_WIDTH) + 0];
   const char first = static_cast<char>(entry & 0xFF);
   CHECK(first == '-');
-  entry = VGA_RAM[0 * VGA_WIDTH + 1];
+  entry = VGA_RAM[(0 * VGA_WIDTH) + 1];
   CHECK(static_cast<char>(entry & 0xFF) == '-');
 
   Tty::scrollbackExit();

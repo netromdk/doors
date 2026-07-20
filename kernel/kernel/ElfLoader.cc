@@ -53,7 +53,7 @@ bool ElfLoader::validate(const void *elf, size_t size)
   const auto phoff = static_cast<size_t>(ehdr->e_phoff);
   const auto phnum = static_cast<size_t>(ehdr->e_phnum);
   const auto phentsize = static_cast<size_t>(ehdr->e_phentsize);
-  if (phoff + phnum * phentsize > size) {
+  if (phoff + (phnum * phentsize) > size) {
     return false;
   }
 
@@ -205,7 +205,7 @@ ElfRange computeElfRange(const uint8_t *phdrBytes, size_t phnum, size_t phentsiz
 {
   ElfRange r{0xFFFFFFFF, 0};
   for (size_t i = 0; i < phnum; ++i) {
-    const auto *phdr = reinterpret_cast<const Elf32_Phdr *>(phdrBytes + i * phentsize);
+    const auto *phdr = reinterpret_cast<const Elf32_Phdr *>(phdrBytes + (i * phentsize));
     if (phdr->p_type != PT_LOAD || phdr->p_memsz == 0) {
       continue;
     }
@@ -241,7 +241,7 @@ optional<ElfLoader::LoadResult> ElfLoader::load(const void *elf, size_t size, ui
   int numMapped = 0;
 
   for (size_t i = 0; i < phnum; ++i) {
-    const auto *phdr = reinterpret_cast<const Elf32_Phdr *>(phdrBytes + i * phentsize);
+    const auto *phdr = reinterpret_cast<const Elf32_Phdr *>(phdrBytes + (i * phentsize));
     if (phdr->p_type != PT_LOAD) {
       continue;
     }

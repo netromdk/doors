@@ -27,7 +27,7 @@ TEST_CASE_FIXTURE(UserElfFixture, "addUserElfTask rejects invalid ELF (bad magic
 
 TEST_CASE_FIXTURE(UserElfFixture, "addUserElfTask with valid ELF and 0 PT_LOAD")
 {
-  uint8_t buf[sizeof(Elf32_Ehdr) + 10 * sizeof(Elf32_Phdr)];
+  uint8_t buf[sizeof(Elf32_Ehdr) + (10 * sizeof(Elf32_Phdr))];
   buildValidElf(buf, sizeof(buf), 0x10000000, 0);
 
   auto result = Scheduler::addUserElfTask("/boot/shell.elf", buf, sizeof(buf));
