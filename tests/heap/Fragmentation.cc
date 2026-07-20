@@ -24,9 +24,9 @@ TEST_CASE_FIXTURE(HeapFixture, "coalesce adjacent blocks")
 TEST_CASE_FIXTURE(HeapFixture, "coalesce chain of three")
 {
   void *blocks[5];
-  for (int i = 0; i < 5; ++i) {
-    blocks[i] = Heap::alloc(Heap::MIN_BLOCK);
-    REQUIRE(blocks[i] != nullptr);
+  for (auto &ptr : blocks) {
+    ptr = Heap::alloc(Heap::MIN_BLOCK);
+    REQUIRE(ptr != nullptr);
   }
 
   Heap::free(blocks[1]);

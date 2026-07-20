@@ -49,8 +49,8 @@ TEST_CASE_FIXTURE(KbdFixture, "many_chars")
   Kbd::pushChar('\n');
   Kbd::readLine(buf);
   CHECK(buf.size() == 100);
-  for (size_t i = 0; i < buf.size(); i++) {
-    CHECK(buf[i] == 'x');
+  for (char c : buf) {
+    CHECK(c == 'x');
   }
 }
 
@@ -58,8 +58,8 @@ TEST_CASE_FIXTURE(KbdFixture, "whitespace")
 {
   string buf;
   string input = "  hello world  \n";
-  for (size_t i = 0; i < input.size(); i++) {
-    Kbd::pushChar(input[i]);
+  for (char c : input) {
+    Kbd::pushChar(c);
   }
   Kbd::readLine(buf);
   CHECK(buf == "  hello world  ");

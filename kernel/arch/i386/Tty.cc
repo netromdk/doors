@@ -103,24 +103,24 @@ void Tty::cursorUpdate()
 
 int Tty::rawPuts(string_view sv)
 {
-  for (size_t i = 0; i < sv.size(); ++i) {
+  for (char c : sv) {
 #ifdef DEBUG_THROUGH_SERIAL_COM1
-    if (sv[i] != '\b') {
-      Serial::write(sv[i]);
+    if (c != '\b') {
+      Serial::write(c);
     }
 #endif
-    if (sv[i] == '\n') {
+    if (c == '\n') {
       advRow();
       termCol_ = 0;
     }
-    else if (sv[i] == '\r') {
+    else if (c == '\r') {
       termCol_ = 0;
     }
-    else if (sv[i] == '\b') {
+    else if (c == '\b') {
       decCol();
     }
     else {
-      VGA_RAM[(termRow_ * VGA_WIDTH) + termCol_] = vgaEntry(sv[i], termColor_);
+      VGA_RAM[(termRow_ * VGA_WIDTH) + termCol_] = vgaEntry(c, termColor_);
       advCol();
     }
   }

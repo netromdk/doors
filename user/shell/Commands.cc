@@ -36,9 +36,9 @@ int dispatch(const span<string_view> &args)
     return 0;
   }
 
-  for (size_t i = 0; i < cmdTable.size(); ++i) {
-    if (args[0] == cmdTable[i].name) {
-      cmdTable[i].handler(args);
+  for (const auto &cmd : cmdTable) {
+    if (args[0] == cmd.name) {
+      cmd.handler(args);
       return 0;
     }
   }

@@ -13,8 +13,8 @@ TEST_CASE_FIXTURE(SchedulerFixture, "Signals: initial state is zero")
   REQUIRE(t != nullptr);
 
   CHECK(t->pendingSignals == 0);
-  for (int i = 0; i < Task::SIGNAL_MAX; ++i) {
-    CHECK(t->signalHandlers[i] == nullptr);
+  for (auto *handler : t->signalHandlers) {
+    CHECK(handler == nullptr);
   }
   CHECK(t->savedSignalEip == 0);
   CHECK(t->savedSignalEflags == 0);
