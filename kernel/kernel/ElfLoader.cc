@@ -173,14 +173,14 @@ bool mapSegmentRange(const void *elf, const Elf32_Phdr *phdr, MappedPage *mapped
     }
 
     auto [off, len] = pageRange(vaddr, phdr->p_vaddr, phdr->p_vaddr + phdr->p_filesz);
-    if (len) {
+    if (len != 0u) {
       const auto fileOff = phdr->p_offset + (vaddr + off - phdr->p_vaddr);
       __builtin_memcpy(dst + off, static_cast<const uint8_t *>(elf) + fileOff, len);
     }
 
     auto [bssOff, bssLen] =
       pageRange(vaddr, phdr->p_vaddr + phdr->p_filesz, phdr->p_vaddr + phdr->p_memsz);
-    if (bssLen) {
+    if (bssLen != 0u) {
       __builtin_memset(dst + bssOff, 0, bssLen);
     }
   }

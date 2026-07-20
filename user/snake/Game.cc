@@ -40,7 +40,7 @@ int highScore_ = 0;
 // Draw a null-terminated string left-to-right at (row, col), advancing col.
 void drawStr(int row, int &col, const char *s, uint8_t color)
 {
-  while (*s) {
+  while (*s != '\0') {
     Screen::put(row, col++, *s++, color);
   }
 }
