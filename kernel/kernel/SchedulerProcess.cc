@@ -428,8 +428,8 @@ uint32_t Scheduler::exec(int modIdx)
 
   // Reset signal handlers to `nullptr` across exec. Pending signals are preserved so they are
   // delivered after exec returns (matches Unix semantics).
-  for (int i = 0; i < Task::SIGNAL_MAX; ++i) {
-    t.signalHandlers[i] = nullptr;
+  for (auto &handler : t.signalHandlers) {
+    handler = nullptr;
   }
   t.savedSignalEip = 0;
   t.savedSignalEflags = 0;

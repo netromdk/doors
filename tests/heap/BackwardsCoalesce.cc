@@ -63,9 +63,9 @@ TEST_CASE_FIXTURE(HeapFixture, "backwards merge does not corrupt free list")
   // Allocate many blocks, free some in a pattern that triggers backward merge, then allocate to
   // verify free list integrity.
   void *ptrs[5];
-  for (int i = 0; i < 5; ++i) {
-    ptrs[i] = Heap::alloc(8);
-    REQUIRE(ptrs[i] != nullptr);
+  for (auto &ptr : ptrs) {
+    ptr = Heap::alloc(8);
+    REQUIRE(ptr != nullptr);
   }
 
   Heap::free(ptrs[2]);

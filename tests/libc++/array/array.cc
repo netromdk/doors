@@ -95,8 +95,8 @@ TEST_CASE("array begin end")
 {
   array<int, 3> a = {10, 20, 30};
   int sum = 0;
-  for (auto it = a.begin(); it != a.end(); ++it) {
-    sum += *it;
+  for (int v : a) {
+    sum += v;
   }
   CHECK(sum == 60);
 }
@@ -105,8 +105,8 @@ TEST_CASE("array begin end const")
 {
   const array<int, 3> a = {10, 20, 30};
   int sum = 0;
-  for (auto it = a.begin(); it != a.end(); ++it) {
-    sum += *it;
+  for (int v : a) {
+    sum += v;
   }
   CHECK(sum == 60);
 }
@@ -157,8 +157,8 @@ TEST_CASE("array cbegin cend")
 {
   const array<int, 3> a = {1, 2, 3};
   int sum = 0;
-  for (auto it = a.cbegin(); it != a.cend(); ++it) {
-    sum += *it;
+  for (int v : a) {
+    sum += v;
   }
   CHECK(sum == 6);
 }
