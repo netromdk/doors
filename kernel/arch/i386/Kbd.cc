@@ -415,6 +415,8 @@ void Kbd::processScancode(uint8_t scancode, bool extended)
     case MOD_ALT:
       altPressed_ = !release;
       break;
+    default:
+      break;
     }
     return;
   }
