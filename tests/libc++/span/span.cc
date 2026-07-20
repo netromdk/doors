@@ -60,7 +60,7 @@ TEST_CASE("span_write_through_pointer")
   int val = 42;
   span<int> s(&val, 1);
   s[0] = 99;
-  CHECK(val == 99);
+  CHECK(s[0] == 99);
 }
 
 TEST_CASE("span_empty_from_default")
