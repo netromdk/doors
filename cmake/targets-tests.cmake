@@ -61,3 +61,42 @@ add_custom_target(test
   DEPENDS tests
   VERBATIM
 )
+if (CPPCHECK AND CPPCHECK_EXE)
+  find_program(JQ_EXE NAMES jq)
+  if (JQ_EXE)
+    add_custom_target(cppcheck
+      COMMAND "${CMAKE_COMMAND}"
+        -DJQ_EXE=${JQ_EXE}
+        -DINPUT_FILE=${CMAKE_BINARY_DIR}/tests/compile_commands.json
+        -DOUTPUT_FILE=${CMAKE_BINARY_DIR}/compile_commands_cppcheck.json
+        -DEXCLUDE_REGEX="tests/doctest|concepts.cc"
+        -P ${CMAKE_SOURCE_DIR}/cmake/filter-compile-commands.cmake
+      COMMAND ${CPPCHECK_EXE}
+        --project=${CMAKE_BINARY_DIR}/compile_commands_cppcheck.json
+        --enable=warning,style,performance,portability
+        --suppress=missingInclude
+        --suppress=unknownMacro
+        --suppress=preprocessorErrorDirective
+        --suppress=staticStringCompare
+        --suppress=cstyleCast
+        --suppress=useStandardLibrary
+        --suppress=uninitMemberVar
+        --suppress=noConstructor
+        --suppress=useInitializationList
+        --suppress=noExplicitConstructor
+        --suppress=uselessCallsSubstr
+        --suppress=postfixOperator
+        --suppress=constVariableReference
+        --suppress=useStlAlgorithm
+        --suppress=syntaxError
+        --error-exitcode=1
+        --inline-suppr
+        --std=c++20
+      WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+      COMMENT "Running cppcheck static analysis..."
+    )
+  else()
+    message(WARNING "CPPCHECK=ON but jq was not found on PATH. cppcheck target unavailable")
+  endif()
+endif()
+

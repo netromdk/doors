@@ -36,3 +36,7 @@ set(DOORS_BUILD_TYPE "Debug" CACHE STRING
 option(CLANG_TIDY
   "Run clang-tidy static analysis on host-compiled targets"
   OFF)
+
+option(CPPCHECK
+  "Add a cppcheck custom target for static analysis"
+  OFF)

@@ -58,13 +58,25 @@
     {
       "name": "analyze",
       "displayName": "Analyze",
-      "description": "Static analysis: clang-tidy on host tests and kernel files",
+      "description": "Static analysis: clang-tidy + cppcheck on host tests and kernel files",
       "inherits": "default",
       "binaryDir": "${sourceDir}/build/analyze",
       "cacheVariables": {
         "CLANG_TIDY": "ON",
+        "CPPCHECK": "ON"
       }
     },
+    {
+      "name": "analyze+sanitize",
+      "displayName": "Analyze + Sanitize",
+      "description": "Static analysis + ASan/UBSan on host-compiled tests",
+      "inherits": "default",
+      "binaryDir": "${sourceDir}/build/analyze-sanitize",
+      "cacheVariables": {
+        "CLANG_TIDY": "ON",
+        "CPPCHECK": "ON",
+        "SANITIZERS": "address;undefined"
+      }
     }
   ],
   "buildPresets": [
@@ -98,6 +110,10 @@
       "configurePreset": "analyze",
       "jobs": 0
     },
+    {
+      "name": "analyze+sanitize",
+      "configurePreset": "analyze+sanitize",
+      "jobs": 0
     }
   ],
   "testPresets": [
@@ -126,6 +142,10 @@
       "configurePreset": "analyze",
       "output": { "outputOnFailure": true }
     },
+    {
+      "name": "analyze+sanitize",
+      "configurePreset": "analyze+sanitize",
+      "output": { "outputOnFailure": true }
     }
   ]
 }

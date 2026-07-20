@@ -1,0 +1,47 @@
+// Freestanding headers are not standard library.
+missingInclude
+
+// Project macros (__IS_DOORS_KERNEL, __IS_DOORS_LIBCPP, etc.) not visible to cppcheck.
+unknownMacro
+
+// Conditional compilation patterns trip the preprocessor error directive check.
+preprocessorErrorDirective
+
+// Tests for strcmp/strncmp intentionally compare string literals.
+staticStringCompare
+
+// Freestanding libc++ uses C-style casts by convention.
+cstyleCast
+
+// cppcheck suggests std::memcpy inside the memcpy implementation itself.
+useStandardLibrary
+
+// --- doctest (third-party test framework) suppressions ---
+// These appear when cppcheck analyzes doctest.h included from test sources.
+
+// Default-initialized members in doctest internal classes.
+uninitMemberVar
+
+// Anonymous classes and template-heavy internals.
+noConstructor
+
+// Constructor body assignments in doctest infrastructure.
+useInitializationList
+
+// doctest and libc++ intentionally use implicit conversions.
+noExplicitConstructor
+
+// doctest string manipulation internals.
+uselessCallsSubstr
+
+// doctest uses postfix ++ on atomics (intentional API choice).
+postfixOperator
+
+// doctest internal loops use non-const references intentionally.
+constVariableReference
+
+// doctest uses raw loops where algorithms would be overkill.
+useStlAlgorithm
+
+// cppcheck can't parse static constexpr int in certain header contexts.
+syntaxError
