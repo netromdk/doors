@@ -5,7 +5,7 @@
 
 int64_t strtoll(const char *str, char **endptr, int base)
 {
-  const int64_t res = static_cast<int64_t>(strtoull(str, endptr, base));
+  const auto res = static_cast<int64_t>(strtoull(str, endptr, base));
   if (res == 0) {
     return res;
   }

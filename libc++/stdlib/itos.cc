@@ -6,7 +6,7 @@
 void itos(int32_t num, char *str, uint8_t base, bool upcase)
 {
   // Handle the sign so the division loop below works on an unsigned value.
-  uint32_t unum = static_cast<uint32_t>(num);
+  auto unum = static_cast<uint32_t>(num);
   if (num < 0) {
     *str++ = '-';
     unum = -unum;
