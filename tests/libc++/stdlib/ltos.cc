@@ -1,6 +1,6 @@
 #include <doctest/doctest.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 TEST_CASE("ltos")
 {

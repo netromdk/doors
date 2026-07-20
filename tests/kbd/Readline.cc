@@ -1,7 +1,7 @@
 #include "KbdFixture.h"
 #include <doctest/doctest.h>
 #include <kernel/Keymap.h>
-#include <string.h>
+#include <cstring>
 
 TEST_CASE_FIXTURE(KbdFixture, "simple")
 {

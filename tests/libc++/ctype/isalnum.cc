@@ -1,4 +1,4 @@
-#include <ctype.h>
+#include <cctype>
 #include <doctest/doctest.h>
 
 TEST_CASE("isalnum")

@@ -1,7 +1,7 @@
 #include <doctest/doctest.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
 
 TEST_CASE("utos")
 {

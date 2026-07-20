@@ -1,4 +1,4 @@
-#include <stdint.h>
+#include <cstdint>
 #include <kernel/Vga.h>
 
 static uint16_t vgaTestBuffer[VGA_WIDTH * VGA_HEIGHT];

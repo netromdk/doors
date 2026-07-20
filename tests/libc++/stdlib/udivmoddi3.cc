@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include <stdint.h>
+#include <cstdint>
 
 extern "C" uint64_t __udivdi3(uint64_t a, uint64_t b);
 extern "C" uint64_t __umoddi3(uint64_t a, uint64_t b);

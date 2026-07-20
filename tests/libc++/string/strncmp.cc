@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include <string.h>
+#include <cstring>
 
 TEST_CASE("strncmp")
 {

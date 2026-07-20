@@ -1,5 +1,5 @@
 #include <doctest/doctest.h>
-#include <stdlib.h>
+#include <cstdlib>
 
 TEST_CASE("strtoul")
 {
