@@ -345,11 +345,7 @@ struct Tracker {
     --alive;
   }
 
-  Tracker &operator=(const Tracker &o)
-  {
-    id = o.id;
-    return *this;
-  }
+  Tracker &operator=(const Tracker &o) = default;
 
   Tracker &operator=(Tracker &&o) noexcept
   {
