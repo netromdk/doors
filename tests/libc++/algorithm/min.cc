@@ -34,11 +34,13 @@ TEST_CASE("min")
   CHECK(min(1, 2) == 1);
   CHECK(min(100, 20) == 20);
 
-  const int a = 10, b = 20;
+  const int a = 10;
+  const int b = 20;
   CHECK(&min(a, b) == &a);
   CHECK(min(a, b) == 10);
 
-  const Test t1(100), t2(30);
+  const Test t1(100);
+  const Test t2(30);
   CHECK(min(t1, t2) == t2);
   CHECK(&min(t1, t2) == &t2);
 }

@@ -32,37 +32,45 @@ TEST_CASE("clamp returns reference to hi when above")
 
 TEST_CASE("clamp returns reference to value when in range")
 {
-  const int v = 5, a = 1, b = 10;
+  const int v = 5;
+  const int a = 1;
+  const int b = 10;
   CHECK(&clamp(v, a, b) == &v);
 }
 
 TEST_CASE("clamp returns correct value when in range")
 {
-  const int v = 5, a = 1, b = 10;
+  const int v = 5;
+  const int a = 1;
+  const int b = 10;
   CHECK(clamp(v, a, b) == 5);
 }
 
 TEST_CASE("clamp returns reference to value at low boundary")
 {
-  const int a = 1, b = 10;
+  const int a = 1;
+  const int b = 10;
   CHECK(&clamp(a, a, b) == &a);
 }
 
 TEST_CASE("clamp returns reference to value at high boundary")
 {
-  const int a = 1, b = 10;
+  const int a = 1;
+  const int b = 10;
   CHECK(&clamp(b, a, b) == &b);
 }
 
 TEST_CASE("clamp returns reference to value when lo equals v")
 {
-  const int v = 5, b = 10;
+  const int v = 5;
+  const int b = 10;
   CHECK(&clamp(v, v, b) == &v);
 }
 
 TEST_CASE("clamp returns reference to value when hi equals v")
 {
-  const int v = 5, a = 1;
+  const int v = 5;
+  const int a = 1;
   CHECK(&clamp(v, a, v) == &v);
 }
 
