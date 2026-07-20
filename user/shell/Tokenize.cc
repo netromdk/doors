@@ -45,5 +45,5 @@ span<string_view> tokenize(const string &line)
   }
 
   buf[argc] = string_view();
-  return span<string_view>(buf.data(), static_cast<size_t>(argc));
+  return {buf.data(), static_cast<size_t>(argc)};
 }

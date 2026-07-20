@@ -471,12 +471,12 @@ string::size_type string::copy(char *s, size_type count, size_type pos) const no
 string string::substr(size_type pos, size_type count) const noexcept
 {
   if (pos >= size_) {
-    return string();
+    return {};
   }
   if (count == npos || pos + count > size_) {
     count = size_ - pos;
   }
-  return string(data_ + pos, count);
+  return {data_ + pos, count};
 }
 
 string::size_type string::find(const string &str, size_type pos) const noexcept
