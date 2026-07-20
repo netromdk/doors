@@ -11,6 +11,19 @@ constexpr uint8_t MOD_ALT = 0x04;
 
 constexpr uint8_t SCANCODE_A = 0x1E;
 constexpr uint8_t SCANCODE_CAPS_LOCK = 0x3A;
+constexpr uint8_t SCANCODE_LCTRL = 0x1D;
+constexpr uint8_t SCANCODE_LSHIFT = 0x2A;
+constexpr uint8_t SCANCODE_RSHIFT = 0x36;
+constexpr uint8_t SCANCODE_LALT = 0x38;
+constexpr uint8_t SCANCODE_UP = 0x48;
+constexpr uint8_t SCANCODE_DOWN = 0x50;
+constexpr uint8_t SCANCODE_LEFT = 0x4B;
+constexpr uint8_t SCANCODE_RIGHT = 0x4D;
+constexpr uint8_t SCANCODE_PAGEUP = 0x49;
+constexpr uint8_t SCANCODE_PAGEDOWN = 0x51;
+constexpr uint8_t SCANCODE_HOME = 0x47;
+constexpr uint8_t SCANCODE_END = 0x4F;
+constexpr uint8_t SCANCODE_BREAK_BIT = 0x80;
 
 struct ScancodeEntry {
   Key key;
