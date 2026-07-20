@@ -1356,7 +1356,7 @@ TEST_CASE("find 3-arg not found")
 
 TEST_CASE("find 3-arg with embedded null")
 {
-  char needle[] = "he\0llo";
+  const char needle[] = "he\0llo";
   string haystack("he\0llo world", 12);
   CHECK(haystack.find(needle, 0, 6) == 0);
 }
