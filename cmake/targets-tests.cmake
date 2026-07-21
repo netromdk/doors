@@ -150,6 +150,7 @@ if (CODE_COVERAGE)
   set(_cov_report "${_cov_dir}/report.txt")
   set(_cov_port "8080")
   set(_cov_url "http://localhost:${_cov_port}")
+  set(_cov_ignore_errors corrupt,inconsistent,unsupported,empty,format,count,unused,category)
 
   add_custom_target(coverage
     COMMAND "${CMAKE_COMMAND}" -E make_directory
@@ -167,13 +168,13 @@ if (CODE_COVERAGE)
     # Capture coverage data from the test binaries. `--no-external` excludes system/third-party
     # headers. Stderr is silenced because --ignore-errors already makes all warnings non-fatal, and
     # the && chain still catches genuine errors via exit codes.
-    COMMAND sh -c "'${LCOV_EXE}' --capture --directory '${CMAKE_BINARY_DIR}/tests' --base-directory '${CMAKE_SOURCE_DIR}' --output-file '${_cov_info}' --no-external --ignore-errors gcov,inconsistent,unsupported,empty,format,count ${_lcov_args_str} 2>/dev/null"
+    COMMAND sh -c "'${LCOV_EXE}' --capture --directory '${CMAKE_BINARY_DIR}/tests' --base-directory '${CMAKE_SOURCE_DIR}' --output-file '${_cov_info}' --no-external --ignore-errors ${_cov_ignore_errors} ${_lcov_args_str} 2>/dev/null"
 
     # Strip out the Doctest header-only library from the report.
-    COMMAND sh -c "'${LCOV_EXE}' --remove '${_cov_info}' '*/tests/doctest/*' --output-file '${_cov_info}' --ignore-errors inconsistent,unsupported,format,empty,count,unused --quiet 2>/dev/null"
+    COMMAND sh -c "'${LCOV_EXE}' --remove '${_cov_info}' '*/tests/doctest/*' --output-file '${_cov_info}' --ignore-errors ${_cov_ignore_errors} --quiet 2>/dev/null"
 
     # Generate an HTML report from the filtered .info file.
-    COMMAND sh -c "'${GENHTML_EXE}' '${_cov_info}' --output-directory '${_cov_html}' --ignore-errors corrupt,inconsistent,count,empty,category --quiet 2>/dev/null"
+    COMMAND sh -c "'${GENHTML_EXE}' '${_cov_info}' --output-directory '${_cov_html}' --ignore-errors ${_cov_ignore_errors} --quiet 2>/dev/null"
 
     COMMAND "${CMAKE_COMMAND}" -E echo
             "Coverage report: ${_cov_html}/index.html"
@@ -198,10 +199,10 @@ if (CODE_COVERAGE)
   add_custom_target(coverage-report
     COMMAND sh -c
       "(${LCOV_EXE} --list ${_cov_info} \
-         --ignore-errors empty; \
+         --ignore-errors ${_cov_ignore_errors}; \
        echo; \
        ${LCOV_EXE} --summary ${_cov_info} \
-         --ignore-errors empty) \
+         --ignore-errors ${_cov_ignore_errors}) \
       | tee ${_cov_report}"
     DEPENDS coverage
     COMMENT "Coverage report (also saved to coverage/report.txt):"
