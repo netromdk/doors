@@ -90,6 +90,16 @@ struct SchedulerTestAccess {
   {
     Scheduler::deliverPendingSignals();
   }
+
+  static void deliverPendingSignalsAtEsp(uint32_t esp)
+  {
+    Scheduler::deliverPendingSignalsAtEsp(esp);
+  }
+
+  static bool deliverSigsegvFromException(uint32_t *frame)
+  {
+    return Scheduler::deliverSigsegvFromException(frame);
+  }
 };
 
 #endif // TESTS_SCHEDULER_SCHEDULERTESTACCESS_H
