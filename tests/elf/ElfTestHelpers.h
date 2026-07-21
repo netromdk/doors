@@ -46,4 +46,27 @@ inline void buildValidElf(uint8_t *buf, size_t bufSize, uint32_t entry, uint16_t
   write16(buf, __builtin_offsetof(Elf32_Ehdr, e_phnum), segmentCount);
 }
 
+// Write a program header at index `idx` in `buf`.
+// `bufSize` must be at least `sizeof(Elf32_Ehdr) + (idx + 1) * sizeof(Elf32_Phdr)`.
+inline void addPhdr(uint8_t *buf, size_t bufSize, size_t idx, uint32_t type, uint32_t vaddr,
+                    uint32_t memsz, uint32_t filesz, uint32_t offset)
+{
+  // Check if offset arithmetic wrapped on 32-bit `size_t`.
+  size_t off{};
+  if (__builtin_add_overflow(sizeof(Elf32_Ehdr), idx * sizeof(Elf32_Phdr), &off)) {
+    return;
+  }
+
+  // Guard on size.
+  if (off + sizeof(Elf32_Phdr) > bufSize) {
+    return;
+  }
+
+  write32(buf, off + __builtin_offsetof(Elf32_Phdr, p_type), type);
+  write32(buf, off + __builtin_offsetof(Elf32_Phdr, p_offset), offset);
+  write32(buf, off + __builtin_offsetof(Elf32_Phdr, p_vaddr), vaddr);
+  write32(buf, off + __builtin_offsetof(Elf32_Phdr, p_filesz), filesz);
+  write32(buf, off + __builtin_offsetof(Elf32_Phdr, p_memsz), memsz);
+}
+
 #endif // TESTS_ELF_ELFTESTHELPERS_H
