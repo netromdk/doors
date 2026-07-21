@@ -34,7 +34,7 @@ inline void buildValidElf(uint8_t *buf, size_t bufSize, uint32_t entry, uint16_t
   buf[3] = 'F';
   buf[EI_CLASS] = 1;
   buf[EI_DATA] = 1;
-  buf[EI_VERSION] = 1;
+  buf[EI_VERSION] = EV_CURRENT;
 
   write16(buf, __builtin_offsetof(Elf32_Ehdr, e_type), ET_EXEC);
   write16(buf, __builtin_offsetof(Elf32_Ehdr, e_machine), EM_386);

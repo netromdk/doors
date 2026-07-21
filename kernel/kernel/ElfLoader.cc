@@ -9,8 +9,8 @@
 #include <kernel/ElfLoader.h>
 
 #ifdef __IS_DOORS_KERNEL
-#include <kernel/Pmm.h>
 #include <arch/i386/Paging.h>
+#include <kernel/Pmm.h>
 #endif
 
 bool ElfLoader::validate(const void *elf, size_t size)
@@ -37,7 +37,7 @@ bool ElfLoader::validate(const void *elf, size_t size)
   }
 
   // EI_VERSION = current.
-  if (ehdr->e_ident[EI_VERSION] != 1) {
+  if (ehdr->e_ident[EI_VERSION] != EV_CURRENT) {
     return false;
   }
 
