@@ -1,5 +1,6 @@
 #include <cstdint>
 
+#include <kernel/Pit.h>
 #include <kernel/Scheduler.h>
 #include <kernel/Task.h>
 
@@ -104,6 +105,7 @@ TEST_CASE_FIXTURE(SchedulerFixture, "sleep queue: inserts sorted by deadline")
   CHECK(SchedulerTestAccess::sleepCount() == 2);
 
   const auto *q = SchedulerTestAccess::sleepQueue();
+  REQUIRE(q != nullptr);
   CHECK(q[0].deadline == EARLY);
   CHECK(q[0].taskId == 1);
   CHECK(q[1].deadline == LATE);
@@ -180,4 +182,66 @@ TEST_CASE_FIXTURE(SchedulerFixture, "sleep queue: unblockTask removes from queue
   pitTicks = DEADLINE + 1;
   Scheduler::tick(0);
   CHECK(SchedulerTestAccess::sleepCount() == 0);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "blockCurrentTaskAndYield: sets BLOCKED state")
+{
+  Scheduler::addTask("t", nullptr);
+  SchedulerTestAccess::setCurrentIdx(1);
+  Scheduler::blockCurrentTaskAndYield();
+
+  CHECK(Scheduler::taskState(1) == TaskState::BLOCKED);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "programNextTick: expired sleep deadlines use floor of 1ms")
+{
+  Scheduler::addTask("task1", nullptr);
+  Scheduler::addTask("task2", nullptr);
+
+  constexpr uint64_t EARLY = 100;
+  constexpr uint64_t LATE = 200;
+
+  pitTicks = 0;
+  Scheduler::sleep(EARLY);
+  SchedulerTestAccess::setCurrentIdx(1);
+  Scheduler::sleep(LATE);
+
+  // Advance past both deadlines so all entries are expired.
+  pitTicks = LATE + 10;
+  SchedulerTestAccess::setQuantumStartMs(pitTicks);
+  SchedulerTestAccess::programNextTick();
+
+  // All deadlines expired: nextMs = 1 (floor). Quantum is fresh so it does not override.
+  CHECK(Pit::deadline() == pitTicks + 1);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "removeFromSleepQueue: middle removal preserves order")
+{
+  Scheduler::addTask("task1", nullptr);
+  Scheduler::addTask("task2", nullptr);
+
+  constexpr uint64_t EARLY = 100;
+  constexpr uint64_t MID = 200;
+  constexpr uint64_t LATE = 300;
+
+  pitTicks = 0;
+  Scheduler::sleep(EARLY);
+  SchedulerTestAccess::setCurrentIdx(1);
+  Scheduler::sleep(MID);
+  SchedulerTestAccess::setCurrentIdx(2);
+  Scheduler::sleep(LATE);
+
+  CHECK(SchedulerTestAccess::sleepCount() == 3);
+
+  // Unblock the middle task (`id=1`, `deadline=MID`).
+  Scheduler::unblockTask(1);
+
+  CHECK(SchedulerTestAccess::sleepCount() == 2);
+
+  const auto *q = SchedulerTestAccess::sleepQueue();
+  REQUIRE(q != nullptr);
+  CHECK(q[0].deadline == EARLY);
+  CHECK(q[0].taskId == 0);
+  CHECK(q[1].deadline == LATE);
+  CHECK(q[1].taskId == 2);
 }
