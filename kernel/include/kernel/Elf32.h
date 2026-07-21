@@ -19,6 +19,8 @@ constexpr int EI_CLASS = 4;   // Architecture class (1 = 32-bit).
 constexpr int EI_DATA = 5;    // Data encoding (1 = little-endian).
 constexpr int EI_VERSION = 6; // ELF version.
 
+constexpr uint8_t EV_CURRENT = 1; // Current ELF version.
+
 struct Elf32_Ehdr {
   unsigned char e_ident[16]; // ELF identification bytes.
   uint16_t e_type;           // Object file type (ET_*).
