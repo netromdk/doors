@@ -6,6 +6,12 @@
 #include "SchedulerFixture.h"
 #include <doctest/doctest.h>
 
+namespace {
+
+constexpr size_t FRAME_WORDS = Scheduler::FRAME_SIZE_USER / sizeof(uint32_t);
+
+} // namespace
+
 TEST_CASE_FIXTURE(SchedulerFixture, "Signals: initial state is zero")
 {
   Scheduler::addTask("t", nullptr);
@@ -166,7 +172,7 @@ TEST_CASE_FIXTURE(SchedulerFixture,
   Scheduler::addTask("t", nullptr);
   SchedulerTestAccess::setCurrentIdx(1);
 
-  uint32_t frame[13]{};
+  uint32_t frame[FRAME_WORDS]{};
   CHECK(SchedulerTestAccess::deliverSigsegvFromException(frame) == false);
 }
 
@@ -174,7 +180,7 @@ TEST_CASE_FIXTURE(SchedulerFixture, "Signals: deliverSigsegvFromException invali
 {
   SchedulerTestAccess::setCurrentIdx(99);
 
-  uint32_t frame[13]{};
+  uint32_t frame[FRAME_WORDS]{};
   CHECK(SchedulerTestAccess::deliverSigsegvFromException(frame) == false);
 }
 
