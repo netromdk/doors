@@ -8,6 +8,8 @@
 
 namespace {
 
+constexpr int HISTORY_TEST_MAX = 4;
+
 int onKillCalls_ = 0;
 
 void incOnKill()
@@ -157,4 +159,107 @@ TEST_CASE_FIXTURE(SchedulerFixture, "killTask: onKill reset to nullptr on slot r
   Scheduler::addTask("second", nullptr);
 
   CHECK(SchedulerTestAccess::getTask(1)->onKill == nullptr);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: marks BLOCKED task as DEAD")
+{
+  Scheduler::addTask("t", nullptr);
+  SchedulerTestAccess::getTask(1)->state = TaskState::BLOCKED;
+  REQUIRE(Scheduler::taskState(1) == TaskState::BLOCKED);
+
+  Scheduler::killTask(1);
+  CHECK(Scheduler::taskState(1) == TaskState::DEAD);
+  CHECK(Scheduler::totalExited() == 1);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: BLOCKED task calls onKill handler")
+{
+  onKillCalls_ = 0;
+  Scheduler::addTask("t", nullptr);
+  SchedulerTestAccess::getTask(1)->state = TaskState::BLOCKED;
+  SchedulerTestAccess::getTask(1)->onKill = incOnKill;
+
+  Scheduler::killTask(1);
+  CHECK(onKillCalls_ == 1);
+  CHECK(Scheduler::taskState(1) == TaskState::DEAD);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: unblockOnExit resets to -1 and calls unblockTask")
+{
+  Scheduler::addTask("blocker", nullptr); // slot 1
+  Scheduler::addTask("blocked", nullptr); // slot 2
+  SchedulerTestAccess::getTask(2)->unblockOnExit = 1;
+
+  Scheduler::killTask(2);
+  CHECK(Scheduler::taskState(2) == TaskState::DEAD);
+  CHECK(SchedulerTestAccess::getTask(2)->unblockOnExit == -1);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: unblockOnExit -1 is not called")
+{
+  Scheduler::addTask("t", nullptr);
+  SchedulerTestAccess::getTask(1)->unblockOnExit = -1;
+
+  Scheduler::killTask(1);
+  CHECK(Scheduler::taskState(1) == TaskState::DEAD);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: frees historyBuf_ when non-null")
+{
+  Scheduler::addTask("t", nullptr);
+
+  // Simulate a history buffer allocation.
+  auto *histBuf = new string[HISTORY_TEST_MAX];
+  SchedulerTestAccess::getTask(1)->historyBuf_ = histBuf;
+  REQUIRE(SchedulerTestAccess::getTask(1)->historyBuf_ != nullptr);
+
+  Scheduler::killTask(1);
+  CHECK(Scheduler::taskState(1) == TaskState::DEAD);
+  CHECK(SchedulerTestAccess::getTask(1)->historyBuf_ == nullptr);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: historyBuf_ nullptr is not freed")
+{
+  Scheduler::addTask("t", nullptr);
+  REQUIRE(SchedulerTestAccess::getTask(1)->historyBuf_ == nullptr);
+
+  // Should not crash.
+  Scheduler::killTask(1);
+  CHECK(Scheduler::taskState(1) == TaskState::DEAD);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: stack freed and pointers nulled")
+{
+  Scheduler::addTask("t", nullptr);
+  REQUIRE(SchedulerTestAccess::getTask(1)->stackBuf != nullptr);
+
+  Scheduler::killTask(1);
+  CHECK(SchedulerTestAccess::getTask(1)->stackBuf == nullptr);
+  CHECK(SchedulerTestAccess::getTask(1)->stackSize == 0);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: invalid id does not change taskCount")
+{
+  const int before = Scheduler::taskCount();
+  Scheduler::killTask(-1);
+  Scheduler::killTask(100);
+  CHECK(Scheduler::taskCount() == before);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: READY task with BLOCKED sibling")
+{
+  Scheduler::addTask("ready1", nullptr);
+  Scheduler::addTask("ready2", nullptr);
+  SchedulerTestAccess::getTask(2)->state = TaskState::BLOCKED;
+
+  Scheduler::killTask(2);
+  CHECK(Scheduler::taskState(2) == TaskState::DEAD);
+  CHECK(Scheduler::taskState(1) == TaskState::READY);
+  CHECK(Scheduler::deadTaskCount() == 1);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "killTask: does not kill idle task")
+{
+  Scheduler::killTask(0);
+  CHECK(Scheduler::taskState(0) == TaskState::RUNNING);
 }

@@ -67,8 +67,6 @@ TEST_CASE_FIXTURE(SchedulerFixture, "Signals: deliverPendingSignals clears pendi
   SchedulerTestAccess::setCurrentIdx(1);
   SchedulerTestAccess::deliverPendingSignals();
   CHECK(t->pendingSignals == 0);
-
-  SchedulerTestAccess::setCurrentIdx(0);
 }
 
 TEST_CASE_FIXTURE(SchedulerFixture, "Signals: deliverPendingSignals no-op when no pending")
@@ -82,8 +80,6 @@ TEST_CASE_FIXTURE(SchedulerFixture, "Signals: deliverPendingSignals no-op when n
   const auto *t = SchedulerTestAccess::getTask(1);
   REQUIRE(t != nullptr);
   CHECK(t->pendingSignals == 0);
-
-  SchedulerTestAccess::setCurrentIdx(0);
 }
 
 TEST_CASE_FIXTURE(SchedulerFixture, "Signals: multiple bits can be set simultaneously")
@@ -125,4 +121,117 @@ TEST_CASE_FIXTURE(SchedulerFixture, "Signals: task fields not shared between slo
   SchedulerTestAccess::sendSignal(t1->pid, Task::SIGTERM);
   CHECK((t1->pendingSignals & (1u << Task::SIGTERM)) != 0);
   CHECK(t2->pendingSignals == 0);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "Signals: sendSignal skips DEAD task")
+{
+  Scheduler::addTask("t", nullptr);
+  SchedulerTestAccess::getTask(1)->state = TaskState::DEAD;
+
+  CHECK(SchedulerTestAccess::getTask(1)->pendingSignals == 0);
+  SchedulerTestAccess::sendSignal(SchedulerTestAccess::getTask(1)->pid, Task::SIGTERM);
+  CHECK(SchedulerTestAccess::getTask(1)->pendingSignals == 0);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "Signals: sendSignal to idle is no-op")
+{
+  const int idlePid = SchedulerTestAccess::getTask(0)->pid;
+  CHECK(SchedulerTestAccess::getTask(0)->pendingSignals == 0);
+  SchedulerTestAccess::sendSignal(idlePid, Task::SIGTERM);
+  CHECK(SchedulerTestAccess::getTask(0)->pendingSignals == 0);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "Signals: sendSignal to BLOCKED task unblocks it")
+{
+  Scheduler::addTask("t", nullptr);
+  auto *t = SchedulerTestAccess::getTask(1);
+  REQUIRE(t != nullptr);
+
+  // Block the task.
+  t->state = TaskState::BLOCKED;
+  t->wakeupMs = 5000;
+  REQUIRE(t->state == TaskState::BLOCKED);
+  CHECK(t->pendingSignals == 0);
+
+  SchedulerTestAccess::sendSignal(t->pid, Task::SIGTERM);
+
+  CHECK(t->state == TaskState::READY);
+  CHECK(t->wakeupMs == 0);
+  CHECK((t->pendingSignals & (1u << Task::SIGTERM)) != 0);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture,
+                  "Signals: deliverSigsegvFromException returns false in test build")
+{
+  Scheduler::addTask("t", nullptr);
+  SchedulerTestAccess::setCurrentIdx(1);
+
+  uint32_t frame[13]{};
+  CHECK(SchedulerTestAccess::deliverSigsegvFromException(frame) == false);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "Signals: deliverSigsegvFromException invalid currentIdx")
+{
+  SchedulerTestAccess::setCurrentIdx(99);
+
+  uint32_t frame[13]{};
+  CHECK(SchedulerTestAccess::deliverSigsegvFromException(frame) == false);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "Signals: deliverPendingSignalsAtEsp clears pending for ring-0")
+{
+  Scheduler::addTask("t", nullptr);
+  const auto *t = SchedulerTestAccess::getTask(1);
+  REQUIRE(t != nullptr);
+
+  SchedulerTestAccess::sendSignal(t->pid, Task::SIGTERM);
+  CHECK((t->pendingSignals & (1u << Task::SIGTERM)) != 0);
+
+  SchedulerTestAccess::setCurrentIdx(1);
+  SchedulerTestAccess::deliverPendingSignalsAtEsp(0x1000);
+  CHECK(t->pendingSignals == 0);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "Signals: deliverPendingSignalsAtEsp invalid currentIdx")
+{
+  SchedulerTestAccess::setCurrentIdx(99);
+
+  // Should return without crashing.
+  SchedulerTestAccess::deliverPendingSignalsAtEsp(0x1000);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "Signals: deliverPendingSignals lowest signal selected")
+{
+  Scheduler::addTask("t", nullptr);
+  SchedulerTestAccess::setCurrentIdx(1);
+
+  // Set multiple signals.
+  const auto pid = SchedulerTestAccess::getTask(1)->pid;
+  SchedulerTestAccess::sendSignal(pid, Task::SIGTERM);
+  SchedulerTestAccess::sendSignal(pid, Task::SIGALRM);
+  SchedulerTestAccess::sendSignal(pid, Task::SIGSEGV);
+
+  const auto *t = SchedulerTestAccess::getTask(1);
+  REQUIRE(t != nullptr);
+
+  const uint32_t mask = (1u << Task::SIGTERM) | (1u << Task::SIGALRM) | (1u << Task::SIGSEGV);
+  CHECK(t->pendingSignals == mask);
+
+  // `deliverPendingSignals()` clears pending for ring-0 tasks.
+  SchedulerTestAccess::deliverPendingSignals();
+  CHECK(t->pendingSignals == 0);
+}
+
+TEST_CASE_FIXTURE(SchedulerFixture, "Signals: deliverPendingSignalsAtEsp sets esp")
+{
+  Scheduler::addTask("t", nullptr);
+  SchedulerTestAccess::setCurrentIdx(1);
+
+  const auto *t = SchedulerTestAccess::getTask(1);
+  REQUIRE(t != nullptr);
+
+  // Ring-0 task: `deliverPendingSignalsAtEsp()` should clear pending signals.
+  SchedulerTestAccess::sendSignal(t->pid, Task::SIGTERM);
+  SchedulerTestAccess::deliverPendingSignalsAtEsp(0x2000);
+  CHECK(t->pendingSignals == 0);
 }
