@@ -299,6 +299,7 @@ doors_test_module(test_kernel_panic
   "${PANIC_SRC}"
   "${SYMBOLS_SRC}"
 )
+target_compile_definitions(test_kernel_panic PRIVATE __IS_DOORS_KERNEL __DOORS_TESTING)
 
 doors_test_module(test_kernel_scheduler
   scheduler/Init.cc
