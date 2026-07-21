@@ -103,3 +103,10 @@ TEST_CASE_FIXTURE(TtyFixture, "putLine_uses_termColor")
   CHECK(VGA_RAM[(3 * VGA_WIDTH) + 0] == vgaEntry('X', vgaColor(COLOR_RED, COLOR_BLUE)));
   CHECK(VGA_RAM[(3 * VGA_WIDTH) + 1] == vgaEntry(' ', vgaColor(COLOR_RED, COLOR_BLUE)));
 }
+
+TEST_CASE_FIXTURE(TtyFixture, "putc_at_position_writes_to_VGA_RAM")
+{
+  Tty::putc('Q', 3, 5);
+
+  CHECK(VGA_RAM[(3 * VGA_WIDTH) + 5] == vgaEntry('Q', Tty::DEFAULT_COLOR));
+}

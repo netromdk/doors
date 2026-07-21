@@ -272,6 +272,7 @@ doors_test_module(test_kernel_tty
   tty/Backspace.cc
   tty/Cursor.cc
   tty/Scrollback.cc
+  tty/Scrolling.cc
   tty/StringPuts.cc
   tty/VgaRam.cc
   tty/Lock.cc
