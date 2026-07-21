@@ -398,6 +398,15 @@ doors_test_module(test_kernel_elf_user
 )
 target_compile_definitions(test_kernel_elf_user PRIVATE __IS_DOORS_KERNEL __DOORS_TESTING)
 
+doors_test_module(test_kernel_elf_loader
+  elf/ElfLoadKernel.cc
+  paging/PagingStub.cc
+  paging/PmmStub.cc
+  stubs.cc
+  "${ELF_SRC}"
+)
+target_compile_definitions(test_kernel_elf_loader PRIVATE __IS_DOORS_KERNEL __DOORS_TESTING)
+
 doors_test_module(test_kernel_cmos
   kernel/Cmos.cc
 )
