@@ -27,6 +27,11 @@ struct TtyTestAccess {
       reinterpret_cast<uint16_t *>(Tty::savedScreen_.data())[i] = 0;
     }
   }
+
+  static bool scrolling()
+  {
+    return Tty::scrolling_;
+  }
 };
 
 #endif // TESTS_TTY_TTYTESTACCESS_H
