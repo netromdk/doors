@@ -268,12 +268,28 @@ uint32_t Paging::clonePageDir(uint32_t srcDirPhys)
   auto *newPd = physToVirt32(pdFrame);
   __builtin_memset(newPd, 0, Pmm::PAGE_SIZE);
 
+  // On OOM, decrement refcounts for data frames already incremented, free user page table frames,
+  // and free the partially constructed page directory.
   auto rollback = [&](int upTo) {
     for (int j = 0; j < upTo; ++j) {
-      if (newPd[j] & PAGE_PRESENT) {
-        Pmm::freeFrame(pdePhysAddr(newPd[j]));
+      // Skip absent or kernel PDEs as kernel page tables are shared, not refcounted.
+      if (!(newPd[j] & PAGE_PRESENT) || !(newPd[j] & PAGE_USER)) {
+        continue;
       }
+
+      // Decrement refcounts for all data frames in this user page table.
+      auto *pt = physToVirt32(pdePhysAddr(newPd[j]));
+      for (int k = 0; k < PTE_COUNT; ++k) {
+        if (pt[k] & PAGE_PRESENT) {
+          auto *frame = reinterpret_cast<void *>(pt[k] & PAGE_ADDR_MASK);
+          Pmm::removeRef(frame);
+        }
+      }
+
+      // Free the page table frame itself.
+      Pmm::freeFrame(pdePhysAddr(newPd[j]));
     }
+
     Pmm::freeFrame(virtToPhys(newPd));
   };
 
@@ -296,6 +312,15 @@ uint32_t Paging::clonePageDir(uint32_t srcDirPhys)
       const auto *oldPt = physToVirt32(pdePhysAddr(pde));
       __builtin_memcpy(newPt, oldPt, Pmm::PAGE_SIZE);
       newPd[i] = virtToPhys32(newPt) | (pde & ~PAGE_ADDR_MASK);
+
+      // Increment refcounts for each userland physical frame now shared between source and
+      // destination page directories.
+      for (int j = 0; j < PTE_COUNT; ++j) {
+        if (newPt[j] & PAGE_PRESENT) {
+          auto *phys = reinterpret_cast<void *>(newPt[j] & PAGE_ADDR_MASK);
+          Pmm::addRef(phys);
+        }
+      }
     }
     else {
       newPd[i] = pde;

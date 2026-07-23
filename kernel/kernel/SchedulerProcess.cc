@@ -155,6 +155,23 @@ bool cloneChildStackPages(Task &child, const Task &parent)
     const auto newPhys32 = static_cast<uint32_t>(reinterpret_cast<unsigned long long>(newPhys));
     const auto vaddr = parent.userStackVaddr[i];
 
+    // Decrement refcount on the inherited frame before overwriting the PTE. `clonePageDir()`
+    // incremented this refcount, but the PTE is replaced with a fresh frame, so the old reference
+    // is orphaned.
+    auto *childPd =
+      physToVirt32(reinterpret_cast<void *>(child.pageDir)); // NOLINT(performance-no-int-to-ptr)
+    const auto pdeIdx = static_cast<int>(vaddr / PDE_SIZE);
+    const auto pteIdx = static_cast<int>((vaddr % PDE_SIZE) / Pmm::PAGE_SIZE);
+    if (childPd[pdeIdx] & PAGE_PRESENT) {
+      auto *pt = physToVirt32(reinterpret_cast<void *>(
+        childPd[pdeIdx] & PAGE_ADDR_MASK)); // NOLINT(performance-no-int-to-ptr)
+      if (pt[pteIdx] & PAGE_PRESENT) {
+        void *oldFrame = reinterpret_cast<void *>(
+          pt[pteIdx] & PAGE_ADDR_MASK); // NOLINT(performance-no-int-to-ptr)
+        Pmm::removeRef(oldFrame);
+      }
+    }
+
     if (!Paging::mapPage(vaddr, newPhys32, PAGE_PRESENT | PAGE_RW | PAGE_USER, child.pageDir)) {
       Pmm::freeFrame(newPhys);
       freePageArray(i, child.userStackVaddr, child.userStackPhys);
