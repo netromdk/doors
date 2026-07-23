@@ -16,6 +16,7 @@
   - [Page Directory Cloning](#page-directory-cloning)
   - [Trampoline Page](#trampoline-page)
 - [Memory Management](#memory-management)
+  - [Page Reference Counting](#page-reference-counting)
 - [Advanced Configuration and Power Interface](#advanced-configuration-and-power-interface)
   - [Table Discovery](#table-discovery)
   - [S5 Shutdown](#s5-shutdown)
@@ -360,10 +361,13 @@ Page Directory Cloning
 ----------------------
 
 `clonePageDir()` allocates a new page directory frame, copies the kernel page directory, and for
-each `PDE` marked `PAGE_USER`: allocates a new page table, copies the old entries into it, and
-points the new `PDE` at the copy. Kernel-only `PDE` entries are shared (shallow copy). Returns the
-physical address of the new page directory. Used by the scheduler when creating a userland task with
-its own address space. Includes rollback on OOM: frees any partially-allocated page tables.
+each `PDE` marked `PAGE_USER`: allocates a new page table, copies the old entries into it, calls
+`Pmm::addRef()` for each copied user `PTE` to increment the shared frame's reference count, and
+points the new `PDE` at the copy. Kernel-only `PDE` entries are shared (shallow copy) without
+incrementing refcounts. Returns the physical address of the new page directory. Used by the
+scheduler when creating a userland task with its own address space. Includes rollback on OOM:
+decrements refcounts for any already-copied entries before freeing the partially-allocated page
+tables.
 
 The no-arg version clones from the kernel page directory. A `clonePageDir(uint32_t srcDirPhys)`
 overload clones from an arbitrary source page directory, will be used by `fork()` to duplicate a
@@ -403,10 +407,11 @@ Memory Management
 The physical memory manager (`Pmm`, `kernel/include/kernel/Pmm.h`, `kernel/kernel/Pmm.cc`) handles 4
 KiB page frames. It uses an intrusive free list (linked-list pointers stored inside the free frames
 themselves, not in a separate data structure) where each free frame stores a pointer to the next
-free frame in its first bytes. Allocation pops the head of the list and zeroes the frame. Freeing
-pushes it back, with a double-free check that walks the list to catch duplicates. During init, `Pmm`
-walks the Multiboot memory map and adds every available frame to the free list, skipping the kernel
-image (`0x100000` to `_kernel_end`), GRUB modules, and the VGA buffer at `0xB8000`.
+free frame in its first bytes. Allocation pops the head of the list and zeroes the frame. Each frame
+has an 8-bit reference count. Freeing decrements the count and only returns the frame to the free
+list when it reaches 0, with a panic on underflow to catch double-frees. During init, `Pmm` walks
+the Multiboot memory map and adds every available frame to the free list, skipping the kernel image
+(`0x100000` to `_kernel_end`), GRUB modules, and the VGA buffer at `0xB8000`.
 
 The kernel heap (`Heap`, `kernel/include/kernel/Heap.h`, `kernel/kernel/Heap.cc`) sits right after
 `_kernel_end` in memory. It's a best-fit allocator with a free list. Each block has a 16-byte header
@@ -423,6 +428,25 @@ bytes.
 The two allocators don't overlap. After paging is set up, `Pmm::reserveRegion()` removes the heap's
 physical pages from the free list so the page-level allocator never hands out frames that the
 byte-level heap is using.
+
+Page Reference Counting
+-----------------------
+
+Each frame's [reference count](https://en.wikipedia.org/wiki/Reference_counting) is an 8-bit byte in
+a static array (`refCounts_[]`, 1 MiB `BSS`) indexed by physical frame number. `maxFrameIdx_` (set
+during init) bounds all operations.
+
+`addRef(physAddr)` increments (saturates at `MAX_REFCOUNT = 255`). `removeRef(physAddr)` decrements
+and returns true when the count reaches 0. `clonePageDir()` calls `addRef()` for every user `PTE` it
+copies, and `cloneChildStackPages()` calls `removeRef()` when overwriting an inherited stack `PTE`
+with a fresh frame. The OOM rollback path in `clonePageDir()` also calls `removeRef()` to undo
+partially-cloned state.
+
+Currently, `exitCurrentTask()` does not walk the child's page directory to decrement refcounts on
+shared data frames or free page table frames. Only resources tracked by explicit arrays are freed:
+stack pages, code page, and ELF pages. This means shared data frames from `clonePageDir()` retain an
+extra refcount after the child exits. Walking the page directory on exit to balance refcounts is a
+prerequisite for future work, like Copy-on-Write (CoW) and IPC shared memory.
 
 
 Advanced Configuration and Power Interface
