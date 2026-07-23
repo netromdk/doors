@@ -332,6 +332,7 @@ doors_test_module(test_kernel_cpu
 
 doors_test_module(test_kernel_paging
   paging/ClonePageDir.cc
+  paging/Refcount.cc
   paging/PagingStub.cc
   paging/PmmStub.cc
 )
