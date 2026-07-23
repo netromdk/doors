@@ -15,9 +15,20 @@ namespace {
 constexpr size_t FRAME_COUNT = 512;
 alignas(4096) uint8_t framePool[FRAME_COUNT][4096]; // 2 MiB total
 bool frameUsed[FRAME_COUNT] = {false};
+uint8_t refCounts[FRAME_COUNT] = {0};
 size_t freeCount = 0;
 int allocCount = 0;
 int freeCountCalls = 0;
+
+size_t findSlot(void *physAddr)
+{
+  for (size_t i = 0; i < FRAME_COUNT; ++i) {
+    if (framePool[i] == physAddr) {
+      return i;
+    }
+  }
+  return FRAME_COUNT; // Not found.
+}
 
 } // namespace
 
@@ -31,6 +42,7 @@ void *Pmm::allocFrame()
   for (size_t i = 0; i < FRAME_COUNT; ++i) {
     if (!frameUsed[i]) {
       frameUsed[i] = true;
+      refCounts[i] = 1;
       ++allocCount;
       if (freeCount > 0) {
         --freeCount;
@@ -50,18 +62,60 @@ void Pmm::freeFrame(void *physAddr)
     return;
   }
 
-  // Linear search to find the matching slot. Avoids uintptr_t arithmetic
-  // which would break on the host since the kernel libc++ defines uintptr_t
-  // as 32-bit while host pointers are 64-bit.
-  for (size_t i = 0; i < FRAME_COUNT; ++i) {
-    if (framePool[i] == physAddr) {
-      if (frameUsed[i]) {
-        frameUsed[i] = false;
-        ++freeCount;
-      }
-      return;
+  const auto idx = findSlot(physAddr);
+  if (idx >= FRAME_COUNT) {
+    return;
+  }
+
+  if (refCounts[idx] == 0) {
+    printf("Pmm::freeFrame: refcount already 0 (double free?)\n");
+    return;
+  }
+
+  --refCounts[idx];
+  if (refCounts[idx] == 0) {
+    if (frameUsed[idx]) {
+      frameUsed[idx] = false;
+      ++freeCount;
     }
   }
+}
+
+void Pmm::addRef(void *physAddr)
+{
+  const auto idx = findSlot(physAddr);
+  if (idx >= FRAME_COUNT) {
+    return;
+  }
+
+  if (refCounts[idx] < MAX_REFCOUNT) {
+    ++refCounts[idx];
+  }
+}
+
+bool Pmm::removeRef(void *physAddr)
+{
+  const auto idx = findSlot(physAddr);
+  if (idx >= FRAME_COUNT) {
+    return false;
+  }
+
+  if (refCounts[idx] == 0) {
+    printf("Pmm::removeRef: refcount already 0\n");
+    return false;
+  }
+
+  --refCounts[idx];
+  return refCounts[idx] == 0;
+}
+
+uint8_t Pmm::refCount(void *physAddr)
+{
+  const auto idx = findSlot(physAddr);
+  if (idx >= FRAME_COUNT) {
+    return 0;
+  }
+  return refCounts[idx];
 }
 
 size_t Pmm::freeFrameCount()
@@ -69,8 +123,19 @@ size_t Pmm::freeFrameCount()
   return freeCount;
 }
 
-void Pmm::reserveFrame(void * /*physAddr*/)
+void Pmm::reserveFrame(void *physAddr)
 {
+  if (physAddr == nullptr) {
+    return;
+  }
+
+  if (const auto idx = findSlot(physAddr); idx < FRAME_COUNT && !frameUsed[idx]) {
+    frameUsed[idx] = true;
+    refCounts[idx] = 1;
+    if (freeCount > 0) {
+      --freeCount;
+    }
+  }
 }
 
 void Pmm::reserveRegion(void * /*start*/, void * /*end*/)
@@ -95,6 +160,11 @@ void pmmTestResetCounts()
   allocCount = 0;
   freeCountCalls = 0;
   freeCount = 0;
+}
+
+uint8_t pmmTestRefcount(void *physAddr)
+{
+  return Pmm::refCount(physAddr);
 }
 
 int Pmm::moduleCount()
