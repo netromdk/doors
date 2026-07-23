@@ -46,8 +46,8 @@ bool ensurePageTable(uint32_t *pageDir, int pdeIdx, uint32_t flags)
 // nullptr if the PDE is not present.
 uint32_t *resolvePageTable(uint32_t virtAddr, uint32_t *pageDir, int &pdeIdx, int &pteIdx)
 {
-  pdeIdx = static_cast<int>(virtAddr / (4UL * 1024 * 1024));
-  pteIdx = static_cast<int>((virtAddr % (4UL * 1024 * 1024)) / Pmm::PAGE_SIZE);
+  pdeIdx = static_cast<int>(virtAddr / PDE_SIZE);
+  pteIdx = static_cast<int>((virtAddr % PDE_SIZE) / Pmm::PAGE_SIZE);
 
   if (!(pageDir[pdeIdx] & PAGE_PRESENT)) {
     return nullptr;
@@ -97,7 +97,7 @@ bool Paging::setupIdentityMap(void *pageDirPhys, int numPageTables, uint32_t ide
     __builtin_memset(pt, 0, Pmm::PAGE_SIZE);
 
     // First virtual address this PDE covers (PDE idx * 4 MiB).
-    const auto baseAddr = static_cast<uint32_t>(pdeIdx) * 4UL * 1024 * 1024;
+    const auto baseAddr = static_cast<uint32_t>(pdeIdx) * PDE_SIZE;
 
     // Identity-map each 4 KiB page up to `identityMapEnd`.
     for (int pteIdx = 0; pteIdx < PTE_COUNT; ++pteIdx) {
@@ -312,6 +312,6 @@ uint32_t Paging::kernelPageDirPhys()
 
 int Paging::calcNumPageTables(uint32_t end)
 {
-  const int n = (end + (4UL * 1024 * 1024) - 1) / (4UL * 1024 * 1024);
+  const int n = (end + PDE_SIZE - 1) / PDE_SIZE;
   return n < 1 ? 1 : n;
 }
