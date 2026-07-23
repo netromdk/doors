@@ -51,7 +51,8 @@ static inline constexpr uint32_t TRAMPOLINE_VADDR = 0xBF000000;
 
 // PDE index of the higher-half VM alias. Each PDE covers 4 MiB (1024 PTEs x 4 KiB).
 // KERNEL_VIRTUAL_BASE (0xC0000000) / 4 MiB = 768, making PDE 768 the first higher-half slot.
-static constexpr uint32_t HIGHER_HALF_PDE = KERNEL_VIRTUAL_BASE / (4 * 1024 * 1024);
+static constexpr uint32_t PDE_SIZE = 4 * 1024 * 1024;
+static constexpr uint32_t HIGHER_HALF_PDE = KERNEL_VIRTUAL_BASE / PDE_SIZE;
 
 static constexpr int PDE_COUNT = 1024;
 static constexpr int PTE_COUNT = 1024;
@@ -115,24 +116,21 @@ private:
 static inline void *physToVirt(void *physAddr)
 {
   return reinterpret_cast<void *>( // NOLINT(performance-no-int-to-ptr)
-    reinterpret_cast<unsigned long long>(physAddr) +
-    KERNEL_VIRTUAL_BASE);
+    reinterpret_cast<unsigned long long>(physAddr) + KERNEL_VIRTUAL_BASE);
 }
 
 // Convert a virtual pointer back to its physical address.
 static inline void *virtToPhys(const void *virtAddr)
 {
   return reinterpret_cast<void *>( // NOLINT(performance-no-int-to-ptr)
-    reinterpret_cast<unsigned long long>(virtAddr) -
-    KERNEL_VIRTUAL_BASE);
+    reinterpret_cast<unsigned long long>(virtAddr) - KERNEL_VIRTUAL_BASE);
 }
 
 // Convert a physical address to a `uint32_t*` for page-table manipulation.
 static inline uint32_t *physToVirt32(void *physAddr)
 {
   return reinterpret_cast<uint32_t *>( // NOLINT(performance-no-int-to-ptr)
-    reinterpret_cast<unsigned long long>(physAddr) +
-    KERNEL_VIRTUAL_BASE);
+    reinterpret_cast<unsigned long long>(physAddr) + KERNEL_VIRTUAL_BASE);
 }
 
 // Convert a virtual pointer accessible through the identity map back to its physical address.

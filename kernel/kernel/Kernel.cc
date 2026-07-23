@@ -126,8 +126,8 @@ void kmain()
   // entire future heap, and the page tables themselves. Round up to the next 4 KiB boundary.
   const auto heapTop = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(heapStart) + heapSize);
   auto identityMapEnd = heapTop;
-  if (identityMapEnd < 4UL * 1024 * 1024) {
-    identityMapEnd = 4UL * 1024 * 1024;
+  if (identityMapEnd < PDE_SIZE) {
+    identityMapEnd = PDE_SIZE;
   }
 
   Paging::init(identityMapEnd);
