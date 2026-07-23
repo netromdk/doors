@@ -5,6 +5,7 @@
 #include <kernel/InterruptGuard.h>
 #include <kernel/Mem.h>
 #include <kernel/Multiboot.h>
+#include <kernel/Panic.h>
 #include <kernel/Pmm.h>
 
 // `_kernel_end` marks the end of the kernel's .bss section. Everything from 1 MB to `_kernel_end`
@@ -21,6 +22,8 @@ size_t Pmm::freeCount_ = 0;
 uint32_t Pmm::modulePhysStart_[MAX_MODULE_RANGES] = {};
 uint32_t Pmm::modulePhysSize_[MAX_MODULE_RANGES] = {};
 int Pmm::moduleCount_ = 0;
+uint8_t Pmm::refCounts_[MAX_FRAMES] = {};
+size_t Pmm::maxFrameIdx_ = 0;
 
 void Pmm::freeFrameFast(void *physAddr)
 {
@@ -79,6 +82,7 @@ int Pmm::collectModuleRanges(ModuleRange *out)
 
 void Pmm::addMemoryMapPages(const ModuleRange *modules, int count)
 {
+  uint32_t highestPhysAddr = 0;
   auto *mmap = (multiboot_memory_map_t *) mbi->mmap_addr;
   while (mmap < (multiboot_memory_map_t *) (mbi->mmap_addr + mbi->mmap_length)) {
     if (mmap->type == 1) {
@@ -96,9 +100,30 @@ void Pmm::addMemoryMapPages(const ModuleRange *modules, int count)
         }
         freeFrameFast(reinterpret_cast<void *>(addr));
       }
+
+      // Track the highest physical address seen for refcount bounds.
+      if (const auto end32 = static_cast<uint32_t>(mmap->addr + mmap->len);
+          end32 > highestPhysAddr) {
+        highestPhysAddr = end32;
+      }
     }
     mmap = (multiboot_memory_map_t *) ((uint64_t) mmap + mmap->size + sizeof(uint32_t));
   }
+
+  maxFrameIdx_ = (highestPhysAddr + PAGE_SIZE - 1) / PAGE_SIZE;
+  if (maxFrameIdx_ > MAX_FRAMES) {
+    maxFrameIdx_ = MAX_FRAMES;
+  }
+  __builtin_memset(refCounts_, 0, maxFrameIdx_);
+}
+
+uint8_t *Pmm::refCountEntry(void *physAddr)
+{
+  const auto pfn = reinterpret_cast<size_t>(physAddr) / PAGE_SIZE;
+  if (pfn >= maxFrameIdx_) {
+    return nullptr;
+  }
+  return &refCounts_[pfn];
 }
 
 void *Pmm::allocFrame()
@@ -119,6 +144,12 @@ void *Pmm::allocFrame()
   }
 
   __builtin_memset(frame, 0, PAGE_SIZE);
+
+  // Initialize refcount to 1 for the newly allocated frame.
+  if (auto *e = refCountEntry(frame)) {
+    *e = 1;
+  }
+
   return static_cast<void *>(frame); // returns physical address.
 }
 
@@ -128,19 +159,25 @@ void Pmm::freeFrame(void *physAddr)
     return;
   }
 
-  InterruptGuard guard;
-
-  // Guard against double-free: walk the free list to see if this frame is already present. If it
-  // is, it was freed twice. Ignore that.
-  auto *walk = freeList_;
-  while (walk != nullptr) {
-    if (walk == physAddr) {
-      return;
-    }
-    walk = walk->next;
+  auto *e = refCountEntry(physAddr);
+  if (e == nullptr) {
+    return; // Out of range, ignore.
   }
 
-  // Add it back ot the free list.
+  InterruptGuard guard;
+
+  // With refcounts, double-free is a logic error (refcount underflow), not a data corruption issue
+  // to scan for.
+  if (*e == 0) {
+    panic("Pmm::freeFrame: refcount already 0 (double free?)");
+  }
+
+  --*e;
+  if (*e > 0) {
+    return; // Still referenced, don't free.
+  }
+
+  // On `refcount == 0`, actually free the frame by pushing it onto the free list.
   auto *frame = static_cast<FreeFrame *>(physAddr);
   frame->next = freeList_;
   freeList_ = frame;
@@ -168,6 +205,11 @@ void Pmm::reserveFrame(void *physAddr)
     if (curr == physAddr) {
       *prev = curr->next;
       --freeCount_;
+
+      // Set refcount to 1 for the reserved frame that is now allocated.
+      if (auto *e = refCountEntry(physAddr)) {
+        *e = 1;
+      }
       return;
     }
     prev = &curr->next;
@@ -240,4 +282,35 @@ void Pmm::reserveRegion(void *start, void *end)
       curr = curr->next;
     }
   }
+}
+
+void Pmm::addRef(void *physAddr)
+{
+  if (auto *e = refCountEntry(physAddr)) {
+    if (*e < MAX_REFCOUNT) {
+      ++*e;
+    }
+  }
+}
+
+bool Pmm::removeRef(void *physAddr)
+{
+  auto *e = refCountEntry(physAddr);
+  if (e == nullptr) {
+    return false;
+  }
+  if (*e == 0) {
+    panic("Pmm::removeRef: refcount already 0");
+  }
+  --*e;
+  return *e == 0;
+}
+
+uint8_t Pmm::refCount(void *physAddr)
+{
+  auto *e = refCountEntry(physAddr);
+  if (e == nullptr) {
+    return 0;
+  }
+  return *e;
 }
