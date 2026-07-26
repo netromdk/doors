@@ -56,25 +56,27 @@
   - [History](#history)
   - [Modifier Tracking](#modifier-tracking)
   - [Non-Blocking API](#non-blocking-api)
+- [References](#references)
 
 Architecture
 ============
 
 The kernel lives in `kernel/`, with boot, interrupt handling, and paging code under
-`kernel/arch/i386/` and the rest in `kernel/kernel/`. It's a 32-bit higher-half monolithic kernel,
-loaded at 1 MiB (set in `kernel/arch/i386/Linker.ld`) by GRUB ([GRand Unified
-Bootloader](https://www.gnu.org/software/grub/manual/grub/))
+`kernel/arch/i386/` and the rest in `kernel/kernel/`. It's a 32-bit higher-half monolithic kernel
+[[3](#ref-3), pp. 62-63], loaded at 1 MiB (set in `kernel/arch/i386/Linker.ld`) by GRUB ([GRand
+Unified Bootloader](https://www.gnu.org/software/grub/manual/grub/))
 [Multiboot](https://www.gnu.org/software/grub/manual/multiboot/), with a higher-half virtual mapping
 at `0xC0000000`. Everything runs in ring 0 ([CPU Rings](https://wiki.osdev.org/Security#Rings),
 kernel mode, full hardware access) except userland programs which get their own page directories and
-run in ring 3 (user mode, restricted access, must use syscalls to talk to the kernel).
+run in ring 3 (user mode, restricted access, must use syscalls to talk to the kernel) [[1](#ref-1),
+pp. 456-457].
 
 The minimum target ISA ([Instruction Set
-Architecture](https://en.wikipedia.org/wiki/Instruction_set_architecture)) is configurable via
-`DOORS_TARGET_ISA` (CMake cache variable, default `586`). Instructions above the target level are
-conditionally compiled out: `invlpg` (i486) falls back to a CR3 reload, `cpuid`/`rdtsc` (i586) are
-replaced with zero-return stubs. Below i586, `CPUID` is unavailable and `Cpu::init()` returns false,
-preventing boot.
+Architecture](https://en.wikipedia.org/wiki/Instruction_set_architecture) [[2](#ref-2), p. 331]) is
+configurable via `DOORS_TARGET_ISA` (CMake cache variable, default `586`). Instructions above the
+target level are conditionally compiled out: `invlpg` (i486) falls back to a CR3 reload,
+`cpuid`/`rdtsc` (i586) are replaced with zero-return stubs. Below i586, `CPUID` is unavailable and
+`Cpu::init()` returns false, preventing boot.
 
 C++ support comes from `libc++/`, a [freestanding](https://en.cppreference.com/w/cpp/freestanding)
 [C++20](https://en.cppreference.com/cpp/20) standard library. It gets built three times:
@@ -247,7 +249,8 @@ hardware setup:
   selector `0x10`, `SYSENTER` stack), user code (`PL3`, selector `0x18`, after `SYSEXIT`), user data
   (`PL3`, selector `0x20`), and `TSS` ([Task State
   Segment](https://wiki.osdev.org/Task_State_Segment), selector `0x28`). The `TSS` stores `ESP0` and
-  `SS0`. Loaded via `LGDT`, segments reloaded via far jump to `0x08`, `TSS` loaded via `LTR`.
+  `SS0`. Loaded via `LGDT`, segments reloaded via far jump to `0x08`, `TSS` loaded via
+  `LTR`. [[2](#ref-2), pp. 445-446]
 - Fills the `IDT` ([Interrupt Descriptor Table](https://wiki.osdev.org/IDT)) with exception
   handlers, `PIT` ([Programmable Interval
   Timer](https://wiki.osdev.org/Programmable_Interval_Timer)) timer (`IRQ` (interrupt request) 0),
@@ -302,8 +305,8 @@ CPU Detection and Control
 
 The kernel detects CPU features at boot via `CPUID` and exposes them through the sysinfo syscall.
 Utility functions for register access, interrupt control, and `TLB` ([Translation Lookaside
-Buffer](https://wiki.osdev.org/TLB)) management live in `kernel/include/kernel/Cpu.h` and
-`kernel/arch/i386/Cpu.cc`.
+Buffer](https://wiki.osdev.org/TLB) [[1](#ref-1), pp. 245-246; [3](#ref-3), pp. 195-198]) management
+live in `kernel/include/kernel/Cpu.h` and `kernel/arch/i386/Cpu.cc`.
 
 Feature Detection
 -----------------
@@ -337,13 +340,15 @@ The `readCpuInfo()` function copies the detection results into a struct exposed 
 Paging (Runtime)
 ================
 
-Standard 32-bit x86 4 KiB [Paging](https://wiki.osdev.org/Paging) (`kernel/arch/i386/Paging.cc`,
+Standard 32-bit x86 4 KiB [Paging](https://wiki.osdev.org/Paging) [[2](#ref-2), p. 429; [1](#ref-1),
+pp. 233-239; [3](#ref-3), pp. 189-194] (`kernel/arch/i386/Paging.cc`,
 `kernel/include/arch/i386/Paging.h`). Each page directory has 1024 `PDE`s, each pointing to a page
 table with 1024 `PTE` (Page Table Entry)s. `PDE` index 768 maps virtual addresses starting at
 `0xC0000000` (the higher-half), mirroring the identity map at `PDE` 0 so the kernel can use
 `physToVirt()`/`virtToPhys()` after paging is enabled. `physToVirt()` adds `KERNEL_VIRTUAL_BASE` to
 a physical address. `virtToPhys()` subtracts it. `physToVirt32()` and `virtToPhys32()` are
-`uint32_t` variants used for page-table manipulation.
+`uint32_t` variants used for page-table manipulation. The kernel uses static allocation without page
+replacement [[1](#ref-1), pp. 245-249].
 
 Page Mapping
 ------------
@@ -363,11 +368,11 @@ Page Directory Cloning
 `clonePageDir()` allocates a new page directory frame, copies the kernel page directory, and for
 each `PDE` marked `PAGE_USER`: allocates a new page table, copies the old entries into it, calls
 `Pmm::addRef()` for each copied user `PTE` to increment the shared frame's reference count, and
-points the new `PDE` at the copy. Kernel-only `PDE` entries are shared (shallow copy) without
-incrementing refcounts. Returns the physical address of the new page directory. Used by the
-scheduler when creating a userland task with its own address space. Includes rollback on OOM:
-decrements refcounts for any already-copied entries before freeing the partially-allocated page
-tables.
+points the new `PDE` at the copy. Kernel-only `PDE` entries are shared (shallow copy) [[1](#ref-1),
+pp. 279-282] without incrementing refcounts. Returns the physical address of the new page
+directory. Used by the scheduler when creating a userland task with its own address space. Includes
+rollback on OOM: decrements refcounts for any already-copied entries before freeing the
+partially-allocated page tables.
 
 The no-arg version clones from the kernel page directory. A `clonePageDir(uint32_t srcDirPhys)`
 overload clones from an arbitrary source page directory, will be used by `fork()` to duplicate a
@@ -405,16 +410,18 @@ Memory Management
 =================
 
 The physical memory manager (`Pmm`, `kernel/include/kernel/Pmm.h`, `kernel/kernel/Pmm.cc`) handles 4
-KiB page frames. It uses an intrusive free list (linked-list pointers stored inside the free frames
-themselves, not in a separate data structure) where each free frame stores a pointer to the next
-free frame in its first bytes. Allocation pops the head of the list and zeroes the frame. Each frame
-has an 8-bit reference count. Freeing decrements the count and only returns the frame to the free
-list when it reaches 0, with a panic on underflow to catch double-frees. During init, `Pmm` walks
-the Multiboot memory map and adds every available frame to the free list, skipping the kernel image
-(`0x100000` to `_kernel_end`), GRUB modules, and the VGA buffer at `0xB8000`.
+KiB page frames [[1](#ref-1), pp. 213-214]. It uses an intrusive free list [[1](#ref-1),
+pp. 215-216] (linked-list pointers stored inside the free frames themselves, not in a separate data
+structure) where each free frame stores a pointer to the next free frame in its first
+bytes. Allocation pops the head of the list and zeroes the frame. Each frame has an 8-bit reference
+count. Freeing decrements the count and only returns the frame to the free list when it reaches 0,
+with a panic on underflow to catch double-frees. During init, `Pmm` walks the Multiboot memory map
+and adds every available frame to the free list, skipping the kernel image (`0x100000` to
+`_kernel_end`), GRUB modules, and the VGA buffer at `0xB8000`.
 
 The kernel heap (`Heap`, `kernel/include/kernel/Heap.h`, `kernel/kernel/Heap.cc`) sits right after
-`_kernel_end` in memory. It's a best-fit allocator with a free list. Each block has a 16-byte header
+`_kernel_end` in memory. It's a best-fit allocator [[1](#ref-1), p. 221; [3](#ref-3), pp. 186-187]
+with a free list for variable partitions [[1](#ref-1), pp. 214-215]. Each block has a 16-byte header
 containing the size and a magic number (`0x48455041`, ASCII for "HEAP") for validation. Free blocks
 are kept in a linked list. On allocation, the allocator walks the free list for the smallest block
 that fits, splits it if there's enough leftover, and returns the caller pointer just past the
@@ -491,19 +498,21 @@ Scheduling
 ==========
 
 The scheduler (`kernel/include/kernel/Scheduler.h`, `kernel/kernel/Scheduler.cc`,
-`kernel/kernel/SchedulerProcess.cc`, `kernel/kernel/SchedulerSignals.cc`) is preemptive,
-[priority-based Round Robin](https://wiki.osdev.org/Scheduling_Algorithms) with 8 task slots and a
-20 ms wall-clock quantum. Each task has a `priority` field with value `PRIORITY_HIGH (0)`,
-`PRIORITY_NORMAL (4)`, `PRIORITY_LOW (8)`, or `PRIORITY_IDLE (9)`. `findNext()` selects the
-highest-priority `READY` task. Tasks at the same priority level still round-robin within that
-level. The `idle` task is always at the lowest priority (`PRIORITY_IDLE`) so it only runs when no
-other task is `READY`. The `taskbar` runs at `PRIORITY_LOW`. `fork()` (the child) inherits the
-parent's priority. Each task has its own 8 KiB kernel stack (16 KiB for userland tasks) and an
-optional page directory. Kernel tasks share the kernel page directory. Userland tasks get a cloned
-copy with their code and stack mapped at ring 3. Each task also has a 512-byte `fpuState` buffer
-(16-byte aligned for `FXSAVE`/`FXRSTOR`) and a `fpuValid` flag for lazy FPU context switching.
+`kernel/kernel/SchedulerProcess.cc`, `kernel/kernel/SchedulerSignals.cc`) is preemptive
+[[1](#ref-1), pp. 151-152], [priority-based Round
+Robin](https://wiki.osdev.org/Scheduling_Algorithms) [[1](#ref-1), p. 156; [3](#ref-3), pp. 154-155]
+with 8 task slots and a 20 ms wall-clock quantum. Each task has a `priority` field [[1](#ref-1),
+pp. 149-150; [3](#ref-3), pp. 155-156] with value `PRIORITY_HIGH (0)`, `PRIORITY_NORMAL (4)`,
+`PRIORITY_LOW (8)`, or `PRIORITY_IDLE (9)`. `findNext()` selects the highest-priority `READY`
+task. Tasks at the same priority level still round-robin within that level. The `idle` task is
+always at the lowest priority (`PRIORITY_IDLE`) so it only runs when no other task is `READY`. The
+`taskbar` runs at `PRIORITY_LOW`. `fork()` (the child) inherits the parent's priority. Each task has
+its own 8 KiB kernel stack (16 KiB for userland tasks) and an optional page directory. Kernel tasks
+share the kernel page directory. Userland tasks get a cloned copy with their code and stack mapped
+at ring 3. Each task also has a 512-byte `fpuState` buffer (16-byte aligned for `FXSAVE`/`FXRSTOR`)
+and a `fpuValid` flag for lazy FPU context switching.
 
-Tasks go through four states:
+Tasks go through four states ([[1](#ref-1), p. 116; [3](#ref-3), pp. 90-91]):
 
 1. `DEAD` (unused slot),
 2. `READY` (in the run queue),
@@ -511,11 +520,11 @@ Tasks go through four states:
 4. and `BLOCKED` (waiting for an event or a timed sleep).
 
 When a task is created, its stack is set up with a register frame that `popal; iret` will pop on
-first schedule, so the task starts at its entry function with interrupts enabled. Each task has a
-unique `pid` (process ID) assigned from a static counter, and a `ppid` (parent PID) set from the
-creating task. When a task exits, its children are reparented to PID 0 (the `idle` task). The task
-struct also tracks `exitCode`, an array of child PIDs, and a `childCount`. These fields form the
-foundation for `fork()`, `exec()`, and `waitpid()`.
+first schedule, so the task starts at its entry function with interrupts enabled [[1](#ref-1),
+p. 127]. Each task has a unique `pid` (process ID) assigned from a static counter, and a `ppid`
+(parent PID) set from the creating task. When a task exits, its children are reparented to PID 0
+(the `idle` task). The task struct also tracks `exitCode`, an array of child PIDs, and a
+`childCount`. These fields form the foundation for `fork()`, `exec()`, and `waitpid()`.
 
 When the `PIT` one-shot fires, the timer `ISR` ([Interrupt Service
 Routine](https://wiki.osdev.org/Interrupts)) calls `Scheduler::tick()`. It saves the current task's
@@ -536,10 +545,10 @@ event (see Timer section).
 Signals
 -------
 
-Signal handling follows the Unix model ([Signals](https://wiki.osdev.org/Signals)). Each task has a
-signal disposition table (`signalHandlers[SIGNAL_MAX]`, where `SIGNAL_MAX = 32`) and a
-`pendingSignals` bitmask. When a signal is delivered, the task's register frame is modified to
-redirect execution to the signal handler via a userland stack trampoline.
+Signal handling follows the Unix model ([Signals](https://wiki.osdev.org/Signals), [[1](#ref-1),
+p. 65]). Each task has a signal disposition table (`signalHandlers[SIGNAL_MAX]`, where `SIGNAL_MAX =
+32`) and a `pendingSignals` bitmask. When a signal is delivered, the task's register frame is
+modified to redirect execution to the signal handler via a userland stack trampoline.
 
 `SIGKILL` is synchronous: `sendSignal()` immediately kills the task via `exitCurrentTask()` (self)
 or `killTask()` (other). It cannot be caught or ignored. All other signals are set in the task's
@@ -586,7 +595,8 @@ one of 19 syscall functions based on the number in `EAX`.
 Interrupts and Exception Handling
 =================================
 
-The interrupt and exception handling pipeline has three layers:
+The interrupt and exception handling pipeline [[2](#ref-2), pp. 104, 404, 406-408; [1](#ref-1),
+p. 13, pp. 139-143] has three layers:
 
 - hardware (CPU + dual 8259 `PIC`),
 - assembly stubs (`kernel/arch/i386/Isr.s`),
@@ -618,7 +628,7 @@ Assembly Stubs
 --------------
 
 `kernel/arch/i386/Isr.s` bridges the gap between CPU-generated stack frames and C++ function calls.
-Two macros define the patterns:
+Two macros define the patterns [[2](#ref-2), pp. 517-522]:
 
 - `EXCHANDLER` (exceptions): `pushal; cld; call exc<Name>; popal; iret`
 - `INTHANDLER` (interrupts): `pushal; cld; call int<Name>; popal; iret`
@@ -737,12 +747,12 @@ Hardware Setup
 --------------
 
 `Pit::init()` programs `PIT` channel 0 with control word `0x30`: low-byte/high-byte access, mode 0
-(interrupt on terminal count), binary counting. Mode 0 is a one-shot: the `PIT` counts down from a
-divisor, fires `IRQ0` once when it reaches zero, then stops. The divisor is computed at runtime by
-`programForMs(ms)` from the `PIT`'s 1.193182 MHz base clock: `divisor = (1193182 * ms) / 1000`,
-clamped to the 16-bit range `[1, 65535]`. The 16-bit divisor is written to I/O port `0x40` in two
-byte writes (low first, then high). After programming, `Pic::setMask(IRQ_TIMER, true)` unmasks
-`IRQ0` on the `PIC`.
+(interrupt on terminal count), binary counting [[1](#ref-1), pp. 379-383]. Mode 0 is a one-shot: the
+`PIT` counts down from a divisor, fires `IRQ0` once when it reaches zero, then stops. The divisor is
+computed at runtime by `programForMs(ms)` from the `PIT`'s 1.193182 MHz base clock: `divisor =
+(1193182 * ms) / 1000`, clamped to the 16-bit range `[1, 65535]`. The 16-bit divisor is written to
+I/O port `0x40` in two byte writes (low first, then high). After programming,
+`Pic::setMask(IRQ_TIMER, true)` unmasks `IRQ0` on the `PIC`.
 
 Tickless Mode
 -------------
@@ -821,7 +831,7 @@ game uses it for frame timing.
 System Calls
 ============
 
-All 19 syscalls go through `INT 0x80` (`kernel/kernel/Syscall.cc`,
+All 19 syscalls go through `INT 0x80` [[3](#ref-3), pp. 49-52] (`kernel/kernel/Syscall.cc`,
 `kernel/include/kernel/Syscall.h`). The assembly stub passes the number in `EAX` and up to 3 args in
 `EBX`/`ECX`/`EDX`. Every syscall that takes a userland buffer pointer validates it first: the
 address must be non-null, below `KERNEL_VIRTUAL_BASE` (`0xC0000000`), and the buffer must not wrap
@@ -865,7 +875,7 @@ ELF Loader
 
 The ELF loader lives in `kernel/kernel/ElfLoader.cc` and is called exclusively from the scheduler
 when creating a userland task. It only accepts statically-linked ELF 32-bit executables (`ET_EXEC`)
-for the i386 architecture.
+for the i386 architecture. [[2](#ref-2), pp. 532-533, 535-536]
 
 `ElfLoader::validate()` checks nine conditions in order: non-null buffer, minimum size, magic bytes
 (`\x7fELF`), 32-bit class, little-endian, current version, executable type, i386 machine, and that
@@ -938,7 +948,8 @@ cursor management, scrolling, a 1000-line scrollback buffer, and screen save/res
 Output
 ------
 
-The standard VGA text-mode buffer lives at `0xB8000`. Each cell is a 16-bit value with this layout:
+The standard VGA text-mode buffer lives at `0xB8000` [[2](#ref-2), pp. 222-225]. Each cell is a
+16-bit value with this layout:
 
 ```
 Bit:  15  14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
@@ -1005,7 +1016,7 @@ buffer. The `snake` game uses this to overlay its rendering on top of the `shell
 Thread Safety
 -------------
 
-The terminal uses a counting semaphore (`kernel/kernel/Semaphore.cc`,
+The terminal uses a counting semaphore [[1](#ref-1), pp. 59-63] (`kernel/kernel/Semaphore.cc`,
 `kernel/include/kernel/Semaphore.h`) to serialize access from multiple tasks. `wait()` blocks when
 the count is zero, `signal()` wakes the longest-waiting task. Mutating methods acquire the semaphore
 before touching shared state. Read-only accessors like `scrollbackActive()`, `scrollbackSize()`, and
@@ -1058,9 +1069,10 @@ Keyboard
 ========
 
 The keyboard driver (`kernel/include/kernel/Kbd.h`, `kernel/arch/i386/Kbd.cc`) handles [PS/2
-Keyboard](https://wiki.osdev.org/PS/2_Keyboard) scancodes via `IRQ` 1. It provides a 256-character
-ring buffer, full line editing with Emacs-style shortcuts, command history, and a non-blocking API
-for programs that need raw input without blocking.
+Keyboard](https://wiki.osdev.org/PS/2_Keyboard) scancodes via `IRQ` 1 [[1](#ref-1), pp. 379-383;
+[2](#ref-2), pp. 221-222]. It provides a 256-character ring buffer, full line editing with
+Emacs-style shortcuts, command history, and a non-blocking API for programs that need raw input
+without blocking.
 
 Scancode Processing
 -------------------
@@ -1082,8 +1094,9 @@ Ring Buffer
 -----------
 
 256 bytes with head/tail indices. Single-producer (`ISR`) / single-consumer (task), naturally
-lock-free. Three read APIs: `getChar()` busy-waits, `waitForChar()` blocks on a semaphore,
-`tryReadKey()` is non-blocking and checks navigation pending counters first.
+lock-free [[1](#ref-1), pp. 388-389]. Three read APIs: `getChar()` busy-waits [[1](#ref-1),
+pp. 376-379], `waitForChar()` blocks on a semaphore, `tryReadKey()` is non-blocking and checks
+navigation pending counters first.
 
 Line Editing
 ------------
@@ -1115,3 +1128,16 @@ Non-Blocking API
 a `Key` enum value (`Up`, `Down`, `Left`, `Right`, `PageUp`, `PageDown`, `Home`, `End`, `Char`, or
 `Unknown`) and an optional character for printable keys. This is useful for games, interactive
 menus, or any program that needs to react to key presses without entering a blocking readline loop.
+
+
+References
+==========
+
+<a id="ref-1"></a>[1] L. F. Bic and A. C. Shaw, *Operating System Principles*.
+Prentice Hall, 2003.
+
+<a id="ref-2"></a>[2] A. S. Tanenbaum, *Structured Computer Organization*, 5th ed.
+Prentice Hall, 2008.
+
+<a id="ref-3"></a>[3] A. S. Tanenbaum, *Modern Operating Systems*, 3rd ed.
+Pearson, 2008.
