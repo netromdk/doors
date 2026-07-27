@@ -39,6 +39,9 @@ static constexpr uint32_t PAGE_ADDR_MASK = 0xFFFFF000;
 // PDE uses 4 MiB page (requires CPU Page Size Extension).
 static constexpr uint32_t PAGE_PSE = 1 << 7;
 
+// Copy-on-write software flag.
+static constexpr uint32_t PAGE_COW = 1 << 9;
+
 // Virtual base address of the kernel (higher half). `physToVirt()`/`virtToPhys()` add/subtract this
 // offset. The kernel itself is NOT relinked yet! It still runs from identity-mapped PDE 0, but
 // page-table manipulation code uses the PDE 768 alias for higher-half addressing.
@@ -82,6 +85,14 @@ public:
   // clones from an arbitrary source page directory.
   static uint32_t clonePageDir();
   static uint32_t clonePageDir(uint32_t srcDirPhys);
+
+  // Walk a page directory, decrement refcounts on all user data frames, and free page table frames.
+  // The page directory frame itself is NOT freed (caller does that).
+  static void freePageDirectory(uint32_t pageDirPhys);
+
+  // Handle a CoW page fault. If the faulting address maps to a CoW page, allocate a new frame, copy
+  // the data, and update the PTE. Returns true if the fault was handled.
+  static bool handleCowFault(uint32_t faultAddr, uint32_t pageDirPhys);
 
   // Physical address of the kernel's page directory. Used by the scheduler when switching to a task
   // that does not have its own page directory.

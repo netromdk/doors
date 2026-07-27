@@ -370,6 +370,15 @@ uint32_t Paging::clonePageDir(uint32_t srcDirPhys)
           Pmm::addRef(phys);
         }
       }
+
+      // Write-protect shared user pages for CoW. Only the child faults on writes initially. The
+      // parent gets CoW flags added separately in `fork()` when needed.
+      for (int j = 0; j < PTE_COUNT; ++j) {
+        if ((newPt[j] & PAGE_PRESENT) && (newPt[j] & PAGE_RW)) {
+          newPt[j] &= ~PAGE_RW;
+          newPt[j] |= PAGE_COW;
+        }
+      }
     }
     else {
       newPd[i] = pde;
@@ -377,6 +386,78 @@ uint32_t Paging::clonePageDir(uint32_t srcDirPhys)
   }
 
   return virtToPhys32(newPd);
+}
+
+void Paging::freePageDirectory(uint32_t pageDirPhys)
+{
+  auto *pd =
+    physToVirt32(reinterpret_cast<void *>(pageDirPhys)); // NOLINT(performance-no-int-to-ptr)
+  for (int i = 0; i < PDE_COUNT; ++i) {
+    if (!(pd[i] & PAGE_PRESENT) || !(pd[i] & PAGE_USER)) {
+      continue;
+    }
+    auto *pt = physToVirt32(
+      reinterpret_cast<void *>(pd[i] & PAGE_ADDR_MASK)); // NOLINT(performance-no-int-to-ptr)
+    for (int j = 0; j < PTE_COUNT; ++j) {
+      if (pt[j] & PAGE_PRESENT) {
+        auto *frame =
+          reinterpret_cast<void *>(pt[j] & PAGE_ADDR_MASK); // NOLINT(performance-no-int-to-ptr)
+        if (Pmm::removeRef(frame)) {
+          Pmm::freeFrameFast(frame);
+        }
+      }
+    }
+    Pmm::freeFrame(
+      reinterpret_cast<void *>(pd[i] & PAGE_ADDR_MASK)); // NOLINT(performance-no-int-to-ptr)
+  }
+}
+
+bool Paging::handleCowFault(uint32_t faultAddr, uint32_t pageDirPhys)
+{
+  const auto pdeIdx = faultAddr >> 22;           // Top 10 bits: page directory index.
+  const auto pteIdx = (faultAddr >> 12) & 0x3FF; // Bits 21-12: page table index.
+
+  auto *pd =
+    physToVirt32(reinterpret_cast<void *>(pageDirPhys)); // NOLINT(performance-no-int-to-ptr)
+  if (!(pd[pdeIdx] & PAGE_PRESENT) || !(pd[pdeIdx] & PAGE_USER)) {
+    return false;
+  }
+
+  auto *pt = physToVirt32(
+    reinterpret_cast<void *>(pd[pdeIdx] & PAGE_ADDR_MASK)); // NOLINT(performance-no-int-to-ptr)
+  uint32_t oldPte = pt[pteIdx];
+  if (!(oldPte & PAGE_PRESENT) || !(oldPte & PAGE_COW)) {
+    return false;
+  }
+
+  auto *oldFrame =
+    reinterpret_cast<void *>(oldPte & PAGE_ADDR_MASK); // NOLINT(performance-no-int-to-ptr)
+
+  // Single owner: just make writable and clear the CoW flag.
+  if (Pmm::refCount(oldFrame) == 1) {
+    pt[pteIdx] = oldPte | PAGE_RW;
+    pt[pteIdx] &= ~PAGE_COW;
+    return true;
+  }
+
+  // Multiple owners: allocate a new frame and copy the data.
+  void *newFrame = Pmm::allocFrame();
+  if (newFrame == nullptr) {
+    printf("Paging::handleCowFault: OOM\n");
+    return false;
+  }
+
+  const auto *src = physToVirt32(oldFrame);
+  auto *dst = physToVirt32(newFrame);
+  __builtin_memcpy(dst, src, Pmm::PAGE_SIZE);
+
+  Pmm::removeRef(oldFrame);
+
+  pt[pteIdx] = (oldPte & ~PAGE_ADDR_MASK) | reinterpret_cast<uint32_t>(newFrame);
+  pt[pteIdx] |= PAGE_RW;
+  pt[pteIdx] &= ~PAGE_COW;
+
+  return true;
 }
 
 uint32_t Paging::kernelPageDirPhys()

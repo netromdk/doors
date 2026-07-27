@@ -80,3 +80,12 @@ void Paging::clearPageTable(uint32_t)
 void Paging::clearPageTable(uint32_t, uint32_t)
 {
 }
+
+void Paging::freePageDirectory(uint32_t)
+{
+}
+
+bool Paging::handleCowFault(uint32_t, uint32_t)
+{
+  return false;
+}

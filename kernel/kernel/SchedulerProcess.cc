@@ -381,10 +381,32 @@ uint32_t Scheduler::fork()
     return static_cast<uint32_t>(-1);
   }
 
-  if (!cloneChildStackPages(child, parent)) {
-    Heap::free(childStack);
-    return static_cast<uint32_t>(-1);
+  // Write-protect the parent's user PTEs for CoW. Both parent and child will fault on writes to
+  // shared pages, ensuring each gets its own copy.
+  auto *parentPd = physToVirt32(reinterpret_cast<void *>(parentDir));
+  for (int i = 0; i < PDE_COUNT; ++i) {
+    if (!(parentPd[i] & PAGE_PRESENT) || !(parentPd[i] & PAGE_USER)) {
+      continue;
+    }
+
+    auto *pt = physToVirt32(reinterpret_cast<void *>(parentPd[i] & PAGE_ADDR_MASK));
+    for (int j = 0; j < PTE_COUNT; ++j) {
+      if ((pt[j] & PAGE_PRESENT) && (pt[j] & PAGE_RW) && !(pt[j] & PAGE_COW)) {
+        pt[j] &= ~PAGE_RW;
+        pt[j] |= PAGE_COW;
+      }
+    }
   }
+
+  // Flush TLB so the parent sees the write-protected PTEs.
+  Cpu::writeCr3(Cpu::readCr3());
+
+  // CoW: child shares parent's user stack frames via clonePageDir().
+  for (int i = 0; i < parent.userStackPageCount; ++i) {
+    child.userStackVaddr[i] = parent.userStackVaddr[i];
+    child.userStackPhys[i] = parent.userStackPhys[i];
+  }
+  child.userStackPageCount = parent.userStackPageCount;
 
   // Set up child task fields.
   child.esp = static_cast<uint32_t>(reinterpret_cast<unsigned long long>(childStack + frameOffset));
@@ -697,21 +719,7 @@ void Scheduler::handleNm()
     // Save per-task Pmm frames before CR3 switch. After `switchTo()` loads the new page directory,
     // `currentIdx_` will point to the next task and the reference is lost.
     const auto oldPageDir = tasks_[currentIdx_].pageDir;
-    const int oldUserStackCount = tasks_[currentIdx_].userStackPageCount;
-    uint32_t oldUserStackVaddr[Task::USER_STACK_PAGE_MAX];
-    uint32_t oldUserStackPhys[Task::USER_STACK_PAGE_MAX];
-    for (int i = 0; i < oldUserStackCount; ++i) {
-      oldUserStackVaddr[i] = tasks_[currentIdx_].userStackVaddr[i];
-      oldUserStackPhys[i] = tasks_[currentIdx_].userStackPhys[i];
-    }
     const auto oldUserCode = tasks_[currentIdx_].userCodeBuf;
-    const int oldElfCount = tasks_[currentIdx_].elfPageCount;
-    uint32_t oldElfVaddr[Task::ELF_PAGE_MAX];
-    uint32_t oldElfPhys[Task::ELF_PAGE_MAX];
-    for (int i = 0; i < oldElfCount; ++i) {
-      oldElfVaddr[i] = tasks_[currentIdx_].elfVaddr[i];
-      oldElfPhys[i] = tasks_[currentIdx_].elfPhys[i];
-    }
     const int oldUnblockOnExit = tasks_[currentIdx_].unblockOnExit;
 
     tasks_[currentIdx_].pageDir = 0;
@@ -723,14 +731,12 @@ void Scheduler::handleNm()
     const uint32_t esp = switchTo(*next);
 
     if (oldPageDir != 0) {
+      Paging::freePageDirectory(oldPageDir);
       Pmm::freeFrame(reinterpret_cast<void *>(oldPageDir));
     }
-    freePageArray(oldUserStackCount, oldUserStackVaddr, oldUserStackPhys);
     if (oldUserCode != 0) {
       Paging::unmapPage(USER_BASE);
-      Pmm::freeFrame(reinterpret_cast<void *>(oldUserCode));
     }
-    freePageArray(oldElfCount, oldElfVaddr, oldElfPhys);
     if (oldUnblockOnExit != -1) {
       unblockTask(oldUnblockOnExit);
     }
@@ -807,24 +813,17 @@ void Scheduler::killTask(int id)
   // never freed.
 #ifdef __IS_DOORS_KERNEL
   if (tasks_[id].pageDir != 0) {
+    Paging::freePageDirectory(tasks_[id].pageDir);
     Pmm::freeFrame(
       reinterpret_cast<void *>(tasks_[id].pageDir)); // NOLINT(performance-no-int-to-ptr)
     tasks_[id].pageDir = 0;
   }
 
-  // Free user-mode pages (ring-3 tasks).
-  freePageArray(tasks_[id].userStackPageCount, tasks_[id].userStackVaddr, tasks_[id].userStackPhys);
-  tasks_[id].userStackPageCount = 0;
   if (tasks_[id].userCodeBuf != 0) {
     Paging::unmapPage(USER_BASE);
-    Pmm::freeFrame(
-      reinterpret_cast<void *>(tasks_[id].userCodeBuf)); // NOLINT(performance-no-int-to-ptr)
     tasks_[id].userCodeBuf = 0;
   }
-
-  // Free ring-3 ELF-loaded pages. These are tracked separately from `userCodeBuf` because an ELF
-  // task may have multiple code/data segments at arbitrary virtual addresses.
-  freePageArray(tasks_[id].elfPageCount, tasks_[id].elfVaddr, tasks_[id].elfPhys);
+  tasks_[id].userStackPageCount = 0;
   tasks_[id].elfPageCount = 0;
 #endif
 

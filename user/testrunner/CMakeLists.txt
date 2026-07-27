@@ -20,6 +20,7 @@ set(TESTRUNNER_SOURCES
   tests/Input.cc
   tests/PageFault.cc
   tests/Signals.cc
+  tests/CopyOnWrite.cc
 )
 
 add_user_program(testrunner

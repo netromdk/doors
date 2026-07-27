@@ -89,4 +89,13 @@ void testSigsegvHandlerDelivery();
 void testSigtermHandlerDelivery();
 void testSignalStateClearedOnFork();
 
+// Copy-on-Write.
+void runCoWTests();
+void testCowForkChildWrites();
+void testCowParentWrites();
+void testCowBothWrite();
+void testCowForkExecChild();
+void testCowForkIndependence();
+void testCowForkMultipleIterations();
+
 #endif

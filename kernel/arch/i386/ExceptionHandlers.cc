@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <cstdio>
 
+#include <arch/i386/Paging.h>
 #include <kernel/Cpu.h>
 #include <kernel/Panic.h>
 #include <kernel/Scheduler.h>
@@ -81,6 +82,15 @@ void excPf(uint32_t *frame)
   const auto eip = frame[9];
   const auto cs = frame[10];
   const auto eflags = frame[11];
+
+  // CoW fault: present page (bit 0) + write access (bit 1). `&3 == 3` masks bits 0-1 and checks
+  // both are set (3 = 0b11).
+  if ((errCode & 3) == 3) {
+    if (const auto pageDir = Scheduler::currentTask().pageDir;
+        Paging::handleCowFault(faultAddr, pageDir)) {
+      return;
+    }
+  }
 
   printf("\nPage fault!\n");
   printf("  Fault address: 0x%x\n", faultAddr);
