@@ -54,6 +54,7 @@ uint32_t *resolvePageTable(uint32_t virtAddr, uint32_t *pageDir, int &pdeIdx, in
   }
 
   const auto ptPhys = pageDir[pdeIdx] & PAGE_ADDR_MASK;
+  CHECK_PHYS_ADDR(ptPhys, pageDir[pdeIdx], "resolvePageTable: corrupt PDE");
   return physToVirt32(reinterpret_cast<void *>(ptPhys));
 }
 
@@ -62,6 +63,8 @@ uint32_t *resolvePageTable(uint32_t virtAddr, uint32_t *pageDir, int &pdeIdx, in
 void tryFreePageTable(uint32_t *pageDir, int pdeIdx)
 {
   const auto ptPhys = pageDir[pdeIdx] & PAGE_ADDR_MASK;
+  CHECK_PHYS_ADDR(ptPhys, pageDir[pdeIdx], "tryFreePageTable: corrupt PDE");
+
   const auto *pageTable = physToVirt32(reinterpret_cast<void *>(ptPhys));
   for (int i = 0; i < PTE_COUNT; ++i) {
     if (pageTable[i] != 0) {
@@ -206,7 +209,9 @@ bool Paging::mapPage(uint32_t virtAddr, uint32_t physAddr, uint32_t flags, uint3
   // prevents refcount leaks when the same virtual address is mapped multiple times, like when
   // `mapUserStackPages()` or `ElfLoader::load()` overwrites PTEs inherited from `clonePageDir()`.
   if (pageTable[pteIdx] & PAGE_PRESENT) {
-    auto *oldFrame = reinterpret_cast<void *>(pageTable[pteIdx] & PAGE_ADDR_MASK);
+    const auto oldPhys = pageTable[pteIdx] & PAGE_ADDR_MASK;
+    CHECK_PHYS_ADDR(oldPhys, pageTable[pteIdx], "mapPage: corrupt PTE");
+    auto *oldFrame = reinterpret_cast<void *>(oldPhys);
     if (Pmm::removeRef(oldFrame)) {
       Pmm::freeFrameFast(oldFrame);
     }
@@ -236,8 +241,9 @@ void Paging::unmapPage(uint32_t virtAddr, uint32_t pageDirPhys)
   // Decrement the refcount on the physical frame before clearing the PTE. When the refcount hits
   // zero the frame is returned to the free list automatically.
   if (pageTable[pteIdx] & PAGE_PRESENT) {
-    if (auto *frame = reinterpret_cast<void *>(pageTable[pteIdx] & PAGE_ADDR_MASK);
-        Pmm::removeRef(frame)) {
+    const auto framePhys = pageTable[pteIdx] & PAGE_ADDR_MASK;
+    CHECK_PHYS_ADDR(framePhys, pageTable[pteIdx], "unmapPage: corrupt PTE");
+    if (auto *frame = reinterpret_cast<void *>(framePhys); Pmm::removeRef(frame)) {
       Pmm::freeFrameFast(frame);
     }
   }
@@ -271,6 +277,7 @@ void Paging::clearPageTable(uint32_t virtAddr, uint32_t pageDir)
 
   // Save the old page table frame so it can be freed after replacing the PDE.
   const auto oldPtPhys = pd[pdeIdx] & PAGE_ADDR_MASK;
+  CHECK_PHYS_ADDR(oldPtPhys, pd[pdeIdx], "clearPageTable: corrupt PDE");
 
   // Decrement refcounts for all present PTEs in the old page table. These refcounts were
   // incremented by `clonePageDir()` when the page directory was cloned. Replacing the page table
@@ -278,8 +285,9 @@ void Paging::clearPageTable(uint32_t virtAddr, uint32_t pageDir)
   auto *oldPt = physToVirt32(reinterpret_cast<void *>(oldPtPhys));
   for (int i = 0; i < PTE_COUNT; ++i) {
     if (oldPt[i] & PAGE_PRESENT) {
-      auto *frame = reinterpret_cast<void *>(oldPt[i] & PAGE_ADDR_MASK);
-      if (Pmm::removeRef(frame)) {
+      const auto framePhys = oldPt[i] & PAGE_ADDR_MASK;
+      CHECK_PHYS_ADDR(framePhys, oldPt[i], "clearPageTable: corrupt PTE");
+      if (auto *frame = reinterpret_cast<void *>(framePhys); Pmm::removeRef(frame)) {
         Pmm::freeFrameFast(frame);
       }
     }
@@ -358,7 +366,11 @@ uint32_t Paging::clonePageDir(uint32_t srcDirPhys)
       }
 
       auto *newPt = physToVirt32(newPtPhys);
-      const auto *oldPt = physToVirt32(pdePhysAddr(pde));
+      const auto oldPtPhys = pdePhysAddr(pde);
+      const auto ptPhys = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(oldPtPhys));
+      CHECK_PHYS_ADDR(ptPhys, pde, "clonePageDir: corrupt PDE");
+
+      const auto *oldPt = physToVirt32(oldPtPhys);
       __builtin_memcpy(newPt, oldPt, Pmm::PAGE_SIZE);
       newPd[i] = virtToPhys32(newPt) | (pde & ~PAGE_ADDR_MASK);
 
@@ -366,7 +378,9 @@ uint32_t Paging::clonePageDir(uint32_t srcDirPhys)
       // destination page directories.
       for (int j = 0; j < PTE_COUNT; ++j) {
         if (newPt[j] & PAGE_PRESENT) {
-          auto *phys = reinterpret_cast<void *>(newPt[j] & PAGE_ADDR_MASK);
+          const auto physAddr = newPt[j] & PAGE_ADDR_MASK;
+          CHECK_PHYS_ADDR(physAddr, newPt[j], "clonePageDir: corrupt PTE");
+          auto *phys = reinterpret_cast<void *>(physAddr);
           Pmm::addRef(phys);
         }
       }
@@ -396,19 +410,20 @@ void Paging::freePageDirectory(uint32_t pageDirPhys)
     if (!(pd[i] & PAGE_PRESENT) || !(pd[i] & PAGE_USER)) {
       continue;
     }
-    auto *pt = physToVirt32(
-      reinterpret_cast<void *>(pd[i] & PAGE_ADDR_MASK)); // NOLINT(performance-no-int-to-ptr)
+    const auto ptPhys = pd[i] & PAGE_ADDR_MASK;
+    CHECK_PHYS_ADDR(ptPhys, pd[i], "freePageDirectory: corrupt PDE");
+    auto *pt = physToVirt32(reinterpret_cast<void *>(ptPhys)); // NOLINT(performance-no-int-to-ptr)
     for (int j = 0; j < PTE_COUNT; ++j) {
       if (pt[j] & PAGE_PRESENT) {
-        auto *frame =
-          reinterpret_cast<void *>(pt[j] & PAGE_ADDR_MASK); // NOLINT(performance-no-int-to-ptr)
+        const auto framePhys = pt[j] & PAGE_ADDR_MASK;
+        CHECK_PHYS_ADDR(framePhys, pt[j], "freePageDirectory: corrupt PTE");
+        auto *frame = reinterpret_cast<void *>(framePhys); // NOLINT(performance-no-int-to-ptr)
         if (Pmm::removeRef(frame)) {
           Pmm::freeFrameFast(frame);
         }
       }
     }
-    Pmm::freeFrame(
-      reinterpret_cast<void *>(pd[i] & PAGE_ADDR_MASK)); // NOLINT(performance-no-int-to-ptr)
+    Pmm::freeFrame(reinterpret_cast<void *>(ptPhys)); // NOLINT(performance-no-int-to-ptr)
   }
 }
 
@@ -423,15 +438,17 @@ bool Paging::handleCowFault(uint32_t faultAddr, uint32_t pageDirPhys)
     return false;
   }
 
-  auto *pt = physToVirt32(
-    reinterpret_cast<void *>(pd[pdeIdx] & PAGE_ADDR_MASK)); // NOLINT(performance-no-int-to-ptr)
+  const auto ptPhys = pd[pdeIdx] & PAGE_ADDR_MASK;
+  CHECK_PHYS_ADDR(ptPhys, pd[pdeIdx], "handleCowFault: corrupt PDE");
+  auto *pt = physToVirt32(reinterpret_cast<void *>(ptPhys)); // NOLINT(performance-no-int-to-ptr)
   uint32_t oldPte = pt[pteIdx];
   if (!(oldPte & PAGE_PRESENT) || !(oldPte & PAGE_COW)) {
     return false;
   }
 
-  auto *oldFrame =
-    reinterpret_cast<void *>(oldPte & PAGE_ADDR_MASK); // NOLINT(performance-no-int-to-ptr)
+  const auto oldFramePhys = oldPte & PAGE_ADDR_MASK;
+  CHECK_PHYS_ADDR(oldFramePhys, oldPte, "handleCowFault: corrupt PTE");
+  auto *oldFrame = reinterpret_cast<void *>(oldFramePhys); // NOLINT(performance-no-int-to-ptr)
 
   // Single owner: just make writable and clear the CoW flag.
   if (Pmm::refCount(oldFrame) == 1) {

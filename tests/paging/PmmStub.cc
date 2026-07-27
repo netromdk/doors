@@ -19,6 +19,7 @@ uint8_t refCounts[FRAME_COUNT] = {0};
 size_t freeCount = 0;
 int allocCount = 0;
 int freeCountCalls = 0;
+size_t stubMaxFrameIdx = 0;
 
 size_t findSlot(void *physAddr)
 {
@@ -118,6 +119,11 @@ uint8_t Pmm::refCount(void *physAddr)
   return refCounts[idx];
 }
 
+uint32_t Pmm::maxPhysAddr()
+{
+  return stubMaxFrameIdx * PAGE_SIZE;
+}
+
 size_t Pmm::freeFrameCount()
 {
   return freeCount;
@@ -160,11 +166,17 @@ void pmmTestResetCounts()
   allocCount = 0;
   freeCountCalls = 0;
   freeCount = 0;
+  stubMaxFrameIdx = 0;
 }
 
 uint8_t pmmTestRefcount(void *physAddr)
 {
   return Pmm::refCount(physAddr);
+}
+
+void pmmTestSetMaxFrameIdx(size_t idx)
+{
+  stubMaxFrameIdx = idx;
 }
 
 int Pmm::moduleCount()
@@ -180,4 +192,9 @@ uint32_t Pmm::modulePhysStart(int)
 uint32_t Pmm::modulePhysSize(int)
 {
   return 0;
+}
+
+[[noreturn]] void Pmm::badPhysAddr(BadPhysAddrInfo)
+{
+  __builtin_abort();
 }

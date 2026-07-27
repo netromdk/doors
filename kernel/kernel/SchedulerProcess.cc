@@ -332,7 +332,10 @@ uint32_t Scheduler::fork()
       continue;
     }
 
-    auto *pt = physToVirt32(reinterpret_cast<void *>(parentPd[i] & PAGE_ADDR_MASK));
+    const auto ptPhys = parentPd[i] & PAGE_ADDR_MASK;
+    CHECK_PHYS_ADDR(ptPhys, parentPd[i], "fork: corrupt parent PDE");
+
+    auto *pt = physToVirt32(reinterpret_cast<void *>(ptPhys));
     for (int j = 0; j < PTE_COUNT; ++j) {
       if ((pt[j] & PAGE_PRESENT) && (pt[j] & PAGE_RW) && !(pt[j] & PAGE_COW)) {
         pt[j] &= ~PAGE_RW;

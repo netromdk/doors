@@ -312,3 +312,15 @@ uint8_t Pmm::refCount(void *physAddr)
   }
   return *e;
 }
+
+uint32_t Pmm::maxPhysAddr()
+{
+  return maxFrameIdx_ * PAGE_SIZE;
+}
+
+[[noreturn]] void Pmm::badPhysAddr(BadPhysAddrInfo info)
+{
+  printf("BAD phys=0x%x raw=0x%x at %s:%d in %s: %s\n", info.phys, info.rawEntry, info.file,
+         info.line, info.func, info.context);
+  panic(info.context);
+}

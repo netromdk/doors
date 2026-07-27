@@ -7,5 +7,6 @@ int pmmTestAllocCount();
 int pmmTestFreeCount();
 void pmmTestResetCounts();
 uint8_t pmmTestRefcount(void *physAddr);
+void pmmTestSetMaxFrameIdx(size_t idx);
 
 #endif

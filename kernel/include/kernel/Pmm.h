@@ -48,6 +48,28 @@ public:
   static bool removeRef(void *physAddr);
   static uint8_t refCount(void *physAddr);
 
+  // Upper bound for physical addresses based on detected memory at boot.
+  static uint32_t maxPhysAddr();
+
+  // Validate a physical address extracted from a PDE or PTE. Rejects 0 (defensive) and addresses at
+  // or above the physical memory detected by the PMM. Defined in the header so it resolves at link
+  // time to whichever `maxPhysAddr()` is linked.
+  static bool isBadPhysAddr(uint32_t phys)
+  {
+    return phys == 0 || phys >= maxPhysAddr();
+  }
+
+  // Print diagnostic and panic for a bad physical address. Called via `CHECK_PHYS_ADDR` macro.
+  struct BadPhysAddrInfo {
+    uint32_t phys{};
+    uint32_t rawEntry{};
+    const char *context{};
+    const char *file{};
+    unsigned line{};
+    const char *func{};
+  };
+  [[noreturn]] static void badPhysAddr(BadPhysAddrInfo info);
+
   // Physical addresses of GRUB modules, cached by `init()` before the free loop overwrites the
   // multiboot module structures.
   static uint32_t modulePhysStart(int idx = 0);
@@ -82,5 +104,13 @@ private:
   static uint8_t refCounts_[MAX_FRAMES];
   static size_t maxFrameIdx_; // Highest Page Frame Number + 1 (set during init).
 };
+
+// Check a physical address extracted from a PDE/PTE. On failure, prints diagnostic info and panics.
+#define CHECK_PHYS_ADDR(phys, rawEntry, context)                                                   \
+  do {                                                                                             \
+    if (Pmm::isBadPhysAddr(phys)) {                                                                \
+      Pmm::badPhysAddr({phys, rawEntry, context, __FILE__, __LINE__, __FUNCTION__});               \
+    }                                                                                              \
+  } while (0)
 
 #endif
