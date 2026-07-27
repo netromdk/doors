@@ -56,10 +56,18 @@ void excNm(uint32_t *)
   Scheduler::handleNm();
 }
 
+void excDf(uint32_t *frame)
+{
+  const auto faultAddr = Cpu::readCr2();
+  printf("\nDOUBLE FAULT! faultAddr=0x%x frame=%p\n", faultAddr, frame);
+  panic("double fault");
+}
+
 // Page fault handler.
 void excPf(uint32_t *frame)
 {
-  // CR2 contains the linear address that caused the fault.
+  // Read CR2 before anything that could fault. A nested page fault overwrites CR2 and triggers a
+  // double fault -> triple fault -> silent reset.
   const auto faultAddr = Cpu::readCr2();
 
   // `frame` points to the post-pushal stack passed by `asmExcPf` in Isr.s.

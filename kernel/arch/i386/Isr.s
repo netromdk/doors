@@ -47,6 +47,18 @@ asmExcPf:
         addl  $4, %esp          // Pop error code (#PF pushes one).
         iret
 
+.globl asmExcDf
+.align 4
+asmExcDf:
+        pushal                  // Save 8 GP regs (32 bytes).
+        cld
+        pushl %esp              // Pass post-pushal esp as argument.
+        call  excDf
+        addl  $4, %esp          // Pop argument.
+        popal
+        addl  $4, %esp          // Pop error code (always 0).
+        iret
+
 .macro INTHANDLER name
 .globl asmInt\name
 .align 4

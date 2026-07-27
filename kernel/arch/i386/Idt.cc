@@ -32,6 +32,7 @@ void asmExcSf();
 void asmExcGp();
 void asmExcNm();
 void asmExcPf();
+void asmExcDf();
 
 void asmIntDummy();
 void asmIntTick();
@@ -58,6 +59,7 @@ void Idt::init()
   fillDesc((uint32_t) asmExcDivZero, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[0]);
   fillDesc((uint32_t) asmExcInvOp, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[6]);
   fillDesc((uint32_t) asmExcNm, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[7]);
+  fillDesc((uint32_t) asmExcDf, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[8]);
   fillDesc((uint32_t) asmExcSegNp, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[11]);
   fillDesc((uint32_t) asmExcSf, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[12]);
   fillDesc((uint32_t) asmExcGp, GDT_KERNEL_CODE_SEL, INTR_GATE, &idt[13]);
