@@ -93,7 +93,7 @@ static inline void sys_write(char c)
   __asm__ volatile("int $0x80" : : "a"(SYS_WRITE), "b"((unsigned int) c) : "memory");
 }
 
-__attribute__((noreturn)) static inline void sys_exit(int code = 0)
+__attribute__((noinline, noreturn)) static inline void sys_exit(int code = 0)
 {
   __asm__ volatile("int $0x80" : : "a"(SYS_EXIT), "b"(static_cast<unsigned int>(code)));
   __builtin_unreachable();
@@ -193,7 +193,7 @@ __attribute__((noreturn)) static inline void sys_poweroff()
   __builtin_unreachable();
 }
 
-static inline int sys_fork()
+__attribute__((noinline)) static inline int sys_fork()
 {
   int ret;
   __asm__ volatile("int $0x80" : "=a"(ret) : "a"(SYS_FORK) : "memory");
