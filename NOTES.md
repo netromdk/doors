@@ -17,6 +17,7 @@
   - [Trampoline Page](#trampoline-page)
 - [Memory Management](#memory-management)
   - [Page Reference Counting](#page-reference-counting)
+  - [Copy-on-Write](#copy-on-write)
 - [Advanced Configuration and Power Interface](#advanced-configuration-and-power-interface)
   - [Table Discovery](#table-discovery)
   - [S5 Shutdown](#s5-shutdown)
@@ -445,15 +446,32 @@ during init) bounds all operations.
 
 `addRef(physAddr)` increments (saturates at `MAX_REFCOUNT = 255`). `removeRef(physAddr)` decrements
 and returns true when the count reaches 0. `clonePageDir()` calls `addRef()` for every user `PTE` it
-copies, and `cloneChildStackPages()` calls `removeRef()` when overwriting an inherited stack `PTE`
-with a fresh frame. The OOM rollback path in `clonePageDir()` also calls `removeRef()` to undo
-partially-cloned state.
+copies. The OOM rollback path in `clonePageDir()` also calls `removeRef()` to undo partially-cloned
+state. `exitCurrentTask()` calls `freePageDirectory()` which walks all user PDEs/PTEs, calls
+`removeRef()` on each data frame, and frees page table frames.
 
-Currently, `exitCurrentTask()` does not walk the child's page directory to decrement refcounts on
-shared data frames or free page table frames. Only resources tracked by explicit arrays are freed:
-stack pages, code page, and ELF pages. This means shared data frames from `clonePageDir()` retain an
-extra refcount after the child exits. Walking the page directory on exit to balance refcounts is a
-prerequisite for future work, like Copy-on-Write (CoW) and IPC shared memory.
+Copy-on-Write
+-------------
+
+[Copy-on-Write](https://en.wikipedia.org/wiki/Copy-on-write#In_virtual_memory_management) (CoW)
+[[2](#ref-2), p. 480; [1](#ref-1), pp. 274-278] makes `fork()` [[1](#ref-1), pp. 47-51] efficient by
+sharing physical frames between parent and child instead of copying them. A software flag
+(`PAGE_COW`, bit 9) on each user `PTE` marks shared pages as copy-on-write. When either process
+writes to a shared page, the write triggers a page fault. The fault handler (`handleCowFault()` in
+`Paging.cc`) checks the flag: if the frame's refcount is 1 (sole owner), it simply sets `PAGE_RW`
+and clears `PAGE_COW`. If the refcount is greater than 1 (shared), it allocates a new frame, copies
+the data, updates the `PTE` to point to the new frame with `PAGE_RW` set, and decrements the old
+frame's refcount.
+
+`clonePageDir()` sets `PAGE_COW` and clears `PAGE_RW` on the child's user `PTEs` during cloning.
+`fork()` then sets the same flags on the parent's user `PTE`s so both sides fault on writes. The
+`excPf()` handler checks `(errCode & 3) == 3` (present page, write access) before calling
+`handleCowFault()`, so only CoW faults are handled. Other protection violations still deliver
+`SIGSEGV` or kill the task.
+
+`freePageDirectory()` walks all user PDEs/PTEs, decrements refcounts on each data frame, and frees
+the page table frames. This is called by `exitCurrentTask()` and `killTask()` to cleanly release a
+process's address space.
 
 
 Advanced Configuration and Power Interface
