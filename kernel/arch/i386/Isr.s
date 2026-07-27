@@ -43,8 +43,8 @@ asmExcPf:
         pushl %esp              // Pass post-pushal esp as argument.
         call  excPf
         addl  $4, %esp          // Pop argument.
-        addl  $4, %esp          // Pop error code (#PF pushes one).
         popal
+        addl  $4, %esp          // Pop error code (#PF pushes one).
         iret
 
 .macro INTHANDLER name
