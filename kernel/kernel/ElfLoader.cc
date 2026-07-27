@@ -187,8 +187,9 @@ bool mapSegmentRange(const void *elf, const Elf32_Phdr *phdr, MappedPage *mapped
 void rollbackMapped(MappedPage *mapped, int numMapped)
 {
   for (int i = 0; i < numMapped; ++i) {
+    // unmapPage() already decrements the frame refcount via Pmm::removeRef() and frees the frame
+    // when the refcount reaches zero.
     Paging::unmapPage(mapped[i].vaddr);
-    Pmm::freeFrame(uint32ToVoidPtr(mapped[i].phys));
   }
 }
 

@@ -68,8 +68,10 @@ public:
   static bool mapPage(uint32_t virtAddr, uint32_t physAddr, uint32_t flags);
   static bool mapPage(uint32_t virtAddr, uint32_t physAddr, uint32_t flags, uint32_t pageDir);
 
-  // Unmap a 4 KiB page, clearing the PTE, and flush the TLB entry.
+  // Unmap a 4 KiB page, clearing the PTE, decrementing the frame refcount, and flushing the TLB
+  // entry. The two-arg overload targets an arbitrary page directory (physical address).
   static void unmapPage(uint32_t virtAddr);
+  static void unmapPage(uint32_t virtAddr, uint32_t pageDirPhys);
 
   // Clear all PTEs in the page table covering `virtAddr`. Used before mapping a new ELF segment to
   // remove stale entries left by a previously-loaded ELF.

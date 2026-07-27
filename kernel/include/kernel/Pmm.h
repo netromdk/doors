@@ -29,6 +29,7 @@ public:
 
   static void *allocFrame();
   static void freeFrame(void *physAddr);
+  static void freeFrameFast(void *physAddr);
   static size_t freeFrameCount();
 
   static void reserveFrame(void *physAddr);
@@ -62,9 +63,6 @@ private:
     uintptr_t start;
     uintptr_t end;
   };
-
-  // Fast path for init: inserts a frame without the O(n) double-free check.
-  static void freeFrameFast(void *physAddr);
 
   // Returns a pointer to the refcount byte for `physAddr`, or nullptr if out of bounds.
   static uint8_t *refCountEntry(void *physAddr);

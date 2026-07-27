@@ -166,8 +166,6 @@ void Pmm::freeFrame(void *physAddr)
 
   InterruptGuard guard;
 
-  // With refcounts, double-free is a logic error (refcount underflow), not a data corruption issue
-  // to scan for.
   if (*e == 0) {
     panic("Pmm::freeFrame: refcount already 0 (double free?)");
   }

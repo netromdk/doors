@@ -71,7 +71,6 @@ struct MappedFrame {
   {
     if (owned) {
       Paging::unmapPage(vaddr);
-      Pmm::freeFrame(reinterpret_cast<void *>(phys)); // NOLINT(performance-no-int-to-ptr)
     }
   }
 };
@@ -94,7 +93,7 @@ struct HeapAlloc {
   }
 };
 
-bool allocAndMapUserPage(uint32_t vaddr, MappedFrame &out)
+bool allocAndMapUserPage(uint32_t vaddr, uint32_t pageDir, MappedFrame &out)
 {
   void *phys = Pmm::allocFrame();
   if (phys == nullptr) {
@@ -102,7 +101,7 @@ bool allocAndMapUserPage(uint32_t vaddr, MappedFrame &out)
   }
 
   const auto phys32 = static_cast<uint32_t>(reinterpret_cast<unsigned long long>(phys));
-  if (!Paging::mapPage(vaddr, phys32, PAGE_PRESENT | PAGE_RW | PAGE_USER)) {
+  if (!Paging::mapPage(vaddr, phys32, PAGE_PRESENT | PAGE_RW | PAGE_USER, pageDir)) {
     Pmm::freeFrame(phys);
     return false;
   }
@@ -113,27 +112,29 @@ bool allocAndMapUserPage(uint32_t vaddr, MappedFrame &out)
   return true;
 }
 
-bool mapUserStackPages(Task &t)
+bool mapUserStackPages(Task &t, uint32_t pageDir)
 {
   for (uint32_t i = 0; i < Scheduler::USER_STACK_PAGES; ++i) {
     MappedFrame frame{};
     const uint32_t vaddr = Scheduler::USER_STACK_VADDR - (i * Pmm::PAGE_SIZE);
-    if (!allocAndMapUserPage(vaddr, frame)) {
+    if (!allocAndMapUserPage(vaddr, pageDir, frame)) {
       return false;
     }
+
     t.userStackVaddr[i] = vaddr;
     t.userStackPhys[i] = frame.phys;
     frame.dismiss();
   }
+
   t.userStackPageCount = Scheduler::USER_STACK_PAGES;
   return true;
 }
 
-void freePageArray(int count, const uint32_t *vaddrs, const uint32_t *phys)
+void freePageArray(int count, const uint32_t *vaddrs, const uint32_t * /*phys*/, uint32_t pageDir)
 {
   for (int i = 0; i < count; ++i) {
-    Paging::unmapPage(vaddrs[i]);
-    Pmm::freeFrame(reinterpret_cast<void *>(phys[i])); // NOLINT(performance-no-int-to-ptr)
+    // Decrements the frame refcount and frees the frame when the refcount reaches zero.
+    Paging::unmapPage(vaddrs[i], pageDir);
   }
 }
 
@@ -217,11 +218,11 @@ optional<int> Scheduler::addUserTask(string_view name)
   }
 
   MappedFrame codeFrame{};
-  if (!allocAndMapUserPage(USER_BASE, codeFrame)) {
+  if (!allocAndMapUserPage(USER_BASE, Paging::kernelPageDirPhys(), codeFrame)) {
     return {};
   }
 
-  if (!mapUserStackPages(t)) {
+  if (!mapUserStackPages(t, Paging::kernelPageDirPhys())) {
     return {};
   }
 
@@ -276,7 +277,7 @@ optional<int> Scheduler::addUserElfTask(string_view name, const void *elfData, s
     return {};
   }
 
-  if (!mapUserStackPages(t)) {
+  if (!mapUserStackPages(t, Paging::kernelPageDirPhys())) {
     return {};
   }
 
@@ -462,22 +463,22 @@ uint32_t Scheduler::exec(int modIdx)
   }
 
   // Free old ELF pages.
-  freePageArray(t.elfPageCount, t.elfVaddr, t.elfPhys);
+  freePageArray(t.elfPageCount, t.elfVaddr, t.elfPhys, t.pageDir);
   t.elfPageCount = 0;
 
   // Free old user stack pages.
-  freePageArray(t.userStackPageCount, t.userStackVaddr, t.userStackPhys);
+  freePageArray(t.userStackPageCount, t.userStackVaddr, t.userStackPhys, t.pageDir);
   t.userStackPageCount = 0;
 
   // Free old code page if this was a non-ELF user task (loaded via `addUserTask()`).
   if (t.userCodeBuf != 0) {
-    Paging::unmapPage(USER_BASE);
+    Paging::unmapPage(USER_BASE, t.pageDir);
     Pmm::freeFrame(reinterpret_cast<void *>(t.userCodeBuf)); // NOLINT(performance-no-int-to-ptr)
     t.userCodeBuf = 0;
   }
 
   // Map a fresh user stack.
-  if (!mapUserStackPages(t)) {
+  if (!mapUserStackPages(t, t.pageDir)) {
     return static_cast<uint32_t>(-1);
   }
 
@@ -487,7 +488,7 @@ uint32_t Scheduler::exec(int modIdx)
   if (!loadResult) {
     // ELF load failed after freeing old pages. The task is effectively dead and recovery is not
     // possible.
-    freePageArray(t.userStackPageCount, t.userStackVaddr, t.userStackPhys);
+    freePageArray(t.userStackPageCount, t.userStackVaddr, t.userStackPhys, t.pageDir);
     t.userStackPageCount = 0;
     return static_cast<uint32_t>(-1);
   }

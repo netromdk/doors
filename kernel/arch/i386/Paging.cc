@@ -202,25 +202,54 @@ bool Paging::mapPage(uint32_t virtAddr, uint32_t physAddr, uint32_t flags, uint3
     pageTable = resolvePageTable(virtAddr, pd, pdeIdx, pteIdx);
   }
 
+  // If the PTE is already present, decrement the old frame's refcount before overwriting. This
+  // prevents refcount leaks when the same virtual address is mapped multiple times, like when
+  // `mapUserStackPages()` or `ElfLoader::load()` overwrites PTEs inherited from `clonePageDir()`.
+  if (pageTable[pteIdx] & PAGE_PRESENT) {
+    auto *oldFrame = reinterpret_cast<void *>(pageTable[pteIdx] & PAGE_ADDR_MASK);
+    if (Pmm::removeRef(oldFrame)) {
+      Pmm::freeFrameFast(oldFrame);
+    }
+  }
+
   pageTable[pteIdx] = (physAddr & PAGE_ADDR_MASK) | PAGE_PRESENT | (flags & (PAGE_RW | PAGE_USER));
+
+  if ((flags & PAGE_USER) && !(pd[pdeIdx] & PAGE_USER)) {
+    pd[pdeIdx] |= PAGE_USER;
+  }
+
   Cpu::invlpg(virtAddr);
   return true;
 }
 
-void Paging::unmapPage(uint32_t virtAddr)
+void Paging::unmapPage(uint32_t virtAddr, uint32_t pageDirPhys)
 {
   InterruptGuard guard;
+  auto *pd = physToVirt32(reinterpret_cast<void *>(pageDirPhys));
 
-  auto *pageDir = kernelPageDir_;
   int pdeIdx, pteIdx;
-  auto *pageTable = resolvePageTable(virtAddr, pageDir, pdeIdx, pteIdx);
+  auto *pageTable = resolvePageTable(virtAddr, pd, pdeIdx, pteIdx);
   if (pageTable == nullptr) {
     return;
   }
 
+  // Decrement the refcount on the physical frame before clearing the PTE. When the refcount hits
+  // zero the frame is returned to the free list automatically.
+  if (pageTable[pteIdx] & PAGE_PRESENT) {
+    if (auto *frame = reinterpret_cast<void *>(pageTable[pteIdx] & PAGE_ADDR_MASK);
+        Pmm::removeRef(frame)) {
+      Pmm::freeFrameFast(frame);
+    }
+  }
+
   pageTable[pteIdx] = 0;
   Cpu::invlpg(virtAddr);
-  tryFreePageTable(pageDir, pdeIdx);
+  tryFreePageTable(pd, pdeIdx);
+}
+
+void Paging::unmapPage(uint32_t virtAddr)
+{
+  unmapPage(virtAddr, kernelPageDirPhys());
 }
 
 void Paging::clearPageTable(uint32_t virtAddr)
@@ -231,13 +260,29 @@ void Paging::clearPageTable(uint32_t virtAddr)
 void Paging::clearPageTable(uint32_t virtAddr, uint32_t pageDir)
 {
   InterruptGuard guard;
+  auto *pd = physToVirt32(reinterpret_cast<void *>(pageDir));
 
-  auto *pd = physToVirt32(reinterpret_cast<void *>(static_cast<uintptr_t>(pageDir)));
   int pdeIdx, pteIdx;
   (void) resolvePageTable(virtAddr, pd, pdeIdx, pteIdx);
 
   if (!(pd[pdeIdx] & PAGE_PRESENT)) {
     return; // Nothing to clear.
+  }
+
+  // Save the old page table frame so it can be freed after replacing the PDE.
+  const auto oldPtPhys = pd[pdeIdx] & PAGE_ADDR_MASK;
+
+  // Decrement refcounts for all present PTEs in the old page table. These refcounts were
+  // incremented by `clonePageDir()` when the page directory was cloned. Replacing the page table
+  // orphans these references, so they must be released now.
+  auto *oldPt = physToVirt32(reinterpret_cast<void *>(oldPtPhys));
+  for (int i = 0; i < PTE_COUNT; ++i) {
+    if (oldPt[i] & PAGE_PRESENT) {
+      auto *frame = reinterpret_cast<void *>(oldPt[i] & PAGE_ADDR_MASK);
+      if (Pmm::removeRef(frame)) {
+        Pmm::freeFrameFast(frame);
+      }
+    }
   }
 
   // Allocate a new page table so the shared (kernel) page table is not corrupted.
@@ -250,6 +295,10 @@ void Paging::clearPageTable(uint32_t virtAddr, uint32_t pageDir)
   __builtin_memset(newPt, 0, Pmm::PAGE_SIZE);
 
   pd[pdeIdx] = virtToPhys32(newPt) | (pd[pdeIdx] & (PAGE_PRESENT | PAGE_RW | PAGE_USER));
+
+  // Free the old page table frame now that the PDE points to the new one.
+  Pmm::freeFrame(reinterpret_cast<void *>(oldPtPhys));
+
   Cpu::writeCr3(Cpu::readCr3());
 }
 
