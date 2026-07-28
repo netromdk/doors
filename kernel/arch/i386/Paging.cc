@@ -279,6 +279,16 @@ void Paging::clearPageTable(uint32_t virtAddr, uint32_t pageDir)
   const auto oldPtPhys = pd[pdeIdx] & PAGE_ADDR_MASK;
   CHECK_PHYS_ADDR(oldPtPhys, pd[pdeIdx], "clearPageTable: corrupt PDE");
 
+  // Allocate a new page table before touching any old refcounts. If allocation fails (OOM), the old
+  // page table must remain completely intact so the caller's refcounts stay consistent.
+  void *newFrame = Pmm::allocFrame();
+  if (newFrame == nullptr) {
+    printf("Paging::clearPageTable: OOM allocating page table\n");
+    return;
+  }
+  auto *newPt = physToVirt32(newFrame);
+  __builtin_memset(newPt, 0, Pmm::PAGE_SIZE);
+
   // Decrement refcounts for all present PTEs in the old page table. These refcounts were
   // incremented by `clonePageDir()` when the page directory was cloned. Replacing the page table
   // orphans these references, so they must be released now.
@@ -292,15 +302,6 @@ void Paging::clearPageTable(uint32_t virtAddr, uint32_t pageDir)
       }
     }
   }
-
-  // Allocate a new page table so the shared (kernel) page table is not corrupted.
-  void *frame = Pmm::allocFrame();
-  if (frame == nullptr) {
-    printf("Paging::clearPageTable: OOM allocating page table\n");
-    return;
-  }
-  auto *newPt = physToVirt32(frame);
-  __builtin_memset(newPt, 0, Pmm::PAGE_SIZE);
 
   pd[pdeIdx] = virtToPhys32(newPt) | (pd[pdeIdx] & (PAGE_PRESENT | PAGE_RW | PAGE_USER));
 
