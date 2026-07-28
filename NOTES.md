@@ -238,7 +238,7 @@ no-op as there aren't any registered global constructors.
 hardware setup:
 
 - CPU detection via `CPUID` ([CPU Identification](https://wiki.osdev.org/CPUID), vendor, features,
-  brand string)
+  brand string).
 - Parses the Multiboot memory map into an array of available regions (`kernel/kernel/Mem.cc`,
   `kernel/include/kernel/Mem.h`). Only free chunks at or above 1 MiB are kept. Chunks at or above 4
   GiB require `PAE` ([Physical Address Extension](https://wiki.osdev.org/PAE))
@@ -257,11 +257,12 @@ hardware setup:
   Timer](https://wiki.osdev.org/Programmable_Interval_Timer)) timer (`IRQ` (interrupt request) 0),
   keyboard (`IRQ` 1), and the `INT 0x80` syscall gate
 - Remaps the 8259 `PIC` ([Programmable Interrupt Controller](https://wiki.osdev.org/PIC)) to avoid
-  overlap with CPU exceptions (master `IRQ` 32-39, slave `IRQ` 40-47)
+  overlap with CPU exceptions (master `IRQ` 32-39, slave `IRQ` 40-47).
 - Detects `ACPI` (Advanced Configuration and Power Interface with `RSDP` (Root System Description
   Pointer)/`RSDT` (Root System Description Table)/`FADT` (Fixed ACPI Description Table), and caches
-  the century register)
-- Configures the `PIT` at 1000 Hz (1 ms per tick)
+  the century register).
+- Configures the `PIT` in tickless one-shot mode such that it only fires when the next scheduled
+  event is due.
 
 After `Arch::init()`, `ACPI` physical pointers get nulled out since they won't be safe to
 dereference once paging is on.
@@ -947,10 +948,10 @@ high score across rounds within a session. Uses `IOCTL_PUT` for direct VGA rende
 `IOCTL_POLL_KEY` for non-blocking keyboard input. Saves/restores the VGA buffer to overlay on top of
 the `shell`.
 
-Test Runner (`user/testrunner/`): Integration test harness running 52 tests across 12 suites:
+Test Runner (`user/testrunner/`): Integration test harness running tests across suites covering
 terminal, serial, taskbar, sysinfo, taskctl, ioctl, execmod, fork-exec-waitpid, input, heap, page
-fault recovery, and signals. Emits newline-delimited `JSON` events to the serial port (`start`,
-`run`, `pass`, `fail`, `done`). Two build variants: `testrunner` (auto-powers-off) and
+fault recovery, signals, and copy-on-write. Emits newline-delimited `JSON` events to the serial port
+(`start`, `run`, `pass`, `fail`, `done`). Two build variants: `testrunner` (auto-powers-off) and
 `testrunner-interactive` (stays alive for debugging). A `minimal` payload provides a trivial
 userland program for execmod testing.
 
