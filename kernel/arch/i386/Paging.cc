@@ -455,6 +455,9 @@ bool Paging::handleCowFault(uint32_t faultAddr, uint32_t pageDirPhys)
   if (Pmm::refCount(oldFrame) == 1) {
     pt[pteIdx] = oldPte | PAGE_RW;
     pt[pteIdx] &= ~PAGE_COW;
+
+    // Flush stale TLB entry. INVLPG required after PTE mod.
+    Cpu::invlpg(faultAddr);
     return true;
   }
 
@@ -475,6 +478,8 @@ bool Paging::handleCowFault(uint32_t faultAddr, uint32_t pageDirPhys)
   pt[pteIdx] |= PAGE_RW;
   pt[pteIdx] &= ~PAGE_COW;
 
+  // Flush stale TLB entry. INVLPG required after PTE mod.
+  Cpu::invlpg(faultAddr);
   return true;
 }
 

@@ -474,6 +474,9 @@ set, and decrements the old frame's refcount.
 the page table frames. This is called by `exitCurrentTask()` and `killTask()` to cleanly release a
 process's address space.
 
+After any PTE modification in `handleCowFault()`, `Cpu::invlpg(faultAddr)` flushes the stale TLB
+entry.
+
 
 Advanced Configuration and Power Interface
 ==========================================
