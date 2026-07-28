@@ -447,7 +447,7 @@ uint32_t Scheduler::exec(int modIdx)
 
   // Map a fresh user stack.
   if (!mapUserStackPages(t, t.pageDir)) {
-    return static_cast<uint32_t>(-1);
+    exitCurrentTask(1);
   }
 
   // Load the new ELF into the current page directory. `ElfLoader::load()` calls `clearPageTable()`
@@ -458,7 +458,7 @@ uint32_t Scheduler::exec(int modIdx)
     // possible.
     freePageArray(t.userStackPageCount, t.userStackVaddr, t.userStackPhys, t.pageDir);
     t.userStackPageCount = 0;
-    return static_cast<uint32_t>(-1);
+    exitCurrentTask(1);
   }
 
   // Track new ELF pages for future cleanup.
