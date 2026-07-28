@@ -70,7 +70,7 @@ Unified Bootloader](https://www.gnu.org/software/grub/manual/grub/))
 at `0xC0000000`. Everything runs in ring 0 ([CPU Rings](https://wiki.osdev.org/Security#Rings),
 kernel mode, full hardware access) except userland programs which get their own page directories and
 run in ring 3 (user mode, restricted access, must use syscalls to talk to the kernel) [[1](#ref-1),
-pp. 456-457].
+pp. 456-457; [3](#ref-3), pp. 246-247].
 
 The minimum target ISA ([Instruction Set
 Architecture](https://en.wikipedia.org/wiki/Instruction_set_architecture) [[2](#ref-2), p. 331]) is
@@ -370,10 +370,10 @@ Page Directory Cloning
 each `PDE` marked `PAGE_USER`: allocates a new page table, copies the old entries into it, calls
 `Pmm::addRef()` for each copied user `PTE` to increment the shared frame's reference count, and
 points the new `PDE` at the copy. Kernel-only `PDE` entries are shared (shallow copy) [[1](#ref-1),
-pp. 279-282] without incrementing refcounts. Returns the physical address of the new page
-directory. Used by the scheduler when creating a userland task with its own address space. Includes
-rollback on OOM: decrements refcounts for any already-copied entries before freeing the
-partially-allocated page tables.
+pp. 279-282; [3](#ref-3), pp. 221-223] without incrementing refcounts. Returns the physical address
+of the new page directory. Used by the scheduler when creating a userland task with its own address
+space. Includes rollback on OOM: decrements refcounts for any already-copied entries before freeing
+the partially-allocated page tables.
 
 The no-arg version clones from the kernel page directory. A `clonePageDir(uint32_t srcDirPhys)`
 overload clones from an arbitrary source page directory, will be used by `fork()` to duplicate a
@@ -454,14 +454,14 @@ Copy-on-Write
 -------------
 
 [Copy-on-Write](https://en.wikipedia.org/wiki/Copy-on-write#In_virtual_memory_management) (CoW)
-[[2](#ref-2), p. 480; [1](#ref-1), pp. 274-278] makes `fork()` [[1](#ref-1), pp. 47-51] efficient by
-sharing physical frames between parent and child instead of copying them. A software flag
-(`PAGE_COW`, bit 9) on each user `PTE` marks shared pages as copy-on-write. When either process
-writes to a shared page, the write triggers a page fault. The fault handler (`handleCowFault()` in
-`Paging.cc`) checks the flag: if the frame's refcount is 1 (sole owner), it simply sets `PAGE_RW`
-and clears `PAGE_COW`. If the refcount is greater than 1 (shared), it allocates a new frame, copies
-the data, updates the `PTE` to point to the new frame with `PAGE_RW` set, and decrements the old
-frame's refcount.
+[[2](#ref-2), p. 480; [1](#ref-1), pp. 274-278; [3](#ref-3), p. 223] makes `fork()` [[1](#ref-1),
+pp. 47-51] efficient by sharing physical frames between parent and child instead of copying them. A
+software flag (`PAGE_COW`, bit 9) on each user `PTE` marks shared pages as copy-on-write. When
+either process writes to a shared page, the write triggers a page fault. The fault handler
+(`handleCowFault()` in `Paging.cc`) checks the flag: if the frame's refcount is 1 (sole owner), it
+simply sets `PAGE_RW` and clears `PAGE_COW`. If the refcount is greater than 1 (shared), it
+allocates a new frame, copies the data, updates the `PTE` to point to the new frame with `PAGE_RW`
+set, and decrements the old frame's refcount.
 
 `clonePageDir()` sets `PAGE_COW` and clears `PAGE_RW` on the child's user `PTEs` during cloning.
 `fork()` then sets the same flags on the parent's user `PTE`s so both sides fault on writes. The
@@ -646,7 +646,7 @@ Assembly Stubs
 --------------
 
 `kernel/arch/i386/Isr.s` bridges the gap between CPU-generated stack frames and C++ function calls.
-Two macros define the patterns [[2](#ref-2), pp. 517-522]:
+Two macros define the patterns [[2](#ref-2), pp. 517-522; [3](#ref-3), pp. 228-229]:
 
 - `EXCHANDLER` (exceptions): `pushal; cld; call exc<Name>; popal; iret`
 - `INTHANDLER` (interrupts): `pushal; cld; call int<Name>; popal; iret`
@@ -690,7 +690,7 @@ Exception Handlers
 Hardware Interrupt Handlers
 ---------------------------
 
-`kernel/arch/i386/InterruptHandlers.cc` has four functions:
+`kernel/arch/i386/InterruptHandlers.cc` has four functions [[3](#ref-3), pp. 348-349]:
 
 - `intTick(currentEsp)` is the heart of the scheduler. Calls `Pit::tick()` (increment uptime
    counter), `Scheduler::tick(currentEsp)` (priority-based Round Robin, returns new `ESP` or 0),
@@ -765,11 +765,11 @@ Hardware Setup
 --------------
 
 `Pit::init()` programs `PIT` channel 0 with control word `0x30`: low-byte/high-byte access, mode 0
-(interrupt on terminal count), binary counting [[1](#ref-1), pp. 379-383]. Mode 0 is a one-shot: the
-`PIT` counts down from a divisor, fires `IRQ0` once when it reaches zero, then stops. The divisor is
-computed at runtime by `programForMs(ms)` from the `PIT`'s 1.193182 MHz base clock: `divisor =
-(1193182 * ms) / 1000`, clamped to the 16-bit range `[1, 65535]`. The 16-bit divisor is written to
-I/O port `0x40` in two byte writes (low first, then high). After programming,
+(interrupt on terminal count), binary counting [[1](#ref-1), pp. 379-383; [3](#ref-3), p. 389]. Mode
+0 is a one-shot: the `PIT` counts down from a divisor, fires `IRQ0` once when it reaches zero, then
+stops. The divisor is computed at runtime by `programForMs(ms)` from the `PIT`'s 1.193182 MHz base
+clock: `divisor = (1193182 * ms) / 1000`, clamped to the 16-bit range `[1, 65535]`. The 16-bit
+divisor is written to I/O port `0x40` in two byte writes (low first, then high). After programming,
 `Pic::setMask(IRQ_TIMER, true)` unmasks `IRQ0` on the `PIC`.
 
 Tickless Mode
@@ -1088,9 +1088,9 @@ Keyboard
 
 The keyboard driver (`kernel/include/kernel/Kbd.h`, `kernel/arch/i386/Kbd.cc`) handles [PS/2
 Keyboard](https://wiki.osdev.org/PS/2_Keyboard) scancodes via `IRQ` 1 [[1](#ref-1), pp. 379-383;
-[2](#ref-2), pp. 221-222]. It provides a 256-character ring buffer, full line editing with
-Emacs-style shortcuts, command history, and a non-blocking API for programs that need raw input
-without blocking.
+[2](#ref-2), pp. 221-222; [3](#ref-3), pp. 395-398]. It provides a 256-character ring buffer, full
+line editing with Emacs-style shortcuts, command history, and a non-blocking API for programs that
+need raw input without blocking.
 
 Scancode Processing
 -------------------
@@ -1155,7 +1155,7 @@ References
 Prentice Hall, 2003.
 
 <a id="ref-2"></a>[2] A. S. Tanenbaum, *Structured Computer Organization*, 5th ed.
-Prentice Hall, 2008.
+Prentice Hall, 2005.
 
 <a id="ref-3"></a>[3] A. S. Tanenbaum, *Modern Operating Systems*, 3rd ed.
 Pearson, 2008.
