@@ -99,5 +99,6 @@ void testCowForkIndependence();
 void testCowForkMultipleIterations();
 void testCowNestedFork();
 void testCowMultiPage();
+void testCowExecFailureAfterFork();
 
 #endif

@@ -21,6 +21,7 @@ void runCoWTests()
   runTest("cow_fork_multiple_iterations", testCowForkMultipleIterations);
   runTest("cow_nested_fork", testCowNestedFork);
   runTest("cow_multi_page", testCowMultiPage);
+  runTest("cow_exec_failure_after_fork", testCowExecFailureAfterFork);
 }
 
 void testCowForkChildWrites()
@@ -222,4 +223,34 @@ void testCowMultiPage()
   const auto reaped = sys_waitpid(&status);
   ASSERT_TRUE(reaped == pid, "should reap correct child");
   ASSERT_TRUE(status == 42, "child should exit cleanly after multi-page CoW");
+}
+
+void testCowExecFailureAfterFork()
+{
+  while (sys_waitpid(nullptr) >= 0) {
+  }
+
+  const auto pid = sys_fork();
+  ASSERT_TRUE(pid >= 0, "fork should succeed");
+
+  if (pid == 0) {
+    volatile int x = 42;
+    x = 7;
+    (void) x;
+
+    // The module passes `ElfLoader::validate()`, since it has a valid ELF header, but the `PT_LOAD`
+    // segment is above `KERNEL_VIRTUAL_BASE` so `ElfLoader::validateSegment()` rejects it. `exec()`
+    // must kill the task rather than returning -1 into a task with no valid code image.
+    sys_exec(COW_EXEC_FAIL_MODULE_IDX);
+
+    sys_exit();
+  }
+
+  volatile int parentVal = 99;
+  (void) parentVal;
+
+  int status = -1;
+  const auto reaped = sys_waitpid(&status);
+  ASSERT_TRUE(reaped == pid, "should reap correct child");
+  ASSERT_TRUE(status == 1, "child should exit with code 1 after failed exec");
 }
