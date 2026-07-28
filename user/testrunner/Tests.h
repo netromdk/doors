@@ -97,5 +97,7 @@ void testCowBothWrite();
 void testCowForkExecChild();
 void testCowForkIndependence();
 void testCowForkMultipleIterations();
+void testCowNestedFork();
+void testCowMultiPage();
 
 #endif

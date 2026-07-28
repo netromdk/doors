@@ -4,6 +4,7 @@
 #include "Framework.h"
 #include "Tests.h"
 
+constexpr int PAGE_SIZE = 4096;
 constexpr int COW_EXIT_CHILD_WRITES = 20;
 constexpr int COW_EXIT_BOTH_WRITE = 50;
 constexpr int COW_EXIT_INDEPENDENCE_CHILD = 99;
@@ -18,6 +19,8 @@ void runCoWTests()
   runTest("cow_fork_exec_child", testCowForkExecChild);
   runTest("cow_fork_independence", testCowForkIndependence);
   runTest("cow_fork_multiple_iterations", testCowForkMultipleIterations);
+  runTest("cow_nested_fork", testCowNestedFork);
+  runTest("cow_multi_page", testCowMultiPage);
 }
 
 void testCowForkChildWrites()
@@ -150,4 +153,73 @@ void testCowForkMultipleIterations()
     ASSERT_TRUE(status == (i + 1) * COW_ITERATION_MULTIPLIER,
                 "child should exit with iteration-based code");
   }
+}
+
+void testCowNestedFork()
+{
+  constexpr int GRANDCHILD_EXIT = 42;
+  constexpr int CHILD_EXIT = 99;
+
+  // Reap any leftover children from prior test groups.
+  while (sys_waitpid(nullptr) >= 0) {
+  }
+
+  const auto pid = sys_fork();
+  ASSERT_TRUE(pid >= 0, "first fork should succeed");
+
+  if (pid == 0) {
+    // Child: fork a grandchild.
+    const auto gpid = sys_fork();
+    ASSERT_TRUE(gpid >= 0, "second fork should succeed");
+
+    if (gpid == 0) {
+      // Grandchild: write to stack (refcount 3 -> 2), exit with code.
+      volatile int x = 0;
+      x = GRANDCHILD_EXIT;
+      sys_exit(x);
+    }
+
+    // Child: wait for grandchild.
+    int status = -1;
+    sys_waitpid(&status);
+    ASSERT_TRUE(status == GRANDCHILD_EXIT, "grandchild should exit cleanly");
+
+    // Child: write to stack (refcount 2 -> 1).
+    volatile int y = 0;
+    y = CHILD_EXIT;
+    sys_exit(y);
+  }
+
+  // Parent: wait for child, verify child exited with expected code.
+  int status = -1;
+  const auto reaped = sys_waitpid(&status);
+  ASSERT_TRUE(reaped == pid, "should reap correct child");
+  ASSERT_TRUE(status == CHILD_EXIT, "child should exit cleanly after nested CoW");
+}
+
+void testCowMultiPage()
+{
+  const auto pid = sys_fork();
+  ASSERT_TRUE(pid >= 0, "fork should succeed");
+
+  if (pid == 0) {
+    // Write to multiple stack offsets to trigger CoW faults on different pages.
+    volatile char buf[PAGE_SIZE * 2];
+
+    buf[0] = 'a';
+    (void) buf[0];
+
+    buf[PAGE_SIZE] = 'b';
+    (void) buf[PAGE_SIZE];
+
+    buf[PAGE_SIZE * 2 - 1] = 'c';
+    (void) buf[PAGE_SIZE * 2 - 1];
+
+    sys_exit(42);
+  }
+
+  int status = -1;
+  const auto reaped = sys_waitpid(&status);
+  ASSERT_TRUE(reaped == pid, "should reap correct child");
+  ASSERT_TRUE(status == 42, "child should exit cleanly after multi-page CoW");
 }
