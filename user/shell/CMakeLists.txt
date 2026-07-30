@@ -23,4 +23,5 @@ add_user_program(shell
   CmdSnake.cc
   CmdTasks.cc
   CmdUptime.cc
+  CmdStats.cc
 )

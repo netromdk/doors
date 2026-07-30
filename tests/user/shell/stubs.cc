@@ -61,3 +61,7 @@ __attribute__((weak)) void cmdTasks(const span<string_view> &)
 __attribute__((weak)) void cmdSnake(const span<string_view> &)
 {
 }
+
+__attribute__((weak)) void cmdStats(const span<string_view> &)
+{
+}

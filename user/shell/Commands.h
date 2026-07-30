@@ -31,5 +31,6 @@ void cmdEcho(const span<string_view> &);
 void cmdKill(const span<string_view> &);
 void cmdTasks(const span<string_view> &);
 void cmdSnake(const span<string_view> &);
+void cmdStats(const span<string_view> &);
 
 #endif

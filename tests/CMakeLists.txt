@@ -85,6 +85,7 @@ function(doors_test_module name)
     "${DOORS_LIBC_INC_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/../kernel"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
   )
   target_link_libraries(${name} PRIVATE test_main libc++test)
   add_test(NAME ${name} COMMAND ${name})
@@ -221,6 +222,7 @@ set(SYMBOLS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Symbols.cc")
 set(PMM_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Pmm.cc")
 set(SYSCALL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Syscall.cc")
 set(ELF_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/ElfLoader.cc")
+set(STATS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../kernel/kernel/Stats.cc")
 
 doors_test_module(test_kernel_heap_initstate
   heap/IsInitialized.cc
@@ -416,6 +418,27 @@ doors_test_module(test_kernel_elf_loader
   "${ELF_SRC}"
 )
 target_compile_definitions(test_kernel_elf_loader PRIVATE __IS_DOORS_KERNEL __DOORS_TESTING)
+
+doors_test_module(test_kernel_util
+  util/RingBuffer.cc
+)
+
+doors_test_module(test_kernel_stats
+  stats/Stats.cc
+  "${STATS_SRC}"
+  stubs.cc
+  paging/PmmStub.cc
+  paging/PagingStub.cc
+  "${HEAP_SRC}"
+  "${PIT_SRC}"
+  ${SCHED_SRC}
+  "${SEMAPHORE_SRC}"
+  "${PANIC_SRC}"
+  "${BTRACE_SRC}"
+  "${SYMBOLS_SRC}"
+  "${ELF_SRC}"
+)
+target_compile_definitions(test_kernel_stats PRIVATE __IS_DOORS_KERNEL __DOORS_TESTING)
 
 doors_test_module(test_kernel_cmos
   kernel/Cmos.cc

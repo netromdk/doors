@@ -101,4 +101,13 @@ void testCowNestedFork();
 void testCowMultiPage();
 void testCowExecFailureAfterFork();
 
+// Stats.
+void runStatsTests();
+void testStatsSnapshotBasic();
+void testStatsSnapshotAfterFork();
+void testStatsSnapshotAfterExec();
+void testStatsSnapshotMemory();
+void testStatsSnapshotAliveAfterFork();
+void testStatsCountersNonzero();
+
 #endif
