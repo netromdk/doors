@@ -71,6 +71,7 @@ add_library(
   kernel/ElfLoader.cc
   kernel/Symbols.cc
   kernel/Taskbar.cc
+  kernel/Stats.cc
 )
 
 target_compile_options(kernel_objs PRIVATE

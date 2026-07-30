@@ -2,6 +2,7 @@
 #define USER_SYSCALL_H
 
 #include <cstddef>
+#include <sys/StatsSnapshot.h>
 #include <sys/syscall.h>
 
 enum IoctlCmd {
@@ -235,6 +236,16 @@ static inline int sys_sigaction(int signal, void (*handler)(int))
                    : "=a"(ret)
                    : "a"(SYS_SIGACTION), "b"(static_cast<unsigned int>(signal)),
                      "c"(reinterpret_cast<unsigned int>(handler))
+                   : "memory");
+  return ret;
+}
+
+static inline int sys_stats(StatsSnapshot *buf)
+{
+  int ret;
+  __asm__ volatile("int $0x80"
+                   : "=a"(ret)
+                   : "a"(SYS_STATS), "b"(reinterpret_cast<unsigned int>(buf))
                    : "memory");
   return ret;
 }

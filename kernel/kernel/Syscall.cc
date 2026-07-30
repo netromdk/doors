@@ -18,6 +18,7 @@
 #include <kernel/Panic.h>
 #include <kernel/Pit.h>
 #include <kernel/Pmm.h>
+#include <kernel/Stats.h>
 #include <kernel/Vga.h>
 #include <sys/syscall.h>
 #endif
@@ -469,6 +470,23 @@ uint32_t handleSigaction(uint32_t signal, uint32_t handlerAddr)
   return 0;
 }
 
+static uint32_t handleStats(uint32_t bufAddr)
+{
+  if (!isValidUserBuf(bufAddr, sizeof(StatsSnapshot))) {
+    return static_cast<uint32_t>(-1);
+  }
+
+  StatsSnapshot snap;
+  Stats::snapshot();
+  if (!Stats::getLatest(snap)) {
+    return static_cast<uint32_t>(-1);
+  }
+
+  __builtin_memcpy(reinterpret_cast<StatsSnapshot *>(static_cast<uintptr_t>(bufAddr)), &snap,
+                   sizeof(StatsSnapshot));
+  return 0;
+}
+
 uint32_t handleSigreturn()
 {
   Task &task = Scheduler::currentTask();
@@ -568,6 +586,9 @@ extern "C" uint32_t syscallHandler(uint32_t eax, uint32_t ebx, uint32_t ecx, uin
 
   case SYS_SIGRETURN:
     return handleSigreturn();
+
+  case SYS_STATS:
+    return handleStats(ebx);
 #endif
 
   default:

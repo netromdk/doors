@@ -22,6 +22,7 @@ enum Syscall {
   SYS_KILL = 17,             // Send signal to task (ebx=pid, ecx=signal).
   SYS_SIGACTION = 18,        // Install signal handler (ebx=signal, ecx=handler_fn).
   SYS_SIGRETURN = 19,        // Return from signal handler (internal, called by trampoline).
+  SYS_STATS = 20,            // Read system statistics snapshot (ebx=StatsSnapshot*).
 };
 
 #endif // SYS_SYSCALL_H
