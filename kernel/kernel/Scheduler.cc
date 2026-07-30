@@ -25,6 +25,8 @@ volatile int Scheduler::currentIdx_{0};
 uint64_t Scheduler::quantumStartMs_{0};
 volatile bool Scheduler::initialized_{false};
 int Scheduler::totalExited_{0};
+int Scheduler::totalContextSwitches_{0};
+int Scheduler::idleTicks_{0};
 uint8_t Scheduler::nextPid_{0};
 int Scheduler::fpuOwner_{-1};
 array<Scheduler::SleepEntry, Scheduler::MAX_SLEEPERS> Scheduler::sleepQueue_{};
@@ -236,6 +238,11 @@ uint32_t Scheduler::tick(uint32_t currentEsp)
   // return will redirect to the signal handler.
   deliverPendingSignals();
 
+  // Count ticks spent in the idle task for CPU idle % calculation.
+  if (currentIdx_ == 0) {
+    ++idleTicks_;
+  }
+
   // Charge elapsed CPU time to the running task.
   const auto now = Pit::uptimeMs();
   const auto elapsed = now - lastTickMs_;
@@ -282,6 +289,7 @@ uint32_t Scheduler::tick(uint32_t currentEsp)
 
 uint32_t Scheduler::switchTo(int next)
 {
+  ++totalContextSwitches_;
   if (tasks_[currentIdx_].state == TaskState::RUNNING) {
     tasks_[currentIdx_].state = TaskState::READY;
   }
@@ -398,6 +406,16 @@ int Scheduler::blockedTaskCount()
 int Scheduler::deadTaskCount()
 {
   return countIf(isDead);
+}
+
+int Scheduler::totalContextSwitches()
+{
+  return totalContextSwitches_;
+}
+
+int Scheduler::idleTicks()
+{
+  return idleTicks_;
 }
 
 int Scheduler::totalExited()

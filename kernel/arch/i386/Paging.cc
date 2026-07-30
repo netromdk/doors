@@ -10,6 +10,10 @@
 
 uint32_t *Paging::kernelPageDir_ = nullptr;
 
+uint32_t Paging::pageFaults_ = 0;
+uint32_t Paging::cowFaults_ = 0;
+uint32_t Paging::userPageFaults_ = 0;
+
 namespace {
 
 uint32_t roundUp4K(uint32_t val)
@@ -450,6 +454,8 @@ bool Paging::handleCowFault(uint32_t faultAddr, uint32_t pageDirPhys)
   const auto oldFramePhys = oldPte & PAGE_ADDR_MASK;
   CHECK_PHYS_ADDR(oldFramePhys, oldPte, "handleCowFault: corrupt PTE");
   auto *oldFrame = reinterpret_cast<void *>(oldFramePhys); // NOLINT(performance-no-int-to-ptr)
+
+  ++cowFaults_;
 
   // Single owner: just make writable and clear the CoW flag.
   if (Pmm::refCount(oldFrame) == 1) {

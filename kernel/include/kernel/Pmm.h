@@ -31,6 +31,9 @@ public:
   static void freeFrame(void *physAddr);
   static void freeFrameFast(void *physAddr);
   static size_t freeFrameCount();
+  static size_t allocCount_;
+  static size_t freeCount_;
+  static size_t highWaterFrames_;
 
   static void reserveFrame(void *physAddr);
 
@@ -94,7 +97,6 @@ private:
   static void addMemoryMapPages(const ModuleRange *modules, int count);
 
   static FreeFrame *freeList_;
-  static size_t freeCount_;
   static uint32_t modulePhysStart_[MAX_MODULE_RANGES];
   static uint32_t modulePhysSize_[MAX_MODULE_RANGES];
   static int moduleCount_;

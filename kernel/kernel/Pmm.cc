@@ -19,6 +19,8 @@ const uintptr_t KERNEL_END = reinterpret_cast<uintptr_t>(_kernel_end);
 
 Pmm::FreeFrame *Pmm::freeList_ = nullptr;
 size_t Pmm::freeCount_ = 0;
+size_t Pmm::allocCount_ = 0;
+size_t Pmm::highWaterFrames_ = 0;
 uint32_t Pmm::modulePhysStart_[MAX_MODULE_RANGES] = {};
 uint32_t Pmm::modulePhysSize_[MAX_MODULE_RANGES] = {};
 int Pmm::moduleCount_ = 0;
@@ -144,6 +146,11 @@ void *Pmm::allocFrame()
   }
 
   __builtin_memset(frame, 0, PAGE_SIZE);
+
+  ++allocCount_;
+  if (const auto allocated = maxFrameIdx_ - freeCount_; allocated > highWaterFrames_) {
+    highWaterFrames_ = allocated;
+  }
 
   // Initialize refcount to 1 for the newly allocated frame.
   if (auto *e = refCountEntry(frame)) {

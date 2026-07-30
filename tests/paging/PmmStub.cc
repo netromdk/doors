@@ -16,8 +16,8 @@ constexpr size_t FRAME_COUNT = 512;
 alignas(4096) uint8_t framePool[FRAME_COUNT][4096]; // 2 MiB total
 bool frameUsed[FRAME_COUNT] = {false};
 uint8_t refCounts[FRAME_COUNT] = {0};
-size_t freeCount = 0;
-int allocCount = 0;
+size_t stubFreeCount = 0;
+int stubAllocCount = 0;
 int freeCountCalls = 0;
 size_t stubMaxFrameIdx = 0;
 
@@ -33,6 +33,11 @@ size_t findSlot(void *physAddr)
 
 } // namespace
 
+// Static member definitions. The real Pmm.cc provides these in the kernel build.
+size_t Pmm::allocCount_;
+size_t Pmm::freeCount_;
+size_t Pmm::highWaterFrames_;
+
 void Pmm::init()
 {
   printf("Pmm: stub init (no-op for host testing)\n");
@@ -44,9 +49,17 @@ void *Pmm::allocFrame()
     if (!frameUsed[i]) {
       frameUsed[i] = true;
       refCounts[i] = 1;
-      ++allocCount;
-      if (freeCount > 0) {
-        --freeCount;
+      ++stubAllocCount;
+      ++allocCount_;
+      if (stubFreeCount > 0) {
+        --stubFreeCount;
+      }
+      if (freeCount_ > 0) {
+        --freeCount_;
+      }
+      const auto frames = allocCount_ - freeCount_;
+      if (frames > highWaterFrames_) {
+        highWaterFrames_ = frames;
       }
       __builtin_memset(framePool[i], 0, PAGE_SIZE);
       return framePool[i];
@@ -77,7 +90,8 @@ void Pmm::freeFrame(void *physAddr)
   if (refCounts[idx] == 0) {
     if (frameUsed[idx]) {
       frameUsed[idx] = false;
-      ++freeCount;
+      ++stubFreeCount;
+      ++freeCount_;
     }
   }
 }
@@ -126,7 +140,7 @@ uint32_t Pmm::maxPhysAddr()
 
 size_t Pmm::freeFrameCount()
 {
-  return freeCount;
+  return stubFreeCount;
 }
 
 void Pmm::reserveFrame(void *physAddr)
@@ -138,8 +152,8 @@ void Pmm::reserveFrame(void *physAddr)
   if (const auto idx = findSlot(physAddr); idx < FRAME_COUNT && !frameUsed[idx]) {
     frameUsed[idx] = true;
     refCounts[idx] = 1;
-    if (freeCount > 0) {
-      --freeCount;
+    if (stubFreeCount > 0) {
+      --stubFreeCount;
     }
   }
 }
@@ -154,7 +168,7 @@ void Pmm::removeFramesAbove(uintptr_t /*boundary*/)
 
 int pmmTestAllocCount()
 {
-  return allocCount;
+  return stubAllocCount;
 }
 int pmmTestFreeCount()
 {
@@ -163,9 +177,9 @@ int pmmTestFreeCount()
 
 void pmmTestResetCounts()
 {
-  allocCount = 0;
+  stubAllocCount = 0;
   freeCountCalls = 0;
-  freeCount = 0;
+  stubFreeCount = 0;
   stubMaxFrameIdx = 0;
 }
 

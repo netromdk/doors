@@ -66,6 +66,8 @@ void excDf(uint32_t *frame)
 // Page fault handler.
 void excPf(uint32_t *frame)
 {
+  ++Paging::pageFaults_;
+
   // Read CR2 before anything that could fault. A nested page fault overwrites CR2 and triggers a
   // double fault -> triple fault -> silent reset.
   const auto faultAddr = Cpu::readCr2();
@@ -113,6 +115,7 @@ void excPf(uint32_t *frame)
 
   // If the fault came from userland, try to deliver `SIGSEGV` to the faulting task.
   if (cs & 3) {
+    ++Paging::userPageFaults_;
     printf("  User ESP:      0x%x\n", frame[12]);
     printf("  User SS:       0x%x  (ring %d)\n", frame[13], frame[13] & 3);
 

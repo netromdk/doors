@@ -53,6 +53,8 @@ public:
   static int blockedTaskCount();
   static int deadTaskCount();
   static int totalExited();
+  static int totalContextSwitches();
+  static int idleTicks();
   static int taskCount();
   static optional<const char *> taskName(int id);
   static optional<TaskState> taskState(int id);
@@ -99,6 +101,8 @@ private:
   static volatile bool initialized_;
 
   static int totalExited_;
+  static int totalContextSwitches_;
+  static int idleTicks_;
 
   // Monotonically increasing PID counter. PID 0 is reserved for `idle`.
   static uint8_t nextPid_;

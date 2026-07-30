@@ -5,6 +5,11 @@
 
 // Host-safe stubs for Paging functions.
 
+// Static member definitions. The real Paging.cc provides these in the kernel build.
+uint32_t Paging::pageFaults_;
+uint32_t Paging::cowFaults_;
+uint32_t Paging::userPageFaults_;
+
 namespace {
 
 // Map from synthetic "physical address" to host pointer for the clone pool. The test only checks

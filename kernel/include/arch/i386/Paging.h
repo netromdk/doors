@@ -98,6 +98,11 @@ public:
   // that does not have its own page directory.
   static uint32_t kernelPageDirPhys();
 
+  // Aggregate statistics counters.
+  static uint32_t pageFaults_;
+  static uint32_t cowFaults_;
+  static uint32_t userPageFaults_;
+
 private:
   // Number of 4 MiB page-table regions needed to cover [0, end).
   static int calcNumPageTables(uint32_t end);
