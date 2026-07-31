@@ -37,6 +37,7 @@
   - [Uptime](#uptime)
   - [Integration](#integration)
 - [System Calls](#system-calls)
+- [System Statistics](#system-statistics)
 - [ELF Loader](#elf-loader)
 - [Userland Programs](#userland-programs)
 - [Terminal (TTY)](#terminal-tty)
@@ -97,7 +98,8 @@ commands) and `snake` (VGA snake game). Built as freestanding, statically-linked
 and Linkable Format](https://wiki.osdev.org/ELF)) 32-bit binaries, with `user/User.ld` setting the
 output to `elf32-i386` and the base address to `0x10000000`. GRUB loads them as Multiboot modules
 and the kernel picks them up from there. Communication with the kernel happens through `INT 0x80`
-syscalls: 19 of them covering read/write, process control, signals, system info, etc.
+syscalls: 20 of them covering read/write, process control, signals, system statistics, system info,
+etc.
 
 
 Build System
@@ -132,9 +134,9 @@ QEMU, capturing serial output to `doors.log` when debug mode is on. ISO creation
 
 Tests use Doctest (single-header at `tests/doctest/doctest.h`). Tests are compiled for the host, not
 cross-compiled. A custom `libc++test.a` recompiles the kernel's libc++ sources for host-side
-testing. 31 test modules cover the kernel heap, scheduler, keyboard, TTY, paging, PIT timer, panic
-handler, ELF loader, symbol table, CMOS, CPU, syscalls, and userland programs (`shell`, `snake`). An
-additional abort test verifies non-zero exit.
+testing. Test modules cover the kernel heap, scheduler, keyboard, TTY, paging, PIT timer, panic
+handler, ELF loader, symbol table, CMOS, CPU, syscalls, statistics, and userland programs (`shell`,
+`snake`). An additional abort test verifies non-zero exit.
 
 Integration tests (`cmake/run-qemu-timeout.cmake`) boot QEMU with a 30-second timeout, `ACPI`
 ([Advanced Configuration and Power Interface](https://wiki.osdev.org/ACPI)) enabled, and an
@@ -611,7 +613,7 @@ Userland programs communicate with the kernel through `INT 0x80` syscalls. The s
 `IDT` is set as a trap gate with DPL 3 (Descriptor Privilege Level 3, meaning ring-3 accessible) so
 userland code can trigger it. Unlike an interrupt gate, a trap gate leaves interrupts enabled when
 entered, so the handler runs without blocking other hardware interrupts. The handler dispatches to
-one of 19 syscall functions based on the number in `EAX`.
+one of 20 syscall functions based on the number in `EAX`.
 
 
 Interrupts and Exception Handling
@@ -753,7 +755,7 @@ System call (`INT 0x80`): CPU transitions from ring 3 to ring 0, loads kernel `C
 the `TSS`, pushes user `SS`/`ESP`/`EFLAGS`/`CS`/`EIP` onto the kernel stack. Trap gate means `IF` is
 NOT cleared. Assembly stub pushes 4 args, calls `syscallHandler`, patches return value into `EAX`
 slot, then calls `intDeliverSignals(esp)` to deliver any pending signals from the ring-3 frame.
-`popal; iret` returns to userland. The handler dispatches to one of 19 syscall functions based on
+`popal; iret` returns to userland. The handler dispatches to one of 20 syscall functions based on
 the number in `EAX`.
 
 
@@ -853,7 +855,7 @@ game uses it for frame timing.
 System Calls
 ============
 
-All 19 syscalls go through `INT 0x80` [[3](#ref-3), pp. 49-52] (`kernel/kernel/Syscall.cc`,
+All 20 syscalls go through `INT 0x80` [[3](#ref-3), pp. 49-52] (`kernel/kernel/Syscall.cc`,
 `kernel/include/kernel/Syscall.h`). The assembly stub passes the number in `EAX` and up to 3 args in
 `EBX`/`ECX`/`EDX`. Every syscall that takes a userland buffer pointer validates it first: the
 address must be non-null, below `KERNEL_VIRTUAL_BASE` (`0xC0000000`), and the buffer must not wrap
@@ -889,7 +891,34 @@ System info: `SYS_SYSINFO` (8) dispatches 5 sub-commands: `UPTIME` (milliseconds
 `MEMFREE`/`MEMBLOCK` (heap stats), `DATETIME` (`CMOS` ([Complementary
 Metal-Oxide-Semiconductor](https://wiki.osdev.org/CMOS)) `RTC` ([Real-Time
 Clock](https://wiki.osdev.org/RTC))), `CPU` (`CPUID` data). `SYS_SUPPRESS_TASKBAR` (11) hides the
-`taskbar` row.
+`taskbar` row. `SYS_STATS` (20) returns a `StatsSnapshot` of scheduler, `Pmm`, paging, and heap
+counters.
+
+
+System Statistics
+=================
+
+A lightweight statistics telemetry subsystem (`kernel/include/kernel/Stats.h`,
+`kernel/kernel/Stats.cc`) that collects OS-wide counters (scheduler, physical memory, paging, heap)
+into an in-memory ring buffer of `StatsSnapshot` records. Data is captured on demand only: each
+`SYS_STATS` call snapshots the counters and returns the latest entry.
+
+The counters are plain static members incremented at their source:
+
+- `switchTo()` bumps `totalContextSwitches_` and the idle task bumps `idleTicks_`
+- `Pmm` tracks `allocCount_`, `freeCount_`, and `highWaterFrames_` (peak frames in use at once,
+  never decreases)
+- `excPf()` and `handleCowFault()` bump `pageFaults_`, `userPageFaults_`, and `cowFaults_`
+
+`StatsSnapshot` lives in `libc++/include/sys/StatsSnapshot.h`, one copy shared between kernel and
+userland so the ABI stays in sync.
+
+The ring (`kernel/include/kernel/RingBuffer.h`) holds up to `Stats::RING_SIZE = 64` snapshots.
+There is one writer (`Stats::snapshot()`) and one reader (the `SYS_STATS` handler), so no locking is
+needed. The handler (`handleStats()` in `kernel/kernel/Syscall.cc`) validates the buffer with
+`isValidUserBuf()`, snapshots, copies the latest entry out.
+
+The `stats` shell command wraps `sys_stats()` and prints the snapshot.
 
 
 ELF Loader
@@ -936,11 +965,11 @@ virtual address `0x10000000` via `user/User.ld`. The build system provides `add_
 `INT 0x80` syscalls via inline wrappers in `user/lib/Syscall.h`.
 
 Shell (`user/shell/`): Interactive CLI with a `> ` prompt, line editing via the kernel's readline
-syscall (history, cursor movement, insert/delete), and 14 built-in commands: `help`, `clear`,
+syscall (history, cursor movement, insert/delete), and 15 built-in commands: `help`, `clear`,
 `halt`, `reboot`, `panic`, `uptime`, `meminfo`, `heap`, `datetime`, `cpuinfo`, `echo`, `tasks`,
-`kill`, `snake`. Note that the command table uses `const char*` instead of `std::string` because the
-freestanding target has no C++ runtime support for static storage duration objects yet (needs
-`_init()` properly implemetend in `kernel/arch/i386/Boot.s` first).
+`kill`, `snake`, `stats`. Note that the command table uses `const char*` instead of `std::string`
+because the freestanding target has no C++ runtime support for static storage duration objects yet
+(needs `_init()` properly implemetend in `kernel/arch/i386/Boot.s` first).
 
 Snake (`user/snake/`): Full VGA text-mode game. Two modes: classic (walls kill) and wrap (snake
 wraps around edges). Progressive difficulty with base speed starts at 200ms per step, decreasing by
@@ -953,10 +982,10 @@ the `shell`.
 
 Test Runner (`user/testrunner/`): Integration test harness running tests across suites covering
 terminal, serial, taskbar, sysinfo, taskctl, ioctl, execmod, fork-exec-waitpid, input, heap, page
-fault recovery, signals, and copy-on-write. Emits newline-delimited `JSON` events to the serial port
-(`start`, `run`, `pass`, `fail`, `done`). Two build variants: `testrunner` (auto-powers-off) and
-`testrunner-interactive` (stays alive for debugging). A `minimal` payload provides a trivial
-userland program for execmod testing.
+fault recovery, signals, stats, and copy-on-write. Emits newline-delimited `JSON` events to the
+serial port (`start`, `run`, `pass`, `fail`, `done`). Two build variants: `testrunner`
+(auto-powers-off) and `testrunner-interactive` (stays alive for debugging). A `minimal` payload
+provides a trivial userland program for execmod testing.
 
 
 Terminal (TTY)
