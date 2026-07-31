@@ -37,6 +37,7 @@ size_t findSlot(void *physAddr)
 size_t Pmm::allocCount_;
 size_t Pmm::freeCount_;
 size_t Pmm::highWaterFrames_;
+size_t Pmm::freeTotalCount_;
 
 void Pmm::init()
 {
@@ -57,9 +58,9 @@ void *Pmm::allocFrame()
       if (freeCount_ > 0) {
         --freeCount_;
       }
-      const auto frames = allocCount_ - freeCount_;
-      if (frames > highWaterFrames_) {
-        highWaterFrames_ = frames;
+      const auto inUse = allocCount_ - freeTotalCount_;
+      if (inUse > highWaterFrames_) {
+        highWaterFrames_ = inUse;
       }
       __builtin_memset(framePool[i], 0, PAGE_SIZE);
       return framePool[i];
@@ -92,8 +93,14 @@ void Pmm::freeFrame(void *physAddr)
       frameUsed[idx] = false;
       ++stubFreeCount;
       ++freeCount_;
+      ++freeTotalCount_;
     }
   }
+}
+
+size_t Pmm::totalFrees()
+{
+  return freeTotalCount_;
 }
 
 void Pmm::addRef(void *physAddr)
@@ -121,7 +128,11 @@ bool Pmm::removeRef(void *physAddr)
   }
 
   --refCounts[idx];
-  return refCounts[idx] == 0;
+  if (refCounts[idx] == 0) {
+    ++freeTotalCount_;
+    return true;
+  }
+  return false;
 }
 
 uint8_t Pmm::refCount(void *physAddr)

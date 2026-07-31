@@ -97,9 +97,20 @@ TEST_CASE_FIXTURE(SchedulerFixture, "PMM alloc and free counters work together")
   REQUIRE(f2 != nullptr);
   CHECK(Pmm::allocCount_ == 2);
 
+  // Peak in-use frames is recorded by the high-water mark.
+  CHECK(Pmm::highWaterFrames_ == 2);
+
+  // Frees lower the in-use count but never lower the recorded peak.
   Pmm::freeFrame(f1);
   CHECK(Pmm::freeCount_ >= 1);
+  CHECK(Pmm::totalFrees() >= 1);
+  CHECK(Pmm::highWaterFrames_ == 2);
 
-  Pmm::freeFrame(f2);
-  CHECK(Pmm::freeCount_ >= 2);
+  // Refcount-driven frees count once, on the reference that drops to zero.
+  Pmm::addRef(f2);
+  CHECK(Pmm::removeRef(f2) == false);
+  CHECK(Pmm::totalFrees() >= 1); // still 1: f2 still has one reference
+  CHECK(Pmm::removeRef(f2) == true);
+  CHECK(Pmm::totalFrees() >= 2); // last reference released: counted
+  CHECK(Pmm::highWaterFrames_ == 2);
 }

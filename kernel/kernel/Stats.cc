@@ -28,10 +28,11 @@ void Stats::snapshot()
   s.freeFrames = static_cast<uint32_t>(Pmm::freeFrameCount());
   s.totalFrames = static_cast<uint32_t>(Pmm::maxPhysAddr() / Pmm::PAGE_SIZE);
   s.pmmAllocs = static_cast<uint32_t>(Pmm::allocCount_);
-  s.pmmFrees = static_cast<uint32_t>(Pmm::freeCount_);
+  s.pmmFrees = static_cast<uint32_t>(Pmm::totalFrees());
   s.highWaterFrames = static_cast<uint32_t>(Pmm::highWaterFrames_);
   s.heapFreeBytes = static_cast<uint32_t>(Heap::freeMem());
   s.heapLargestBlock = static_cast<uint32_t>(Heap::largestFreeBlock());
+  s.heapTotalBytes = static_cast<uint32_t>(Heap::totalMem());
   s.pageFaults = Paging::pageFaults_;
   s.cowFaults = Paging::cowFaults_;
   s.userPageFaults = Paging::userPageFaults_;

@@ -21,6 +21,7 @@ Pmm::FreeFrame *Pmm::freeList_ = nullptr;
 size_t Pmm::freeCount_ = 0;
 size_t Pmm::allocCount_ = 0;
 size_t Pmm::highWaterFrames_ = 0;
+size_t Pmm::freeTotalCount_ = 0;
 uint32_t Pmm::modulePhysStart_[MAX_MODULE_RANGES] = {};
 uint32_t Pmm::modulePhysSize_[MAX_MODULE_RANGES] = {};
 int Pmm::moduleCount_ = 0;
@@ -148,8 +149,11 @@ void *Pmm::allocFrame()
   __builtin_memset(frame, 0, PAGE_SIZE);
 
   ++allocCount_;
-  if (const auto allocated = maxFrameIdx_ - freeCount_; allocated > highWaterFrames_) {
-    highWaterFrames_ = allocated;
+
+  // Peak frames concurrently in use. Unlike `freeCount_`, this excludes the initial free-list
+  // population and the boot heap reservation.
+  if (const auto inUse = allocCount_ - freeTotalCount_; inUse > highWaterFrames_) {
+    highWaterFrames_ = inUse;
   }
 
   // Initialize refcount to 1 for the newly allocated frame.
@@ -187,11 +191,17 @@ void Pmm::freeFrame(void *physAddr)
   frame->next = freeList_;
   freeList_ = frame;
   ++freeCount_;
+  ++freeTotalCount_;
 }
 
 size_t Pmm::freeFrameCount()
 {
   return freeCount_;
+}
+
+size_t Pmm::totalFrees()
+{
+  return freeTotalCount_;
 }
 
 void Pmm::reserveFrame(void *physAddr)
@@ -304,11 +314,19 @@ bool Pmm::removeRef(void *physAddr)
   if (e == nullptr) {
     return false;
   }
+
   if (*e == 0) {
     panic("Pmm::removeRef: refcount already 0");
   }
+
   --*e;
-  return *e == 0;
+  if (*e == 0) {
+    // The caller will push the frame via `freeFrameFast()`, which bumps only `freeCount_`, so count
+    // the release here to keep `allocCount_ - freeTotalCount_` equal to in-use frames.
+    ++freeTotalCount_;
+    return true;
+  }
+  return false;
 }
 
 uint8_t Pmm::refCount(void *physAddr)

@@ -247,6 +247,11 @@ size_t Heap::freeMem()
   return total;
 }
 
+size_t Heap::totalMem()
+{
+  return heapEnd_ - heapStart_;
+}
+
 size_t Heap::largestFreeBlock()
 {
   size_t largest = 0;

@@ -20,11 +20,13 @@ struct StatsSnapshot {
   uint32_t highWaterFrames;
   uint32_t heapFreeBytes;
   uint32_t heapLargestBlock;
+  uint32_t heapTotalBytes;
   uint32_t pageFaults;
   uint32_t cowFaults;
   uint32_t userPageFaults;
+  uint32_t _reserved; // Alignment padding: keeps sizeof 88 on both i386 and x86_64.
 };
 
-static_assert(sizeof(StatsSnapshot) == 80, "StatsSnapshot size mismatch");
+static_assert(sizeof(StatsSnapshot) == 88, "StatsSnapshot size mismatch");
 
 #endif

@@ -35,6 +35,11 @@ public:
   static size_t freeCount_;
   static size_t highWaterFrames_;
 
+  // Cumulative number of frames actually released back to the free list, as opposed to
+  // `freeCount_`, which is the current free-list length.
+  static size_t totalFrees();
+  static size_t freeTotalCount_;
+
   static void reserveFrame(void *physAddr);
 
   // Reserves every 4 KiB-aligned page in the interval [start, end).

@@ -16,6 +16,7 @@ public:
   static void free(void *ptr);
 
   static size_t freeMem();
+  static size_t totalMem();
   static size_t largestFreeBlock();
 
 private:
