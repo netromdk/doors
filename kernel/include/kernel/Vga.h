@@ -4,12 +4,11 @@
 #include <cstddef>
 #include <cstdint>
 
+#include <sys/vga.h>
+
 // Address of VRAM - color text mode.
 // Defined in Vga.cc and is overridable at link time for host tests.
 extern uint16_t *VGA_RAM;
-
-// VGA standard terminal dimensions.
-static constexpr size_t VGA_WIDTH = 80, VGA_HEIGHT = 25;
 
 // VGA standard hardware colors.
 enum VgaColor : uint8_t {

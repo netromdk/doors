@@ -4,6 +4,8 @@
 #include <array>
 #include <cstdint>
 
+#include <sys/vga.h>
+
 class SnakeGame {
 public:
   enum class Dir : uint8_t { Up, Down, Left, Right };
@@ -12,12 +14,12 @@ public:
     int row, col;
   };
 
-  // Board dimensions:
+  // Board dimensions is VGA screen minus status row and side walls:
   //   row 0 = status
-  //   rows 1..23 = play
-  //   col 0 and 79 = walls
-  static constexpr int BOARD_ROWS = 23; // playable rows: 1..23
-  static constexpr int BOARD_COLS = 78; // playable cols: 1..78
+  //   rows 1..`VGA_HEIGHT-2` = play
+  //   col 0 and `VGA_WIDTH-1` = walls
+  static constexpr int BOARD_ROWS = static_cast<int>(VGA_HEIGHT) - 2; // playable rows: 1..23
+  static constexpr int BOARD_COLS = static_cast<int>(VGA_WIDTH) - 2;  // playable cols: 1..78
   static constexpr int SNAKE_MAX = 100;
 
   // Visual constants.
