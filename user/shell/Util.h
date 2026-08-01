@@ -3,5 +3,6 @@
 
 int brandLen(const char *b);
 const char *taskStateStr(unsigned char st);
+const char *taskStateAbbrev(unsigned char st);
 
 #endif

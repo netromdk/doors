@@ -24,4 +24,6 @@ add_user_program(shell
   CmdTasks.cc
   CmdUptime.cc
   CmdStats.cc
+  CmdTop.cc
+  CmdTop.h
 )

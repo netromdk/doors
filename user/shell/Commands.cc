@@ -4,9 +4,10 @@
 #include <span>
 #include <string_view>
 
+#include "CmdTop.h"
 #include "Commands.h"
 
-static constexpr array<Command, 15> cmdTable{
+static constexpr array<Command, 16> cmdTable{
   Command{.name = "help", .desc = "Show this help message", .handler = cmdHelp},
   Command{.name = "clear", .desc = "Clear the terminal", .handler = cmdClear},
   Command{.name = "halt", .desc = "Halt the system", .handler = cmdHalt},
@@ -24,6 +25,7 @@ static constexpr array<Command, 15> cmdTable{
   Command{.name = "kill", .desc = "Kill a task by ID", .handler = cmdKill},
   Command{.name = "snake", .desc = "Start the snake game", .handler = cmdSnake},
   Command{.name = "stats", .desc = "Show system statistics", .handler = cmdStats},
+  Command{.name = "top", .desc = "Show live task monitor", .handler = top::cmdHandler},
 };
 
 span<const Command> getCmdTable()
