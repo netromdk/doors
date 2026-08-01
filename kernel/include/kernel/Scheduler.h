@@ -8,13 +8,14 @@
 #include <kernel/Task.h>
 #include <optional>
 #include <string_view>
+#include <sys/param.h>
 
 class Scheduler {
 public:
   static constexpr int MAX_TASKS = 8;
 
   // Time slice per task in milliseconds.
-  static constexpr uint64_t QUANTUM_MS = 20;
+  static constexpr uint64_t QUANTUM_MS = SCHED_QUANTUM_MS;
 
   // Sorted queue of tasks sleeping on a timer deadline. Checked in O(1) per tick.
   struct SleepEntry {
