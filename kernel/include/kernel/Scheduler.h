@@ -105,7 +105,7 @@ private:
   static int totalContextSwitches_;
   static int idleTicks_;
 
-  // Monotonically increasing PID counter. PID 0 is reserved for `idle`.
+  // Monotonically increasing PID counter. `IDLE_TASK_ID` is reserved for `idle`.
   static uint8_t nextPid_;
 
   // Task that most recently used the FPU (none when `-1`). Used for lazy FPU context switching.

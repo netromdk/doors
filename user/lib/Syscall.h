@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <sys/StatsSnapshot.h>
 #include <sys/syscall.h>
+#include <sys/task.h>
 
 enum IoctlCmd {
   IOCTL_CLEAR = 1,
@@ -18,11 +19,11 @@ enum IoctlCmd {
   IOCTL_INJECT_CHAR = 10,  // push a character into the keyboard buffer
 };
 
-// Task states (must match kernel TaskState enum).
-constexpr unsigned char TASK_STATE_DEAD = 0;
-constexpr unsigned char TASK_STATE_READY = 1;
-constexpr unsigned char TASK_STATE_RUNNING = 2;
-constexpr unsigned char TASK_STATE_BLOCKED = 3;
+// Task states.
+constexpr unsigned char TASK_STATE_DEAD = static_cast<unsigned char>(TaskState::DEAD);
+constexpr unsigned char TASK_STATE_READY = static_cast<unsigned char>(TaskState::READY);
+constexpr unsigned char TASK_STATE_RUNNING = static_cast<unsigned char>(TaskState::RUNNING);
+constexpr unsigned char TASK_STATE_BLOCKED = static_cast<unsigned char>(TaskState::BLOCKED);
 
 constexpr int MAX_TASK_ENTRIES = 8; // matches Scheduler::MAX_TASKS
 

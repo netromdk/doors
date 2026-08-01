@@ -5,12 +5,7 @@
 #include <cstdint>
 #include <string>
 
-enum class TaskState : uint8_t {
-  DEAD = 0,    // Slot is unused or exited. Safe default for zero-initialized memory.
-  READY = 1,   // In the run queue, waiting to be scheduled.
-  RUNNING = 2, // Currently executing on the CPU.
-  BLOCKED = 3, // Waiting for an event (e.g. a child task to finish).
-};
+#include <sys/task.h>
 
 struct Task {             // NOLINT(clang-analyzer-optin.performance.Padding)
   uint32_t esp{};         // Saved stack pointer.
@@ -47,7 +42,7 @@ struct Task {             // NOLINT(clang-analyzer-optin.performance.Padding)
   uint32_t elfPhys[ELF_PAGE_MAX]{};
 
   // Process hierarchy fields.
-  uint8_t pid{};  // Unique process ID. 0 = `idle` task.
+  uint8_t pid{};  // Unique process ID. `IDLE_TASK_ID` = the idle task.
   uint8_t ppid{}; // Parent PID. 0 = no parent (kernel tasks).
   int exitCode{}; // Exit status. 0 = not yet exited.
   static constexpr int MAX_CHILDREN = 8;
@@ -88,10 +83,10 @@ struct Task {             // NOLINT(clang-analyzer-optin.performance.Padding)
   static constexpr uint8_t FLAG_SUPPRESS_TASKBAR = 1;
 
   // Scheduling priority constants (lower value = higher priority).
-  static constexpr uint8_t PRIORITY_HIGH = 0;
-  static constexpr uint8_t PRIORITY_NORMAL = 4;
-  static constexpr uint8_t PRIORITY_LOW = 8;
-  static constexpr uint8_t PRIORITY_IDLE = 9;
+  static constexpr uint8_t PRIORITY_HIGH = TASK_PRIORITY_HIGH;
+  static constexpr uint8_t PRIORITY_NORMAL = TASK_PRIORITY_NORMAL;
+  static constexpr uint8_t PRIORITY_LOW = TASK_PRIORITY_LOW;
+  static constexpr uint8_t PRIORITY_IDLE = TASK_PRIORITY_IDLE;
 
   static constexpr int HISTORY_MAX = 100;
 

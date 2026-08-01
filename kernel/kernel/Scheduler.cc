@@ -63,8 +63,8 @@ void Scheduler::init()
 {
   fill(tasks_.begin(), tasks_.end(), Task{});
   tasks_[0].state = TaskState::RUNNING;
-  tasks_[0].id = 0;
-  tasks_[0].pid = 0;
+  tasks_[0].id = IDLE_TASK_ID;
+  tasks_[0].pid = IDLE_TASK_ID;
   tasks_[0].ppid = 0;
   tasks_[0].entry = nullptr;
   tasks_[0].stackBuf = nullptr;

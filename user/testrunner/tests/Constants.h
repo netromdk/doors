@@ -4,13 +4,13 @@
 #include <cstddef>
 #include <cstdint>
 
+#include <sys/task.h>
+
 constexpr uint32_t ALIVE_MASK = 0xFF;
 constexpr uint8_t MIN_YEAR_BCD = 26;
 constexpr size_t HEAP_ALLOC_SIZE = 1024;
 
 constexpr unsigned TASKCTL_STATUS_SHIFT = 24;
-constexpr uint8_t TASK_STATE_MAX = 3;
-constexpr unsigned IDLE_TASK_ID = 0;
 constexpr unsigned TESTRUNNER_TASK_ID = 1;
 constexpr unsigned KILL_INVALID_ID = 255;
 
