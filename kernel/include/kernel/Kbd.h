@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <string>
 
+#include <sys/kbd.h>
+
 #include <kernel/Semaphore.h>
 
 struct HistoryCtx {
@@ -41,18 +43,7 @@ public:
   static void clearNavigation();
 
   // Non-blocking input API.
-  enum class Key : uint8_t {
-    Unknown = 0,
-    Up,
-    Down,
-    Left,
-    Right,
-    PageUp,
-    PageDown,
-    Home,
-    End,
-    Char
-  };
+  using Key = KbdKey;
 
   struct KeyEvent {
     Key key{};

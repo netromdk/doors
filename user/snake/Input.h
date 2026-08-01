@@ -3,20 +3,11 @@
 
 #include <cstdint>
 
+#include <sys/kbd.h>
+
 class Input {
 public:
-  enum class Key : uint8_t {
-    Unknown = 0,
-    Up,
-    Down,
-    Left,
-    Right,
-    PageUp,
-    PageDown,
-    Home,
-    End,
-    Char,
-  };
+  using Key = KbdKey;
 
   struct KeyEvent {
     Key key{};
