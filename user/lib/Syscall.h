@@ -31,6 +31,8 @@ struct TaskEntry {
   unsigned char id;
   char name[16];
   unsigned char state;
+  unsigned char priority;
+  unsigned int runtimeMs;
 };
 
 struct TaskDetail {
@@ -85,7 +87,7 @@ struct CpuInfoRaw {
 };
 
 // These sizes must match with those in "include/kernel/Syscall.h".
-static_assert(sizeof(TaskEntry) == 18, "TaskEntry size mismatch");
+static_assert(sizeof(TaskEntry) == 24, "TaskEntry size mismatch");
 static_assert(sizeof(TaskDetail) == 48, "TaskDetail size mismatch");
 static_assert(sizeof(DateTimeRaw) == 6, "DateTimeRaw size mismatch");
 static_assert(sizeof(CpuInfoRaw) == 76, "CpuInfoRaw size mismatch");

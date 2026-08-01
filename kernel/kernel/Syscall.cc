@@ -280,6 +280,8 @@ uint32_t handleTaskctlList(uint32_t bufAddr, int maxEntries)
     }
 
     dst[written].state = static_cast<uint8_t>(*st);
+    dst[written].priority = Scheduler::taskPriority(i).value_or(0);
+    dst[written].runtimeMs = static_cast<uint32_t>(Scheduler::taskRuntimeMs(i).value_or(0));
     ++written;
   }
   return static_cast<uint32_t>(written);

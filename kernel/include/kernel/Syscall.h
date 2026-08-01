@@ -28,6 +28,8 @@ struct TaskEntry {
   uint8_t id;
   char name[16];
   uint8_t state;
+  uint8_t priority;
+  uint32_t runtimeMs;
 };
 
 struct TaskDetail {
@@ -77,7 +79,7 @@ struct CpuInfoRaw {
 // Maximum length of a panic message string copied from user space.
 static constexpr uint32_t PANIC_MSG_MAX = 128;
 
-static_assert(sizeof(TaskEntry) == 18, "TaskEntry size mismatch");
+static_assert(sizeof(TaskEntry) == 24, "TaskEntry size mismatch");
 static_assert(sizeof(TaskDetail) == 48, "TaskDetail size mismatch");
 static_assert(sizeof(DateTimeRaw) == 6, "DateTimeRaw size mismatch");
 static_assert(sizeof(CpuInfoRaw) == 76, "CpuInfoRaw size mismatch");
