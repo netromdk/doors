@@ -6,6 +6,8 @@ set(TESTRUNNER_SOURCES
   Framework.cc
   Framework.h
   Tests.h
+  Util.cc
+  Util.h
 
   tests/Constants.h
   tests/Terminal.cc
@@ -22,6 +24,7 @@ set(TESTRUNNER_SOURCES
   tests/Signals.cc
   tests/CopyOnWrite.cc
   tests/Stats.cc
+  tests/Shell.cc
 )
 
 add_user_program(testrunner

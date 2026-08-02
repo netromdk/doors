@@ -19,6 +19,8 @@ if (BUILD_INTEGRATION_TESTS)
   module /boot/signal-sigsegv-handler.elf
   module /boot/signal-sigterm-handler.elf
   module /boot/signal-sigkill-handler.elf
+  module /boot/cow-exec-fail.elf
+  module /boot/shell.elf
 }")
 else()
   set(_GRUB_TESTING_ENTRY "")
@@ -103,6 +105,8 @@ if (_ISO_DEPS_OK)
                                           "${TMP_TEST_ISO}/boot/"
       COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/cow-exec-fail/cow-exec-fail.elf"
                                           "${TMP_TEST_ISO}/boot/"
+      COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_BINARY_DIR}/user/shell/shell.elf"
+                                          "${TMP_TEST_ISO}/boot/"
       COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_SOURCE_DIR}/grub-test.cfg"
                                          "${TMP_TEST_ISO}/boot/grub/grub.cfg"
       COMMAND "${GRUB_MKRESCUE_EXECUTABLE}" -o "${TEST_ISO_FILE}"
@@ -110,7 +114,7 @@ if (_ISO_DEPS_OK)
       COMMAND "${CMAKE_COMMAND}" -E remove_directory "${TMP_TEST_ISO}"
       DEPENDS doors_kernel testrunner minimal pagefault-crasher
               signal-loop signal-sigsegv-handler signal-sigterm-handler signal-sigkill-handler
-              cow-exec-fail
+              cow-exec-fail shell
       VERBATIM
     )
 

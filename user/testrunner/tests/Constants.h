@@ -21,6 +21,7 @@ constexpr unsigned SIGNAL_SIGSEGV_HANDLER_MODULE_IDX = 4; // "boot/signal-sigseg
 constexpr unsigned SIGNAL_SIGTERM_HANDLER_MODULE_IDX = 5; // "boot/signal-sigterm-handler.elf"
 constexpr unsigned SIGNAL_SIGKILL_HANDLER_MODULE_IDX = 6; // "boot/signal-sigkill-handler.elf"
 constexpr unsigned COW_EXEC_FAIL_MODULE_IDX = 7;          // "boot/cow-exec-fail.elf"
+constexpr unsigned SHELL_MODULE_IDX = 8;                  // "boot/shell.elf"
 
 extern "C" void *malloc(size_t size);
 extern "C" void free(void *ptr);

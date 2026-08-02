@@ -110,4 +110,10 @@ void testStatsSnapshotMemory();
 void testStatsSnapshotAliveAfterFork();
 void testStatsCountersNonzero();
 
+// Shell.
+void runShellTests();
+void testShellExecLaunches();
+void testShellReadsInput();
+void testShellKillReap();
+
 #endif
