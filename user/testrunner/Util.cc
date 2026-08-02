@@ -80,6 +80,18 @@ bool waitKeyboardDrained(uint32_t timeoutMs)
   return true;
 }
 
+// Polls `SYSINFO_UPTIME` until it strictly exceeds `fromMs`.
+bool waitUptimeAdvance(uint32_t fromMs, uint32_t timeoutMs)
+{
+  const auto start = uptimeMs();
+  while (uptimeMs() <= fromMs) {
+    if (uptimeMs() - start > timeoutMs) {
+      return false;
+    }
+  }
+  return true;
+}
+
 // Kills the child by slot, then reaps it. Returns false without calling `waitpid()` when the kill
 // is rejected, so a kill failure can never deadlock the suite on an unbounded `waitpid()`.
 bool killAndReap(int slot)

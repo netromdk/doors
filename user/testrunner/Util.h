@@ -14,6 +14,7 @@ int taskDetail(int slot, TaskDetail *td);
 int spawnShell(int *outPid = nullptr);
 void injectString(string_view s);
 bool waitKeyboardDrained(uint32_t timeoutMs);
+bool waitUptimeAdvance(uint32_t fromMs, uint32_t timeoutMs);
 bool killAndReap(int slot);
 
 // Spawns a shell child in the ctor and reaps it on scope exit. `slot` is -1 if the child never

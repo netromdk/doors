@@ -108,7 +108,7 @@ TEST_CASE("CmdTop: scroll indicator at bottom")
 
 TEST_CASE("CmdTop: task line format")
 {
-  const auto e = makeEntry(0, "idle", TASK_STATE_RUNNING, 9, 1234);
+  const auto e = makeEntry(0, "idle", TASK_STATE_RUNNING, TASK_PRIORITY_IDLE, 1234);
   char buf[64]{};
   formatTaskLine(buf, sizeof(buf), e);
   CHECK(strcmp(buf, "   0  idle              RUN       9         1234") == 0);
@@ -140,7 +140,7 @@ TEST_CASE("CmdTop: header columns align with task line columns")
   REQUIRE(hRunt != nullptr);
   CHECK((hRunt - TASK_HEADER) == COL_RUNTIME_LABEL);
 
-  const auto e = makeEntry(0, "idle", TASK_STATE_RUNNING, 9, 12345678);
+  const auto e = makeEntry(0, "idle", TASK_STATE_RUNNING, TASK_PRIORITY_IDLE, 12345678);
   char buf[64]{};
   formatTaskLine(buf, sizeof(buf), e);
   CHECK(buf[COL_RUNTIME] == '1');
@@ -285,7 +285,7 @@ TEST_CASE("CmdTop: mem color thresholds")
 
 TEST_CASE("CmdTop: task row color dims idle")
 {
-  const auto idle = makeEntry(0, "idle", TASK_STATE_RUNNING, 9, 0);
+  const auto idle = makeEntry(0, "idle", TASK_STATE_RUNNING, TASK_PRIORITY_IDLE, 0);
   CHECK(taskRowColor(idle) == COLOR_IDLE_ROW);
 
   const auto shell = makeEntry(1, "shell", TASK_STATE_RUNNING, 4, 0);

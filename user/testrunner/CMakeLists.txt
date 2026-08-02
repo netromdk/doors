@@ -25,6 +25,7 @@ set(TESTRUNNER_SOURCES
   tests/CopyOnWrite.cc
   tests/Stats.cc
   tests/Shell.cc
+  tests/Top.cc
 )
 
 add_user_program(testrunner

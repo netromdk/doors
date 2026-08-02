@@ -116,4 +116,9 @@ void testShellExecLaunches();
 void testShellReadsInput();
 void testShellKillReap();
 
+// Top task monitor.
+void runTopTests();
+void testTopLaunches();
+void testTopShowsShell();
+
 #endif
