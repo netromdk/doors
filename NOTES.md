@@ -994,6 +994,10 @@ virtual address `0x10000000` via `user/User.ld`. The build system provides `add_
 `cmake/user-programs.cmake` to handle compilation and linking. All kernel interaction goes through
 `INT 0x80` syscalls via inline wrappers in `user/lib/Syscall.h`.
 
+Shared userland helpers live in `user/lib/Util.{h,cc}`, compiled into a static library `libuser.a`
+that `add_user_program()` links into every userland program by default. Host unit tests compile
+`user/lib/Util.{h,cc}` directly since they cannot link the i386 archive.
+
 Shell (`user/shell/`): Interactive CLI with a `> ` prompt, line editing via the kernel's readline
 syscall (history, cursor movement, insert/delete), and 16 built-in commands: `help`, `clear`,
 `halt`, `reboot`, `panic`, `uptime`, `meminfo`, `heap`, `datetime`, `cpuinfo`, `echo`, `tasks`,
