@@ -38,6 +38,7 @@
   - [Integration](#integration)
 - [System Calls](#system-calls)
 - [System Statistics](#system-statistics)
+- [Task Monitor (`top`)](#task-monitor-top)
 - [ELF Loader](#elf-loader)
 - [Userland Programs](#userland-programs)
 - [Terminal (TTY)](#terminal-tty)
@@ -906,9 +907,10 @@ into an in-memory ring buffer of `StatsSnapshot` records. Data is captured on de
 The counters are plain static members incremented at their source:
 
 - `switchTo()` bumps `totalContextSwitches_` and the idle task bumps `idleTicks_`
-- `Pmm` tracks `allocCount_`, `freeCount_`, and `highWaterFrames_` (peak frames in use at once,
-  never decreases)
+- `Pmm` tracks `allocCount_`, `freeTotalCount_` (cumulative refcount-0 frees), and
+  `highWaterFrames_` (peak frames concurrently in use, never decreases)
 - `excPf()` and `handleCowFault()` bump `pageFaults_`, `userPageFaults_`, and `cowFaults_`
+- `Heap::totalMem()` reports the byte-heap capacity (`heapEnd_ - heapStart_`)
 
 `StatsSnapshot` lives in `libc++/include/sys/StatsSnapshot.h`, one copy shared between kernel and
 userland so the ABI stays in sync.
@@ -919,6 +921,34 @@ needed. The handler (`handleStats()` in `kernel/kernel/Syscall.cc`) validates th
 `isValidUserBuf()`, snapshots, copies the latest entry out.
 
 The `stats` shell command wraps `sys_stats()` and prints the snapshot.
+
+
+Task Monitor (`top`)
+====================
+
+Interactive task monitor (`user/shell/CmdTop.{h,cc}`), registered as the `top`
+shell command. It repaints the 80x25 VGA screen every second, with the first frame rendered
+immediately on entry. The screen shows:
+
+- Title bar: `Doors top Tasks:N/M Mem:P% used Idle:I% Up:Ss`. Mem is health-colored (green below
+  70%, yellow 70-89%, red at or above 90%). A right-aligned `[<dir> row a-b/n]` scroll indicator
+  shows the visible range and scroll direction.
+- Task table: one row per task with `PID NAME STATE PRIO RUNTIME(ms)` columns. Up to 17 rows visible
+  at once, colored by state, and the idle task is dimmed.
+- Footer: summary line (`Tasks/Alive/Run/Block/Dead`) and telemetry line (`Heap: NK free / MK
+  Frames: a/b PF: c/s Ctx: d`).
+
+The display reads `sys_stats()` for the system counters and `sys_taskctl(TASKCTL_LIST)` for the task
+rows. The table lists alive tasks only because the kernel's `TASKCTL_LIST` skips dead tasks, and the
+dead count in the summary line comes from the snapshot.
+
+`q` quits with screen save/restore, and arrow keys / `PageUp` / `PageDown` / `Home` / `End` scroll.
+
+Derived metrics:
+
+- Idle% is time-based (`min(100, idleDelta * SCHED_QUANTUM_MS * 100 / elapsedMs)`)
+- page-fault rate is `deltaFaults * 1000 / REFRESH_MS`
+- Mem% is heap-used (`(heapTotalBytes - heapFreeBytes) * 100 / heapTotalBytes`)
 
 
 ELF Loader
@@ -965,11 +995,11 @@ virtual address `0x10000000` via `user/User.ld`. The build system provides `add_
 `INT 0x80` syscalls via inline wrappers in `user/lib/Syscall.h`.
 
 Shell (`user/shell/`): Interactive CLI with a `> ` prompt, line editing via the kernel's readline
-syscall (history, cursor movement, insert/delete), and 15 built-in commands: `help`, `clear`,
+syscall (history, cursor movement, insert/delete), and 16 built-in commands: `help`, `clear`,
 `halt`, `reboot`, `panic`, `uptime`, `meminfo`, `heap`, `datetime`, `cpuinfo`, `echo`, `tasks`,
-`kill`, `snake`, `stats`. Note that the command table uses `const char*` instead of `std::string`
-because the freestanding target has no C++ runtime support for static storage duration objects yet
-(needs `_init()` properly implemetend in `kernel/arch/i386/Boot.s` first).
+`kill`, `snake`, `stats`, `top`. Note that the command table uses `const char*` instead of
+`std::string` because the freestanding target has no C++ runtime support for static storage duration
+objects yet (needs `_init()` properly implemetend in `kernel/arch/i386/Boot.s` first).
 
 Snake (`user/snake/`): Full VGA text-mode game. Two modes: classic (walls kill) and wrap (snake
 wraps around edges). Progressive difficulty with base speed starts at 200ms per step, decreasing by
@@ -982,8 +1012,8 @@ the `shell`.
 
 Test Runner (`user/testrunner/`): Integration test harness running tests across suites covering
 terminal, serial, taskbar, sysinfo, taskctl, ioctl, execmod, fork-exec-waitpid, input, heap, page
-fault recovery, signals, stats, and copy-on-write. Emits newline-delimited `JSON` events to the
-serial port (`start`, `run`, `pass`, `fail`, `done`). Two build variants: `testrunner`
+fault recovery, signals, stats, copy-on-write, `shell`, and `top`. Emits newline-delimited `JSON`
+events to the serial port (`start`, `run`, `pass`, `fail`, `done`). Two build variants: `testrunner`
 (auto-powers-off) and `testrunner-interactive` (stays alive for debugging). A `minimal` payload
 provides a trivial userland program for execmod testing.
 
