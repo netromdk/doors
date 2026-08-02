@@ -3,10 +3,12 @@
 #include "Constants.h"
 #include "Framework.h"
 #include "Tests.h"
+#include "Util.h"
 
 void runStatsTests()
 {
   runTest("stats_snapshot_basic", testStatsSnapshotBasic);
+  runTest("stats_snapshot_fresh", testStatsSnapshotFresh);
   runTest("stats_snapshot_after_fork", testStatsSnapshotAfterFork);
   runTest("stats_snapshot_after_exec", testStatsSnapshotAfterExec);
   runTest("stats_snapshot_memory", testStatsSnapshotMemory);
@@ -24,6 +26,21 @@ void testStatsSnapshotBasic()
   ASSERT_TRUE(snap.aliveTasks > 0, "aliveTasks should be > 0");
   ASSERT_TRUE(snap.freeFrames > 0, "freeFrames should be > 0");
   ASSERT_TRUE(snap.totalFrames > 0, "totalFrames should be > 0");
+}
+
+void testStatsSnapshotFresh()
+{
+  // Two snapshots just past one scheduler quantum must reflect live state, not a frozen cache.
+  StatsSnapshot snap1{};
+  ASSERT_TRUE(sys_stats(&snap1) == 0, "first sys_stats failed");
+
+  ASSERT_TRUE(waitUptimeAdvance(snap1.uptimeMs, SHORT_WAIT_MS), "uptime never advanced");
+
+  StatsSnapshot snap2{};
+  ASSERT_TRUE(sys_stats(&snap2) == 0, "second sys_stats failed");
+
+  ASSERT_TRUE(snap2.uptimeMs > snap1.uptimeMs, "uptimeMs not strictly increasing");
+  ASSERT_TRUE(snap2.contextSwitches > snap1.contextSwitches, "contextSwitches did not advance");
 }
 
 void testStatsSnapshotAfterFork()

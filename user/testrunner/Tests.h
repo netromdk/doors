@@ -105,6 +105,7 @@ void testCowExecFailureAfterFork();
 // Stats.
 void runStatsTests();
 void testStatsSnapshotBasic();
+void testStatsSnapshotFresh();
 void testStatsSnapshotAfterFork();
 void testStatsSnapshotAfterExec();
 void testStatsSnapshotMemory();
