@@ -1,4 +1,5 @@
 #include "lib/Syscall.h"
+#include "lib/Util.h"
 
 #include "Framework.h"
 #include "Tests.h"
@@ -20,9 +21,7 @@ void testIoctlClear()
 
 void testIoctlPut()
 {
-  const auto arg = static_cast<unsigned int>((0u << 24) | (0u << 16) |
-                                             (static_cast<unsigned int>('X') << 8) | 0x07u);
-  const int r = sys_ioctl(IOCTL_PUT, arg);
+  const int r = sys_ioctl(IOCTL_PUT, util::packCell(0, 0, 'X', 0x07));
   ASSERT_TRUE(r == 0, "ioctl put failed");
 }
 
@@ -39,10 +38,7 @@ void testIoctlSaveRestoreScreen()
 
   // Between `SAVESCREEN` and `RESTORESCREEN`, mutate the screen, mirroring `top`'s enter/exit
   // sequence, so the restore must replay the saved frame instead of being a no-op.
-  //   `packCell(0, 0, 'T', 0x07)` = (0u << 24) | (0u << 16) | ('T' << 8) | 0x07u.
-  const auto arg = static_cast<unsigned int>((0u << 24) | (0u << 16) |
-                                             (static_cast<unsigned int>('T') << 8) | 0x07u);
-  ASSERT_TRUE(sys_ioctl(IOCTL_PUT, arg) == 0, "ioctl put failed");
+  ASSERT_TRUE(sys_ioctl(IOCTL_PUT, util::packCell(0, 0, 'T', 0x07)) == 0, "ioctl put failed");
   ASSERT_TRUE(sys_ioctl(IOCTL_CLEAR, 0) == 0, "ioctl clear failed");
 
   const int restore = sys_ioctl(IOCTL_RESTORESCREEN, 0);

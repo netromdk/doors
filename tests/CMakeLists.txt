@@ -448,6 +448,7 @@ set(SHELL_COMMANDS_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../user/shell/Commands.cc")
 set(SHELL_TOKENIZE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../user/shell/Tokenize.cc")
 set(SHELL_UTIL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../user/shell/Util.cc")
 set(CMD_TOP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../user/shell/CmdTop.cc")
+set(USER_LIB_UTIL_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../user/lib/Util.cc")
 doors_test_module(test_user_shell
   user/shell/Dispatch.cc
   user/shell/Tokenize.cc
@@ -459,6 +460,7 @@ doors_test_module(test_user_shell
   "${SHELL_TOKENIZE_SRC}"
   "${SHELL_UTIL_SRC}"
   "${CMD_TOP_SRC}"
+  "${USER_LIB_UTIL_SRC}"
 )
 target_include_directories(test_user_shell PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}/user/shell"

@@ -30,17 +30,21 @@ function(add_user_program name)
       -fno-exceptions -fno-rtti -fno-builtin
       -o "${CMAKE_CURRENT_BINARY_DIR}/${name}.elf"
       ${sources}
+      -L "${CMAKE_BINARY_DIR}/user/lib"
+      -luser
       -L "${CMAKE_BINARY_DIR}/libc++"
       -lc++_user
     DEPENDS
       ${sources}
       ${headers}
       "${CMAKE_CURRENT_SOURCE_DIR}/../User.ld"
+      "${CMAKE_BINARY_DIR}/user/lib/libuser.a"
     VERBATIM
   )
 
   add_custom_target("${name}" ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${name}.elf")
   add_dependencies("${name}" libcpp_user)
+  add_dependencies("${name}" userlib)
 
   if(NOT TARGET user_programs)
     add_custom_target(user_programs)

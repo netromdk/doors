@@ -11,6 +11,7 @@
 #include "Commands.h"
 #include "Util.h"
 #include "lib/Syscall.h"
+#include "lib/Util.h"
 
 namespace top {
 
@@ -77,7 +78,8 @@ enum class Action : uint8_t {
 
 void putCell(int row, int col, char ch, uint8_t color)
 {
-  sys_ioctl(IOCTL_PUT, packCell(static_cast<unsigned>(row), static_cast<unsigned>(col), ch, color));
+  sys_ioctl(IOCTL_PUT,
+            util::packCell(static_cast<unsigned>(row), static_cast<unsigned>(col), ch, color));
 }
 
 void putStr(int row, int col, string_view s, uint8_t color)
@@ -332,11 +334,6 @@ uint32_t computeMemPct(uint32_t freeFrames, uint32_t totalFrames)
   }
   return static_cast<uint32_t>((static_cast<uint64_t>(totalFrames - freeFrames) * 100) /
                                totalFrames);
-}
-
-uint32_t packCell(unsigned int row, unsigned int col, char ch, uint8_t color)
-{
-  return (row << 24) | (col << 16) | (static_cast<uint8_t>(ch) << 8) | color;
 }
 
 void formatTaskLine(char *buf, size_t len, const TaskEntry &e)

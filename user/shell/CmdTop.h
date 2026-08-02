@@ -46,7 +46,6 @@ Range visibleRange(int offset, int taskCount, int visibleRows);
 uint32_t computeIdlePct(uint32_t prevIdle, uint32_t curIdle, uint32_t elapsedMs);
 uint32_t computePfRate(uint32_t prevFaults, uint32_t curFaults, uint32_t intervalMs);
 uint32_t computeMemPct(uint32_t freeFrames, uint32_t totalFrames);
-uint32_t packCell(unsigned int row, unsigned int col, char ch, uint8_t color);
 void formatTaskLine(char *buf, size_t len, const TaskEntry &e);
 void formatTitlePrefix(char *buf, size_t len, uint32_t aliveTasks, uint32_t maxTasks);
 void formatTitleMem(char *buf, size_t len, uint32_t memPct);

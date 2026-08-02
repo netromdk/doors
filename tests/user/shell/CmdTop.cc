@@ -3,6 +3,7 @@
 
 #include "CmdTop.h"
 #include "Util.h"
+#include "lib/Util.h"
 
 #include <doctest/doctest.h>
 
@@ -205,13 +206,13 @@ TEST_CASE("CmdTop: telemetry line format")
 TEST_CASE("CmdTop: cell packing keeps separators intact")
 {
   // The signed `char` literal 0xC4 is -60, and integer promotion sign-extends it to 0xFFFFFFC4,
-  // which would bleed into the row/col bits on the shift. `packCell()`'s `static_cast<uint8_t>` is
-  // what keeps the high bytes out of those fields.
-  const auto sep = packCell(0, 0, static_cast<char>(0xC4), 0x08);
+  // which would bleed into the row/col bits on the shift. `util::packCell()`'s
+  // `static_cast<uint8_t>` is what keeps the high bytes out of those fields.
+  const auto sep = util::packCell(0, 0, static_cast<char>(0xC4), 0x08);
   CHECK(sep == 0xC408u);
   CHECK((sep >> 16) == 0u);
 
-  const auto ascii = packCell(4, 5, 'X', 0x07);
+  const auto ascii = util::packCell(4, 5, 'X', 0x07);
   CHECK(ascii == ((4u << 24) | (5u << 16) | ('X' << 8) | 0x07u));
 }
 
