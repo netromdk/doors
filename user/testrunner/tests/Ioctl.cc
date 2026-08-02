@@ -36,6 +36,15 @@ void testIoctlSaveRestoreScreen()
 {
   const int save = sys_ioctl(IOCTL_SAVESCREEN, 0);
   ASSERT_TRUE(save == 0, "ioctl savescreen failed");
+
+  // Between `SAVESCREEN` and `RESTORESCREEN`, mutate the screen, mirroring `top`'s enter/exit
+  // sequence, so the restore must replay the saved frame instead of being a no-op.
+  //   `packCell(0, 0, 'T', 0x07)` = (0u << 24) | (0u << 16) | ('T' << 8) | 0x07u.
+  const auto arg = static_cast<unsigned int>((0u << 24) | (0u << 16) |
+                                             (static_cast<unsigned int>('T') << 8) | 0x07u);
+  ASSERT_TRUE(sys_ioctl(IOCTL_PUT, arg) == 0, "ioctl put failed");
+  ASSERT_TRUE(sys_ioctl(IOCTL_CLEAR, 0) == 0, "ioctl clear failed");
+
   const int restore = sys_ioctl(IOCTL_RESTORESCREEN, 0);
   ASSERT_TRUE(restore == 0, "ioctl restorescreen failed");
 }
