@@ -29,6 +29,7 @@ void runTaskctlTests();
 void testSysTaskctlCount();
 void testTaskctlCountListConsistency();
 void testTaskctlList();
+void testTaskctlListFields();
 void testTaskctlIdleDetail();
 void testTaskctlSelfDetail();
 void testTaskctlDetailInvalid();

@@ -9,6 +9,7 @@ void runTaskctlTests()
   runTest("sys_taskctl_count", testSysTaskctlCount);
   runTest("sys_taskctl_count_list_consistency", testTaskctlCountListConsistency);
   runTest("sys_taskctl_list", testTaskctlList);
+  runTest("sys_taskctl_list_fields", testTaskctlListFields);
   runTest("sys_taskctl_idle_detail", testTaskctlIdleDetail);
   runTest("sys_taskctl_self_detail", testTaskctlSelfDetail);
   runTest("sys_taskctl_detail_invalid", testTaskctlDetailInvalid);
@@ -52,6 +53,36 @@ void testTaskctlList()
     }
   }
   ASSERT_TRUE(found, "all names empty");
+}
+
+void testTaskctlListFields()
+{
+  // `TASKCTL_LIST` entries must carry valid priority and accumulated runtime.
+  TaskEntry entries[MAX_TASK_ENTRIES]{};
+  const int n =
+    sys_taskctl(TASKCTL_LIST, reinterpret_cast<unsigned int>(entries), MAX_TASK_ENTRIES);
+  ASSERT_TRUE(n >= 1, "no tasks listed");
+
+  bool foundIdle{false};
+  bool foundRuntime{false};
+  bool foundNonIdlePriority{false};
+  for (int i = 0; i < n; ++i) {
+    ASSERT_TRUE(entries[i].priority <= TASK_PRIORITY_IDLE, "priority out of range");
+    ASSERT_TRUE(entries[i].state <= TASK_STATE_MAX, "state out of range");
+    if (entries[i].priority < TASK_PRIORITY_IDLE) {
+      foundNonIdlePriority = true;
+    }
+    if (entries[i].runtimeMs > 0) {
+      foundRuntime = true;
+    }
+    if (entries[i].id == IDLE_TASK_ID) {
+      foundIdle = true;
+      ASSERT_TRUE(entries[i].priority == TASK_PRIORITY_IDLE, "idle priority should be IDLE");
+    }
+  }
+  ASSERT_TRUE(foundIdle, "idle task not listed");
+  ASSERT_TRUE(foundRuntime, "no task has accumulated runtime");
+  ASSERT_TRUE(foundNonIdlePriority, "no non-idle task in list");
 }
 
 void testTaskctlIdleDetail()
