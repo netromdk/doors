@@ -1,6 +1,7 @@
 #include <cstring>
 
 #include "lib/Syscall.h"
+#include "lib/Util.h"
 
 #include "Util.h"
 #include "tests/Constants.h"
@@ -11,11 +12,6 @@ namespace {
 constexpr char CHILD_TASK_NAME[] = "fork";
 
 } // namespace
-
-uint32_t uptimeMs()
-{
-  return static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0));
-}
 
 int taskDetail(int slot, TaskDetail *td)
 {
@@ -43,7 +39,7 @@ int spawnShell(int *outPid)
   }
 
   // Parent scans TASKCTL_LIST for the "fork"-named child.
-  const auto start = uptimeMs();
+  const auto start = util::uptimeMs();
   TaskEntry entries[MAX_TASK_ENTRIES]{};
   for (;;) {
     const int n = static_cast<int>(
@@ -54,7 +50,7 @@ int spawnShell(int *outPid)
       }
     }
 
-    if (uptimeMs() - start > SHORT_WAIT_MS) {
+    if (util::uptimeMs() - start > SHORT_WAIT_MS) {
       return -1;
     }
   }
@@ -71,9 +67,9 @@ void injectString(string_view s)
 // input. Returns false if it never drains within `timeoutMs`.
 bool waitKeyboardDrained(uint32_t timeoutMs)
 {
-  const auto start = uptimeMs();
+  const auto start = util::uptimeMs();
   while (sys_ioctl(IOCTL_POLL_KEY, 0) != -1) {
-    if (uptimeMs() - start > timeoutMs) {
+    if (util::uptimeMs() - start > timeoutMs) {
       return false;
     }
   }
@@ -83,9 +79,9 @@ bool waitKeyboardDrained(uint32_t timeoutMs)
 // Polls `SYSINFO_UPTIME` until it strictly exceeds `fromMs`.
 bool waitUptimeAdvance(uint32_t fromMs, uint32_t timeoutMs)
 {
-  const auto start = uptimeMs();
-  while (uptimeMs() <= fromMs) {
-    if (uptimeMs() - start > timeoutMs) {
+  const auto start = util::uptimeMs();
+  while (util::uptimeMs() <= fromMs) {
+    if (util::uptimeMs() - start > timeoutMs) {
       return false;
     }
   }

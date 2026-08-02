@@ -4,6 +4,7 @@
 #include "Input.h"
 #include "Screen.h"
 #include "lib/Syscall.h"
+#include "lib/Util.h"
 
 namespace {
 
@@ -52,7 +53,7 @@ void countDown(SnakeGame &game, uint64_t startMs)
   for (int i = 3; i >= 1; --i) {
     game.drawCountdown(i);
     const uint64_t target = startMs + (4 - i) * 1000;
-    while (static_cast<uint64_t>(sys_sysinfo(SYSINFO_UPTIME, 0)) < target) {
+    while (static_cast<uint64_t>(util::uptimeMs()) < target) {
     }
     game.clearOverlay();
   }
@@ -70,15 +71,15 @@ extern "C" [[noreturn]] void _start()
 
   SnakeGame game{};
   const bool withObstacles{true};
-  const auto seedMs = static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0));
+  const auto seedMs = util::uptimeMs();
   game.init(seedMs, withObstacles);
 
   game.drawBoard();
 
   chooseMode(game);
-  countDown(game, static_cast<uint64_t>(sys_sysinfo(SYSINFO_UPTIME, 0)));
+  countDown(game, static_cast<uint64_t>(util::uptimeMs()));
 
-  uint64_t lastMove = static_cast<uint64_t>(sys_sysinfo(SYSINFO_UPTIME, 0));
+  uint64_t lastMove = static_cast<uint64_t>(util::uptimeMs());
   bool quit = false;
   bool paused = false;
 
@@ -107,7 +108,7 @@ extern "C" [[noreturn]] void _start()
       game.setDir(keyToDir(ke.key));
     }
 
-    const auto now = static_cast<uint64_t>(sys_sysinfo(SYSINFO_UPTIME, 0));
+    const auto now = static_cast<uint64_t>(util::uptimeMs());
     if (now - lastMove >= static_cast<uint64_t>(game.moveIntervalMs())) {
       const auto dt = now - lastMove;
       lastMove = now;

@@ -4,8 +4,7 @@
 
 void Screen::put(int row, int col, char ch, uint8_t color)
 {
-  sys_ioctl(IOCTL_PUT,
-            util::packCell(static_cast<unsigned>(row), static_cast<unsigned>(col), ch, color));
+  util::putCell(row, col, ch, color);
 }
 
 void Screen::save()

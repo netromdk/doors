@@ -21,8 +21,8 @@ void testIoctlClear()
 
 void testIoctlPut()
 {
-  const int r = sys_ioctl(IOCTL_PUT, util::packCell(0, 0, 'X', 0x07));
-  ASSERT_TRUE(r == 0, "ioctl put failed");
+  const int r = util::putCell(0, 0, 'X', 0x07);
+  ASSERT_TRUE(r == 0, "put cell failed");
 }
 
 void testIoctlPollKey()
@@ -38,7 +38,7 @@ void testIoctlSaveRestoreScreen()
 
   // Between `SAVESCREEN` and `RESTORESCREEN`, mutate the screen, mirroring `top`'s enter/exit
   // sequence, so the restore must replay the saved frame instead of being a no-op.
-  ASSERT_TRUE(sys_ioctl(IOCTL_PUT, util::packCell(0, 0, 'T', 0x07)) == 0, "ioctl put failed");
+  ASSERT_TRUE(util::putCell(0, 0, 'T', 0x07) == 0, "put cell failed");
   ASSERT_TRUE(sys_ioctl(IOCTL_CLEAR, 0) == 0, "ioctl clear failed");
 
   const int restore = sys_ioctl(IOCTL_RESTORESCREEN, 0);

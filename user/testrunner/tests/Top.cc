@@ -5,6 +5,7 @@
 #include "Framework.h"
 #include "Tests.h"
 #include "Util.h"
+#include "lib/Util.h"
 
 namespace {
 
@@ -12,8 +13,8 @@ constexpr uint32_t TOP_REFRESH_WAIT_MS = 1100; // just past the 1000ms refresh i
 
 void busyWaitMs(uint32_t ms)
 {
-  const auto start = uptimeMs();
-  while (uptimeMs() - start < ms) {
+  const auto start = util::uptimeMs();
+  while (util::uptimeMs() - start < ms) {
   }
 }
 

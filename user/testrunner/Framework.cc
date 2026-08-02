@@ -3,6 +3,7 @@
 #include "Emit.h"
 #include "Framework.h"
 #include "lib/Syscall.h"
+#include "lib/Util.h"
 
 constinit int passed_{};
 constinit int failed_{};
@@ -15,7 +16,7 @@ void runTest(const char *name, void (*fn)())
   failReason_ = nullptr;
   emitRun(name);
 
-  const auto startMs = static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0));
+  const auto startMs = util::uptimeMs();
 
   // Run actual test.
   fn();
@@ -23,7 +24,7 @@ void runTest(const char *name, void (*fn)())
   // Ensure JSON emissions start on a new line to make it easier to parse.
   sys_serial("\n", 1);
 
-  const auto elapsed = static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0)) - startMs;
+  const auto elapsed = util::uptimeMs() - startMs;
 
   if (testFailed_) {
     emitFail(name, failReason_ ? failReason_ : "assertion failed", elapsed);

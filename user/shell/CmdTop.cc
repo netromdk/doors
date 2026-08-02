@@ -76,19 +76,13 @@ enum class Action : uint8_t {
   Quit,
 };
 
-void putCell(int row, int col, char ch, uint8_t color)
-{
-  sys_ioctl(IOCTL_PUT,
-            util::packCell(static_cast<unsigned>(row), static_cast<unsigned>(col), ch, color));
-}
-
 void putStr(int row, int col, string_view s, uint8_t color)
 {
   for (const char ch : s) {
     if (col >= VGA_COLS) {
       break;
     }
-    putCell(row, col, ch, color);
+    util::putCell(row, col, ch, color);
     ++col;
   }
 }
@@ -96,7 +90,7 @@ void putStr(int row, int col, string_view s, uint8_t color)
 void fillRow(int row, char ch, uint8_t color)
 {
   for (int c = 0; c < VGA_COLS; ++c) {
-    putCell(row, c, ch, color);
+    util::putCell(row, c, ch, color);
   }
 }
 
@@ -435,7 +429,7 @@ void cmdHandler(const span<string_view> &)
   bool rendered{false};
 
   for (;;) {
-    const auto now = static_cast<uint64_t>(sys_sysinfo(SYSINFO_UPTIME, 0));
+    const auto now = static_cast<uint64_t>(util::uptimeMs());
 
     // Refresh immediately on the first pass so a frame is drawn before any key is pressed. Then on
     // the fixed interval.

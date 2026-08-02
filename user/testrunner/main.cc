@@ -1,6 +1,7 @@
 #include <cstdint>
 
 #include "lib/Syscall.h"
+#include "lib/Util.h"
 
 #include "Emit.h"
 #include "Framework.h"
@@ -16,7 +17,7 @@ extern "C" __attribute__((noreturn)) void _start()
 
 void main()
 {
-  const auto suiteStart = static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0));
+  const auto suiteStart = util::uptimeMs();
   emitStart("doors-integration", suiteStart);
 
   runTerminalTests();
@@ -36,7 +37,7 @@ void main()
   runShellTests();
   runTopTests();
 
-  const auto totalMs = static_cast<uint32_t>(sys_sysinfo(SYSINFO_UPTIME, 0)) - suiteStart;
+  const auto totalMs = util::uptimeMs() - suiteStart;
   emitDone(passed_, failed_, passed_ + failed_, totalMs);
 
 #ifndef INTERACTIVE

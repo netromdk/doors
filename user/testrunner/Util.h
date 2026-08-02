@@ -9,7 +9,6 @@
 // Time budget for short waits.
 constexpr uint32_t SHORT_WAIT_MS = 500;
 
-uint32_t uptimeMs();
 int taskDetail(int slot, TaskDetail *td);
 int spawnShell(int *outPid = nullptr);
 void injectString(string_view s);

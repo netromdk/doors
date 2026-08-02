@@ -1,10 +1,10 @@
 #include "Commands.h"
 #include "Lib.h"
-#include "lib/Syscall.h"
+#include "lib/Util.h"
 
 void cmdUptime(const span<string_view> &)
 {
-  const auto total = static_cast<unsigned int>(sys_sysinfo(SYSINFO_UPTIME, 0));
+  const auto total = util::uptimeMs();
   const auto sec = total / 1000;
   printf("Uptime: %u.", sec);
 
