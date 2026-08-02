@@ -63,4 +63,12 @@ uint8_t taskRowColor(const TaskEntry &e);
 
 } // namespace top
 
+#ifdef __DOORS_USER_HOST_TEST
+// Host-only: the real syscall wrappers are compiled out in `lib/Syscall.h`.
+int sys_ioctl(unsigned int cmd, unsigned int arg);
+int sys_stats(StatsSnapshot *buf);
+int sys_taskctl(unsigned int cmd, unsigned int arg1, unsigned int arg2);
+int sys_sysinfo(unsigned int cmd, unsigned int arg);
+#endif // __DOORS_USER_HOST_TEST
+
 #endif // USER_SHELL_CMD_TOP_H

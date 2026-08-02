@@ -92,6 +92,11 @@ static_assert(sizeof(TaskDetail) == 48, "TaskDetail size mismatch");
 static_assert(sizeof(DateTimeRaw) == 6, "DateTimeRaw size mismatch");
 static_assert(sizeof(CpuInfoRaw) == 76, "CpuInfoRaw size mismatch");
 
+// The syscall wrappers only compile for the 32-bit targets. Host-side unit tests compile this
+// header for types and constants only. `__DOORS_USER_HOST_TEST` skips the wrappers and relies on
+// host stub definitions in the test sources.
+#ifndef __DOORS_USER_HOST_TEST
+
 static inline void sys_write(char c)
 {
   __asm__ volatile("int $0x80" : : "a"(SYS_WRITE), "b"((unsigned int) c) : "memory");
@@ -252,5 +257,7 @@ static inline int sys_stats(StatsSnapshot *buf)
                    : "memory");
   return ret;
 }
+
+#endif // __DOORS_USER_HOST_TEST
 
 #endif
