@@ -40,4 +40,9 @@ int cmdTasks(const span<string_view> &);
 int cmdSnake(const span<string_view> &);
 int cmdStats(const span<string_view> &);
 
+#ifdef __DOORS_USER_HOST_TEST
+// Host-only: the real syscall wrappers are compiled out in `lib/Syscall.h`.
+int sys_taskctl(unsigned int cmd, unsigned int arg1, unsigned int arg2);
+#endif // __DOORS_USER_HOST_TEST
+
 #endif

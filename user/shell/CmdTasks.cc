@@ -18,8 +18,8 @@ int printTaskTable()
   int n = sys_taskctl(TASKCTL_LIST,
                       static_cast<unsigned int>(reinterpret_cast<unsigned long>(entries)), 32);
   if (n > 0) {
-    print("ID  Name             State\n");
-    print("--  ---------------- -----------\n");
+    printf("ID  Name             State\n");
+    printf("--  ---------------- -----------\n");
     for (int i = 0; i < n; ++i) {
       printf("%u  %s  %s\n", static_cast<unsigned>(entries[i].id), entries[i].name,
              taskStateStr(entries[i].state));

@@ -2,12 +2,35 @@
 #include <sys/param.h>
 
 #include "CmdTop.h"
+#include "HostShims.h"
+#include "Lib.h"
 #include "Util.h"
 #include "lib/Util.h"
 
 #include <doctest/doctest.h>
 
 using namespace top;
+
+namespace {
+
+int stubTaskctlKillResult = -1;
+int stubTaskctlDetailResult = -1;
+
+} // namespace
+
+namespace hostshim {
+
+void setTaskctlKillResult(int result)
+{
+  stubTaskctlKillResult = result;
+}
+
+void setTaskctlDetailResult(int result)
+{
+  stubTaskctlDetailResult = result;
+}
+
+} // namespace hostshim
 
 // The shell's syscall wrappers are compiled out for host tests. And `cmdHandler()` runs under the
 // dispatch tests, so the key-poll stub returns a simulated `q` to let its loop terminate.
@@ -24,8 +47,14 @@ int sys_stats(StatsSnapshot *)
   return -1;
 }
 
-int sys_taskctl(unsigned int, unsigned int, unsigned int)
+int sys_taskctl(unsigned int cmd, unsigned int, unsigned int)
 {
+  if (cmd == TASKCTL_KILL) {
+    return stubTaskctlKillResult;
+  }
+  if (cmd == TASKCTL_DETAIL) {
+    return stubTaskctlDetailResult;
+  }
   return -1;
 }
 

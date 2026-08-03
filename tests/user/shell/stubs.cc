@@ -2,66 +2,77 @@
 
 #include "Commands.h"
 
-__attribute__((weak)) void cmdHelp(const span<string_view> &)
+__attribute__((weak)) int cmdHelp(const span<string_view> &)
 {
+  return EXIT_SUCCESS;
 }
 
-__attribute__((weak)) void cmdClear(const span<string_view> &)
+__attribute__((weak)) int cmdClear(const span<string_view> &)
 {
+  return EXIT_SUCCESS;
 }
 
-__attribute__((weak)) void cmdHalt(const span<string_view> &)
+__attribute__((weak)) int cmdHalt(const span<string_view> &)
 {
+  return EXIT_SUCCESS;
 }
 
-__attribute__((weak)) void cmdReboot(const span<string_view> &)
+__attribute__((weak)) int cmdReboot(const span<string_view> &)
 {
+  return EXIT_SUCCESS;
 }
 
-__attribute__((weak)) void cmdPanic(const span<string_view> &)
+__attribute__((weak)) int cmdPanic(const span<string_view> &)
 {
+  return EXIT_SUCCESS;
 }
 
-__attribute__((weak)) void cmdUptime(const span<string_view> &)
+__attribute__((weak)) int cmdUptime(const span<string_view> &)
 {
+  return EXIT_SUCCESS;
 }
 
-__attribute__((weak)) void cmdTicks(const span<string_view> &)
+__attribute__((weak)) int cmdMemInfo(const span<string_view> &)
 {
+  return EXIT_SUCCESS;
 }
 
-__attribute__((weak)) void cmdMemInfo(const span<string_view> &)
+__attribute__((weak)) int cmdHeap(const span<string_view> &)
 {
+  return EXIT_SUCCESS;
 }
 
-__attribute__((weak)) void cmdHeap(const span<string_view> &)
+__attribute__((weak)) int cmdDateTime(const span<string_view> &)
 {
+  return EXIT_SUCCESS;
 }
 
-__attribute__((weak)) void cmdDateTime(const span<string_view> &)
+__attribute__((weak)) int cmdCpuInfo(const span<string_view> &)
 {
+  return EXIT_SUCCESS;
 }
 
-__attribute__((weak)) void cmdCpuInfo(const span<string_view> &)
+__attribute__((weak)) int cmdEcho(const span<string_view> &)
 {
+  return EXIT_SUCCESS;
 }
 
-__attribute__((weak)) void cmdEcho(const span<string_view> &)
+__attribute__((weak)) int cmdKill(const span<string_view> &)
 {
+  return EXIT_SUCCESS;
 }
 
-__attribute__((weak)) void cmdKill(const span<string_view> &)
+__attribute__((weak)) int cmdTasks(const span<string_view> &)
 {
+  return EXIT_SUCCESS;
 }
 
-__attribute__((weak)) void cmdTasks(const span<string_view> &)
+__attribute__((weak)) int cmdSnake(const span<string_view> &)
 {
+  return EXIT_SUCCESS;
 }
 
-__attribute__((weak)) void cmdSnake(const span<string_view> &)
+__attribute__((weak)) int cmdStats(const span<string_view> &)
 {
-}
-
-__attribute__((weak)) void cmdStats(const span<string_view> &)
-{
+  return EXIT_SUCCESS;
 }
