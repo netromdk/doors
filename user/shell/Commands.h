@@ -1,6 +1,7 @@
 #ifndef USER_COMMANDS_H
 #define USER_COMMANDS_H
 
+#include <cstdlib>
 #include <span>
 #include <string_view>
 
@@ -10,27 +11,33 @@
 struct Command {
   const char *name;
   const char *desc;
-  void (*handler)(const span<string_view> &);
+  int (*handler)(const span<string_view> &);
 };
+
+// Misuse of a command: missing or invalid arguments.
+constexpr int EXIT_USAGE = 2;
+
+// Exit code returned by `dispatch()` for an unrecognized command (POSIX style).
+constexpr int EXIT_UNKNOWN_COMMAND = 127;
 
 span<const Command> getCmdTable();
 
 int dispatch(const span<string_view> &);
 
-void cmdHelp(const span<string_view> &);
-void cmdClear(const span<string_view> &);
-void cmdHalt(const span<string_view> &);
-void cmdReboot(const span<string_view> &);
-void cmdPanic(const span<string_view> &);
-void cmdUptime(const span<string_view> &);
-void cmdMemInfo(const span<string_view> &);
-void cmdHeap(const span<string_view> &);
-void cmdDateTime(const span<string_view> &);
-void cmdCpuInfo(const span<string_view> &);
-void cmdEcho(const span<string_view> &);
-void cmdKill(const span<string_view> &);
-void cmdTasks(const span<string_view> &);
-void cmdSnake(const span<string_view> &);
-void cmdStats(const span<string_view> &);
+int cmdHelp(const span<string_view> &);
+int cmdClear(const span<string_view> &);
+int cmdHalt(const span<string_view> &);
+int cmdReboot(const span<string_view> &);
+int cmdPanic(const span<string_view> &);
+int cmdUptime(const span<string_view> &);
+int cmdMemInfo(const span<string_view> &);
+int cmdHeap(const span<string_view> &);
+int cmdDateTime(const span<string_view> &);
+int cmdCpuInfo(const span<string_view> &);
+int cmdEcho(const span<string_view> &);
+int cmdKill(const span<string_view> &);
+int cmdTasks(const span<string_view> &);
+int cmdSnake(const span<string_view> &);
+int cmdStats(const span<string_view> &);
 
 #endif

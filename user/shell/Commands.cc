@@ -36,16 +36,15 @@ span<const Command> getCmdTable()
 int dispatch(const span<string_view> &args)
 {
   if (args.empty() || args[0].empty()) {
-    return 0;
+    return EXIT_SUCCESS;
   }
 
   for (const auto &cmd : cmdTable) {
     if (args[0] == cmd.name) {
-      cmd.handler(args);
-      return 0;
+      return cmd.handler(args);
     }
   }
 
   printf("Unknown command: %s\n", args[0].data());
-  return -1;
+  return EXIT_UNKNOWN_COMMAND;
 }

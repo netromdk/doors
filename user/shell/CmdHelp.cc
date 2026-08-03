@@ -1,7 +1,7 @@
 #include "Commands.h"
 #include "Lib.h"
 
-void cmdHelp(const span<string_view> &)
+int cmdHelp(const span<string_view> &)
 {
   print("Commands:\n");
   const auto cmds = getCmdTable();
@@ -12,4 +12,5 @@ void cmdHelp(const span<string_view> &)
     print(cmd.desc);
     print("\n");
   }
+  return EXIT_SUCCESS;
 }

@@ -3,7 +3,7 @@
 #include "Util.h"
 #include "lib/Syscall.h"
 
-void cmdCpuInfo(const span<string_view> &)
+int cmdCpuInfo(const span<string_view> &)
 {
   CpuInfoRaw cpu{};
   if (sys_sysinfo(SYSINFO_CPU, reinterpret_cast<unsigned int>(&cpu)) == 0) {
@@ -62,5 +62,7 @@ void cmdCpuInfo(const span<string_view> &)
       putchar('\n');
     }
     putchar('\n');
+    return EXIT_SUCCESS;
   }
+  return EXIT_FAILURE;
 }

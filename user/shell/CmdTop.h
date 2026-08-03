@@ -38,7 +38,7 @@ struct Range {
   int last;
 };
 
-void cmdHandler(const span<string_view> &);
+int cmdHandler(const span<string_view> &);
 
 int maxScrollOffset(int taskCount, int visibleRows);
 int clampScroll(int offset, int taskCount, int visibleRows);

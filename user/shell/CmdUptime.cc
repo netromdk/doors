@@ -2,7 +2,7 @@
 #include "Lib.h"
 #include "lib/Util.h"
 
-void cmdUptime(const span<string_view> &)
+int cmdUptime(const span<string_view> &)
 {
   const auto total = util::uptimeMs();
   const auto sec = total / 1000;
@@ -16,4 +16,5 @@ void cmdUptime(const span<string_view> &)
     putchar('0');
   }
   printf("%u seconds\n", ms);
+  return EXIT_SUCCESS;
 }

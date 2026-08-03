@@ -5,7 +5,7 @@
 #include "Util.h"
 #include "lib/Syscall.h"
 
-void printTaskTable()
+int printTaskTable()
 {
   unsigned int counts = static_cast<unsigned int>(sys_taskctl(TASKCTL_COUNT, 0, 0));
   unsigned int alive = (counts >> 24) & 0xFF;
@@ -15,7 +15,8 @@ void printTaskTable()
   printf("%u alive (%u running/ready), %u blocked, %u dead\n\n", alive, running, blocked, dead);
 
   TaskEntry entries[32];
-  int n = sys_taskctl(TASKCTL_LIST, reinterpret_cast<unsigned int>(entries), 32);
+  int n = sys_taskctl(TASKCTL_LIST,
+                      static_cast<unsigned int>(reinterpret_cast<unsigned long>(entries)), 32);
   if (n > 0) {
     print("ID  Name             State\n");
     print("--  ---------------- -----------\n");
@@ -24,6 +25,7 @@ void printTaskTable()
              taskStateStr(entries[i].state));
     }
   }
+  return EXIT_SUCCESS;
 }
 
 const char *priorityStr(unsigned int p)
@@ -42,13 +44,13 @@ const char *priorityStr(unsigned int p)
   }
 }
 
-void printTaskDetail(int id)
+int printTaskDetail(int id)
 {
   TaskDetail dt{};
-  if (0 !=
-      sys_taskctl(TASKCTL_DETAIL, static_cast<unsigned>(id), reinterpret_cast<unsigned>(&dt))) {
+  if (const auto dtAddr = static_cast<unsigned int>(reinterpret_cast<unsigned long>(&dt));
+      0 != sys_taskctl(TASKCTL_DETAIL, static_cast<unsigned>(id), dtAddr)) {
     printf("tasks: task %u does not exist or is dead\n", static_cast<unsigned>(id));
-    return;
+    return EXIT_FAILURE;
   }
 
   printf("Task %u:\n", static_cast<unsigned>(dt.id));
@@ -70,13 +72,13 @@ void printTaskDetail(int id)
   if (dt.state == 3 && dt.wakeupMs != 0) {
     printf("  Wakeup:     in %u ms\n", dt.wakeupMs);
   }
+  return EXIT_SUCCESS;
 }
 
-void cmdTasks(const span<string_view> &args)
+int cmdTasks(const span<string_view> &args)
 {
   if (args.size() < 2) {
-    printTaskTable();
-    return;
+    return printTaskTable();
   }
 
   const string_view s{args[1]};
@@ -84,8 +86,8 @@ void cmdTasks(const span<string_view> &args)
   const long id = strtol(s.data(), &end, 10);
   if (end == s.data() || *end != '\0') {
     printf("tasks: invalid task id\n");
-    return;
+    return EXIT_USAGE;
   }
 
-  printTaskDetail(static_cast<int>(id));
+  return printTaskDetail(static_cast<int>(id));
 }

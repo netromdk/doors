@@ -1,7 +1,7 @@
 #include "Commands.h"
 #include "Lib.h"
 
-void cmdEcho(const span<string_view> &args)
+int cmdEcho(const span<string_view> &args)
 {
   for (size_t i = 1; i < args.size(); ++i) {
     if (i > 1) {
@@ -10,4 +10,5 @@ void cmdEcho(const span<string_view> &args)
     print(args[i]);
   }
   putchar('\n');
+  return EXIT_SUCCESS;
 }

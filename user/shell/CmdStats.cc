@@ -3,12 +3,12 @@
 #include "Commands.h"
 #include "lib/Syscall.h"
 
-void cmdStats(const span<string_view> &)
+int cmdStats(const span<string_view> &)
 {
   StatsSnapshot snap;
   if (sys_stats(&snap) != 0) {
     printf("stats: syscall failed\n");
-    return;
+    return EXIT_FAILURE;
   }
 
   printf("Uptime: %u s\n", static_cast<unsigned>(snap.uptimeMs / 1000));
@@ -21,4 +21,5 @@ void cmdStats(const span<string_view> &)
   printf("Heap: %u bytes free, largest block %u\n", snap.heapFreeBytes, snap.heapLargestBlock);
   printf("Page faults: %u  CoW: %u  User: %u\n", snap.pageFaults, snap.cowFaults,
          snap.userPageFaults);
+  return EXIT_SUCCESS;
 }

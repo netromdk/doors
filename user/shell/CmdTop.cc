@@ -421,7 +421,7 @@ uint8_t taskRowColor(const TaskEntry &e)
   return taskColor(e.state);
 }
 
-void cmdHandler(const span<string_view> &)
+int cmdHandler(const span<string_view> &)
 {
   const ScreenGuard screen{};
   State st{};
@@ -453,6 +453,7 @@ void cmdHandler(const span<string_view> &)
       renderFrame(st, d);
     }
   }
+  return EXIT_SUCCESS;
 }
 
 } // namespace top
