@@ -1,11 +1,6 @@
 #include "Lib.h"
 #include "lib/Syscall.h"
 
-void print(string_view s)
-{
-  sys_write_str(s.data(), static_cast<unsigned int>(s.size()));
-}
-
 string readLine()
 {
   char buf[256];

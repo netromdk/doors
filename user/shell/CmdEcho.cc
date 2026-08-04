@@ -7,7 +7,7 @@ int cmdEcho(const span<string_view> &args)
     if (i > 1) {
       putchar(' ');
     }
-    print(args[i]);
+    printf("%s", args[i]);
   }
   putchar('\n');
   return EXIT_SUCCESS;

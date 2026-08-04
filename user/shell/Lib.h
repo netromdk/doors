@@ -8,6 +8,5 @@
 
 string readLine();
 span<string_view> tokenize(const string &line);
-void print(string_view s);
 
 #endif

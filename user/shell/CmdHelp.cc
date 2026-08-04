@@ -3,14 +3,10 @@
 
 int cmdHelp(const span<string_view> &)
 {
-  print("Commands:\n");
+  printf("Commands:\n");
   const auto cmds = getCmdTable();
   for (const auto &cmd : cmds) {
-    print("  ");
-    print(cmd.name);
-    print(" - ");
-    print(cmd.desc);
-    print("\n");
+    printf("  %s - %s\n", cmd.name, cmd.desc);
   }
   return EXIT_SUCCESS;
 }
