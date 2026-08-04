@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <string_view>
 
 int putchar(int ic);
 int puts(const char *str);
@@ -193,6 +194,7 @@ void formatRaw(SnprintfBuf &buf, const void *value, char);
 void formatRaw(SnprintfBuf &buf, const int *value, char fmt);
 void formatRaw(SnprintfBuf &buf, int *value, char fmt);
 void formatRaw(SnprintfBuf &buf, decltype(nullptr), char fmt);
+void formatRaw(SnprintfBuf &buf, string_view value, char);
 
 template <typename T>
 inline void formatPut(SnprintfBuf &buf, T value, char fmt, int width, bool left, char pad)
@@ -213,6 +215,12 @@ inline void formatPut(SnprintfBuf &buf, const char *value, char, int width, bool
     len++;
   }
   emitPadded(buf, value, len, width, left, ' ');
+}
+
+template <>
+inline void formatPut(SnprintfBuf &buf, string_view value, char, int width, bool left, char)
+{
+  emitPadded(buf, value.data(), value.size(), width, left, ' ');
 }
 
 inline void walkFormat(SnprintfBuf &buf, const char *format)

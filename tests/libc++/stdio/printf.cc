@@ -1,6 +1,8 @@
-#include <doctest/doctest.h>
-#include <cstdio>
 #include <cstdint>
+#include <cstdio>
+#include <string_view>
+
+#include <doctest/doctest.h>
 
 TEST_CASE("printf")
 {
@@ -42,4 +44,21 @@ TEST_CASE("printf")
   // = 7
   const char *str = nullptr;
   CHECK(printf("%s\n", str) == 7);
+}
+
+TEST_CASE("printf with string_view")
+{
+  CHECK(printf("%s\n", string_view("hello")) == 6);
+
+  CHECK(printf("hello %s\n", string_view("world")) == 12);
+
+  // Length-aware.
+  const char src[] = "ab cd";
+  CHECK(printf("%s\n", string_view(src, 2)) == 3);
+
+  CHECK(printf("%5s\n", string_view("hi")) == 6);
+  CHECK(printf("%-5s\n", string_view("hi")) == 6);
+
+  // Empty view has `data() == nullptr`.
+  CHECK(printf("%s!\n", string_view()) == 2);
 }

@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <string_view>
 
 #include <doctest/doctest.h>
 
@@ -344,4 +345,37 @@ TEST_CASE_FIXTURE(SnprintfFixture, "snprintf LLONG_MIN (64-bit signed edge case)
   const int n{snprintf(buf, sizeof(buf), "%d", v)};
   CHECK(n == 20);
   CHECK(strcmp(buf, "-9223372036854775808") == 0);
+}
+
+TEST_CASE_FIXTURE(SnprintfFixture, "snprintf string_view")
+{
+  CHECK(snprintf(buf, sizeof(buf), "%s", string_view("hello")) == 5);
+  CHECK(strcmp(buf, "hello") == 0);
+
+  CHECK(snprintf(buf, sizeof(buf), "hello %s", string_view("world")) == 11);
+  CHECK(strcmp(buf, "hello world") == 0);
+
+  // Length-aware.
+  const char src[] = "ab cd";
+  CHECK(snprintf(buf, sizeof(buf), "%s", string_view(src, 2)) == 2);
+  CHECK(strcmp(buf, "ab") == 0);
+
+  CHECK(snprintf(buf, sizeof(buf), "%10s", string_view("hi")) == 10);
+  CHECK(strcmp(buf, "        hi") == 0);
+
+  CHECK(snprintf(buf, sizeof(buf), "%-10s", string_view("hi")) == 10);
+  CHECK(strcmp(buf, "hi        ") == 0);
+
+  // Empty view has `data() == nullptr`.
+  CHECK(snprintf(buf, sizeof(buf), "%s!", string_view()) == 1);
+  CHECK(strcmp(buf, "!") == 0);
+}
+
+TEST_CASE("snprintf string_view truncation")
+{
+  char tiny[4];
+  const int n{snprintf(tiny, sizeof(tiny), "%s", string_view("hello"))};
+  CHECK(n == 5);
+  CHECK(strcmp(tiny, "hel") == 0);
+  CHECK(tiny[3] == '\0');
 }

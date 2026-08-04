@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <string_view>
 
 #include <doctest/doctest.h>
 
@@ -163,4 +164,21 @@ TEST_CASE_FIXTURE(SprintfFixture, "sprintf zero-pad with left-align")
 {
   CHECK(sprintf(buf, "%-08d", 42) == 8);
   CHECK(strcmp(buf, "42      ") == 0);
+}
+
+TEST_CASE_FIXTURE(SprintfFixture, "sprintf string_view")
+{
+  CHECK(sprintf(buf, "%s", string_view("world")) == 5);
+  CHECK(strcmp(buf, "world") == 0);
+
+  // Length-aware.
+  const char src[] = "ab cd";
+  CHECK(sprintf(buf, "%s", string_view(src, 2)) == 2);
+  CHECK(strcmp(buf, "ab") == 0);
+
+  CHECK(sprintf(buf, "%10s", string_view("hi")) == 10);
+  CHECK(strcmp(buf, "        hi") == 0);
+
+  CHECK(sprintf(buf, "%-10s", string_view("hi")) == 10);
+  CHECK(strcmp(buf, "hi        ") == 0);
 }

@@ -72,6 +72,11 @@ void formatRaw(SnprintfBuf &buf, decltype(nullptr), char fmt)
   formatRaw(buf, (const void *) nullptr, fmt);
 }
 
+void formatRaw(SnprintfBuf &buf, string_view value, char)
+{
+  buf.write(value.data(), value.size());
+}
+
 } // namespace detail
 
 int printf(const char *format)
